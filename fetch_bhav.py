@@ -88,7 +88,7 @@ def main():
     a = ap.parse_args()
 
     end = date.today()
-    start = datetime.strptime(a.start, "%Y-%m-%d").date() if a.start else end - timedelta(days=a.days)
+    start = datetime.strptime(a.start, "%Y-%m-%d").date() if a.start else end - timedelta(days=a.days - 1)
     exchanges = [a.only] if a.only else ["nse", "bse"]
     for e in exchanges:
         (RAW / e).mkdir(parents=True, exist_ok=True)
@@ -118,6 +118,8 @@ def main():
                     print(f"wait   {e.upper()} {d} (today's file not published yet)")
                 time.sleep(random.uniform(1.0, 2.0))
         d += timedelta(days=1)
+
+    prune_old_files(end, a.days)
 
     print("\n--- Summary ---")
     for e in exchanges:
