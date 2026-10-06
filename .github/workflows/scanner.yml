@@ -1,0 +1,36 @@
+name: Daily Stock Scanner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Download 420 days of market data
+        run: |
+          python fetch_bhav.py --days 420
+
+      - name: Build price data
+        run: |
+          python build_prices.py
+
+      - name: Run stock scans
+        run: |
+          python run_scans.py
