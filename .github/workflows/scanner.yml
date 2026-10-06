@@ -23,7 +23,15 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Download 420 days of market data
+      - name: Restore market data cache
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: market-data-raw-${{ github.run_id }}
+          restore-keys: |
+            market-data-raw-
+
+      - name: Download missing market data
         run: |
           python fetch_bhav.py --days 420
 
