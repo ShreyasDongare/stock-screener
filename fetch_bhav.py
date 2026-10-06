@@ -80,6 +80,32 @@ def fetch_day(s, exch, d):
     return None, None
 
 
+def prune_old_files(end, days):
+    """Keep only the requested rolling calendar-day window of raw files."""
+    cutoff = end - timedelta(days=days - 1)
+    removed = 0
+
+    for exch in ("nse", "bse"):
+        folder = RAW / exch
+        if not folder.exists():
+            continue
+
+        for f in folder.iterdir():
+            if f.suffix not in (".csv", ".none"):
+                continue
+
+            try:
+                d = datetime.strptime(f.stem, "%Y%m%d").date()
+            except ValueError:
+                continue
+
+            if d < cutoff:
+                f.unlink()
+                removed += 1
+
+    print(f"Pruned {removed} old raw files before {cutoff}.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=420)
