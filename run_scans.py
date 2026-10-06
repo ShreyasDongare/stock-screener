@@ -74,7 +74,7 @@ def analyse(key, g, review_keys, recent_keys):
     gate = {nm: (mom_ok if (M["enabled"] and nm in M["apply_to"]) else True)
             for nm in ("stage2", "pullback", "htf")}
 
-    adr = (h[-20:] / l[-20:] - 1).mean() * 100
+    adr = (((h[-20:] - l[-20:]) / c[-20:]) * 100).mean()
     avg_val_cr = val[-20:].mean() / 1e7
     liquid = avg_val_cr >= CFG["min_avg_value_cr"]
     if liquid and n >= 253:             # IBD-style weighted 3/6/9/12 month return
