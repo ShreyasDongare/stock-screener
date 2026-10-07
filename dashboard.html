@@ -262,9 +262,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 const SCANS = {
   m136: {
     t: "1M / 3M / 6M",
-    d: "Breakout above the prior 31, 93 or 186 trading-day closing high with ADR, EMA60 and market-cap filters.",
+    d: "Breakout above the prior 31, 93 or 186 trading-day closing high with ADR and EMA60. Returns show the gain over each lookback.",
     sort: ["close", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["breakout","Breakout","l"],["market_cap_cr","Market Cap (Cr)"],["ema60","EMA60"],["tr_adr","ADR %"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["breakout","Breakout","l"],["ema60","EMA60"],["tr_adr","ADR %"],["spark","40 days"]]
   },
   m30: {
     t: "3M 30% Scan",
