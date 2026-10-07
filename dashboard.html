@@ -75,6 +75,21 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 @media(max-width:1000px){.dashboard-grid{grid-template-columns:205px minmax(0,1fr);gap:12px}.wrap{overflow:auto;scrollbar-width:thin}table{min-width:860px}}
 @media(max-width:720px){html,body{height:auto;overflow:auto}.in,main{width:calc(100% - 24px)}main{height:auto;overflow:visible;padding-bottom:28px}.dashboard-grid{grid-template-columns:1fr;overflow:visible}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;position:static}.tab{min-height:78px}.panel{min-height:520px}.wrap{overflow:auto;max-height:60vh}.section-kicker{font-size:9.5px}}
 @media(max-width:420px){.in,main{width:calc(100% - 18px)}.tabs{grid-template-columns:1fr}.tab b{font-size:20px}.tab span{font-size:11.5px}.sp{margin-left:0}input[type=search]{width:100%}}
+/* In-dashboard EOD chart */
+.chart-link{all:unset;cursor:pointer;color:var(--ink);font-weight:600;font-family:var(--sans)}
+.chart-link:hover{color:var(--acc);text-decoration:underline}
+.chart-modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.58);backdrop-filter:blur(5px)}
+.chart-modal.open{display:flex}
+.chart-box{width:min(1100px,96vw);height:min(720px,88vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden}
+.chart-head{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.chart-title{font:700 16px var(--sans);color:var(--ink)}
+.chart-meta{color:var(--mute);font:12px var(--mono);margin-left:4px}
+.chart-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:5px 10px;cursor:pointer}
+.chart-body{position:relative;flex:1;min-height:0;padding:10px 12px}
+.chart-svg{width:100%;height:100%;display:block}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 16px 12px;color:var(--mute);font:11px var(--sans)}
+.chart-legend b{color:var(--ink)}
+@media(max-width:720px){.chart-modal{padding:8px}.chart-box{width:100%;height:90vh}.chart-head{padding:10px 12px}.chart-body{padding:6px}}
 </style>
 </head>
 <body>
@@ -99,6 +114,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
   </section>
 </div>
 </main>
+<div class="chart-modal" id="chartModal" role="dialog" aria-modal="true" aria-label="Stock chart">
+  <div class="chart-box">
+    <div class="chart-head"><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
+    <div class="chart-body" id="chartBody"></div>
+    <div class="chart-legend"><span>▮ <b>Price</b></span><span>— EMA11</span><span>— EMA21</span><span>— SMA50</span><span>▮ Volume</span></div>
+  </div>
+</div>
 <script>
 const SCANS = {
   stage2: {
@@ -138,7 +160,7 @@ try {
 const $ = id => document.getElementById(id);
 const f2 = x => x == null || !Number.isFinite(Number(x)) ? "" : Number(x).toLocaleString("en-IN",{maximumFractionDigits:2});
 const esc = x => String(x ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
-const tv = r => `https://www.tradingview.com/chart/?symbol=${r.exch}%3A${encodeURIComponent(r.symbol)}`;
+let CHART = null;
 let D = null, SHOWN = [];
 
 function sourceRows(tab){
@@ -186,7 +208,7 @@ function heat(v){
 }
 
 const CELL = {
-  symbol:r=>`<td class="sym l"><a href="${tv(r)}" target="_blank" rel="noopener">${esc(r.symbol)}</a>${r.note ? ` <span class="w" title="${esc(r.note)}">⚠</span>` : ""}</td>`,
+  symbol:r=>`<td class="sym l"><button class="chart-link" data-chart-key="${esc(r.key)}" title="Open EOD chart">${esc(r.symbol)}</button>${r.note ? ` <span class="w" title="${esc(r.note)}">⚠</span>` : ""}</td>`,
   exch:r=>`<td class="l"><span class="ex">${esc(r.exch)}</span></td>`,
   setup:r=>`<td class="l"><span class="tag">${esc(r.setup)}</span></td>`,
   state:r=>`<td class="l"><span class="tag ${r.state==="Triggered"?"t":""}">${esc(r.state)}</span></td>`,
@@ -204,6 +226,30 @@ function options(values,current,label){
   return values.map(v=>`<option value="${esc(v)}" ${String(v)===String(current)?"selected":""}>${label(v)}</option>`).join("");
 }
 
+function closeChart(){
+  $("chartModal").classList.remove("open"); $("chartBody").innerHTML="";
+}
+function openChart(key,row){
+  if(!CHART || !CHART[key]) return;
+  const d=CHART[key], n=d.dates.length, W=1000,H=520,left=58,right=16,top=18,bottom=76,pw=W-left-right,ph=H-top-bottom;
+  $("chartTitle").textContent=d.exch+":"+d.symbol;
+  $("chartMeta").textContent=d.dates[0]+" → "+d.dates[n-1]+" · "+n+" sessions · EOD";
+  const lo=Math.min.apply(null,d.low.filter(Number.isFinite)), hi=Math.max.apply(null,d.high.filter(Number.isFinite));
+  const vr=Math.max.apply(null,d.volume.filter(Number.isFinite).concat([1]));
+  const px=function(v){return top+(hi-v)/(hi-lo||1)*ph}, xx=function(i){return left+(i/Math.max(n-1,1))*pw}, bw=Math.max(2,Math.min(9,pw/n*.62));
+  const line=function(a){return a.map(function(v,i){return Number.isFinite(Number(v))?xx(i)+","+px(Number(v)):null}).filter(Boolean).join(" ")};
+  let svg="<svg class=\"chart-svg\" viewBox=\"0 0 "+W+" "+H+"\" preserveAspectRatio=\"none\">";
+  [0,.25,.5,.75,1].forEach(function(t){const y=top+t*ph;svg+="<line x1=\""+left+"\" x2=\""+(W-right)+"\" y1=\""+y+"\" y2=\""+y+"\" stroke=\"currentColor\" opacity=\".09\"/>"});
+  svg+="<polyline points=\""+line(d.ema11)+"\" fill=\"none\" stroke=\"var(--acc)\" stroke-width=\"1.7\"/>";
+  svg+="<polyline points=\""+line(d.ema21)+"\" fill=\"none\" stroke=\"var(--up)\" stroke-width=\"1.5\" opacity=\".8\"/>";
+  svg+="<polyline points=\""+line(d.sma50)+"\" fill=\"none\" stroke=\"var(--mute)\" stroke-width=\"1.4\" opacity=\".85\"/>";
+  d.volume.forEach(function(v,i){const vh=Number(v)/vr*(ph*.18),y=top+ph-vh;svg+="<rect x=\""+(xx(i)-bw/2)+"\" y=\""+y+"\" width=\""+bw+"\" height=\""+vh+"\" fill=\"currentColor\" opacity=\".12\"/>"});
+  d.open.forEach(function(o,i){const c=Number(d.close[i]),h=Number(d.high[i]),l=Number(d.low[i]);if(![o,c,h,l].every(Number.isFinite))return;const up=c>=Number(o),stroke=up?"var(--up)":"var(--dn)",y1=px(h),y2=px(l),yo=px(Number(o)),yc=px(c),by=Math.min(yo,yc),bh=Math.max(1,Math.abs(yc-yo));svg+="<line x1=\""+xx(i)+"\" x2=\""+xx(i)+"\" y1=\""+y1+"\" y2=\""+y2+"\" stroke=\""+stroke+"\"/><rect x=\""+(xx(i)-bw/2)+"\" y=\""+by+"\" width=\""+bw+"\" height=\""+bh+"\" fill=\""+stroke+"\" opacity=\".82\"/>"});
+  if(row){[["entry","var(--up)"],["stop","var(--dn)"]].forEach(function(z){const v=Number(row[z[0]]);if(Number.isFinite(v)){const y=px(v);svg+="<line x1=\""+left+"\" x2=\""+(W-right)+"\" y1=\""+y+"\" y2=\""+y+"\" stroke=\""+z[1]+"\" stroke-dasharray=\"7 5\"/><text x=\""+(W-right-4)+"\" y=\""+(y-4)+"\" text-anchor=\"end\" fill=\"currentColor\" font-size=\"11\">"+z[0].toUpperCase()+" "+f2(v)+"</text>"}})}
+  [0,Math.floor((n-1)/2),n-1].forEach(function(i){svg+="<text x=\""+xx(i)+"\" y=\""+(H-42)+"\" text-anchor=\"middle\" fill=\"currentColor\" opacity=\".55\" font-size=\"11\">"+esc(d.dates[i])+"</text>"});
+  [0,.5,1].forEach(function(t){const v=hi-(hi-lo)*t;svg+="<text x=\""+(left-8)+"\" y=\""+(top+t*ph+4)+"\" text-anchor=\"end\" fill=\"currentColor\" opacity=\".55\" font-size=\"11\">"+f2(v)+"</text>"});
+  svg+="</svg>"; $("chartBody").innerHTML=svg; $("chartModal").classList.add("open");
+}
 function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
@@ -235,6 +281,8 @@ function render(){
 
 function wire(){
   document.addEventListener("click",e=>{
+    const chartBtn=e.target.closest("[data-chart-key]");
+    if(chartBtn){ const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey); openChart(chartBtn.dataset.chartKey,r); return; }
     const t=e.target.closest("[data-tab]"), x=e.target.closest("[data-ex]"), s=e.target.closest("[data-sort]"), l=e.target.closest("[data-lv]");
     if(t){S.tab=t.dataset.tab;S.st="";[S.key,S.dir]=SCANS[S.tab].sort;render();return}
     if(x){S.ex=x.dataset.ex;render();return}
@@ -270,11 +318,16 @@ function wire(){
   document.addEventListener("keydown",e=>{if(e.key==="/" && document.activeElement.tagName!=="INPUT"){e.preventDefault();$("q").focus()}});
 }
 
+$("chartClose").addEventListener("click",closeChart);
+$("chartModal").addEventListener("click",e=>{if(e.target.id==="chartModal") closeChart()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape" && $("chartModal").classList.contains("open")) closeChart()});
+
 async function load(){
   try{
     const resp=await fetch("data/results.json?"+Date.now(),{cache:"no-store"});
     if(!resp.ok) throw new Error("HTTP "+resp.status);
     D=await resp.json();
+    try { const cr=await fetch("data/chart_data.json?"+Date.now(),{cache:"no-store"}); CHART=cr.ok?await cr.json():{}; } catch (_) { CHART={}; }
     $("meta").textContent=`${D.asof||"—"} · ${Number(D.stats?.traded_last_day||0).toLocaleString("en-IN")} stocks traded · updated ${String(D.generated||"—").replace("T"," ")}`;
     const age=(Date.now()-new Date(D.asof))/864e5;
     if(Number.isFinite(age)&&age>4){$("stale").style.display="block";$("stale").textContent=`Data is ${Math.floor(age)} days old.`;}
