@@ -65,7 +65,7 @@ td:first-child,th:first-child{position:sticky;left:0;background:var(--panel)}
 thead th:first-child{z-index:3}
 tbody tr{transition:background .2s ease,transform .2s ease}tbody tr:hover td{background:var(--hover)}
 .sym a{color:var(--ink);font-weight:600;text-decoration:none;font-family:var(--sans)}.sym a:hover{color:var(--acc);text-decoration:underline}
-.ex{font:500 11px var(--mono);color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.ex{font:600 10px var(--mono);border:1px solid transparent;border-radius:4px;padding:2px 6px;line-height:1.1}.ex.nse{color:#2A78B8;background:rgba(42,120,184,.10);border-color:rgba(42,120,184,.32)}.ex.bse{color:#D95353;background:rgba(217,83,83,.10);border-color:rgba(217,83,83,.32)}
 .up{color:var(--up)}.dn{color:var(--dn)}.w{color:var(--warn);cursor:help}
 .tag{font:500 12px var(--sans);padding:2px 9px;border-radius:4px;background:var(--accbg);color:var(--acc)}.tag.t{background:transparent;border:1px solid var(--up);color:var(--up)}
 .rs{display:inline-flex;align-items:center;gap:7px}.rs i{display:block;height:5px;border-radius:3px;background:var(--acc);width:0;opacity:.8}.rs b{font-weight:500;min-width:20px}
@@ -335,7 +335,7 @@ function heat(v){
 
 const CELL = {
   symbol:r=>`<td class="sym l"><button class="chart-link" data-chart-key="${esc(r.key)}" title="Click for EOD chart · Double-click for Dhan TradingView">${esc(r.symbol)}</button>${r.note ? ` <span class="w" title="${esc(r.note)}">⚠</span>` : ""}</td>`,
-  exch:r=>`<td class="l"><span class="ex">${esc(r.exch)}</span></td>`,
+  exch:r=>{const ex=String(r.exch||"").toUpperCase();return `<td class="l"><span class="ex ${ex==="BSE"?"bse":"nse"}">${esc(ex)}</span></td>`;},
   setup:r=>`<td class="l"><span class="tag">${esc(r.setup)}</span></td>`,
   state:r=>`<td class="l"><span class="tag ${r.state==="Triggered"?"t":""}">${esc(r.state)}</span></td>`,
   chg:r=>`<td class="${Number(r.chg)>=0?"up":"dn"}">${Number(r.chg)>=0?"+":""}${f2(r.chg)}</td>`,
