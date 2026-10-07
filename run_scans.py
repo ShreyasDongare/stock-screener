@@ -203,6 +203,11 @@ def base_row(
 
     row0 = g.iloc[i]
 
+    def return_from_bars(days):
+        if i < days or not np.isfinite(c[i - days]) or c[i - days] == 0:
+            return np.nan
+        return (c[i] / c[i - days] - 1) * 100
+
     note = []
 
     if key in review_keys:
@@ -229,6 +234,11 @@ def base_row(
         ),
         "volume": num(v[i], 0),
         "value_cr": num(value_rupees / 1e7, 2),
+        # Display-only momentum returns. These do NOT participate in any scan filter.
+        # Keep the same trading-day windows already used by the 1M/3M/6M breakout scan.
+        "ret1m": num(return_from_bars(31), 2),
+        "ret3m": num(return_from_bars(93), 2),
+        "ret6m": num(return_from_bars(186), 2),
         "adr": num(adr, 2),
         "adx": num(adx[i], 2),
         "note": "; ".join(note),
