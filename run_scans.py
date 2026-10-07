@@ -63,7 +63,6 @@ CFG = {
     "high52w": {
         "name": "52Week High",
         "value_min_rupees": 10_000_000.0,
-        "market_cap_min_cr": 1000.0,
         "adr_min_pct": 3.0,
         "high_lookback_days": 252,
         "max_high_distance_pct": 10.0,
@@ -426,9 +425,6 @@ def analyse_htf(
     if n <= 252:
         return None
 
-    if not np.isfinite(market_cap_cr):
-        return None
-
     close_60 = c[-1 - CFG["htf"]["lookback_days"]]
 
     if close_60 == 0:
@@ -493,7 +489,6 @@ def analyse_high52w(
     l,
     v,
     tr,
-    market_cap_cr,
     base,
 ):
     """
@@ -657,7 +652,6 @@ def analyse_stock(
         l,
         v,
         tr,
-        market_cap_cr,
         base,
     )
     if r:
@@ -862,7 +856,7 @@ def main():
         "definitions": {
             "m136": (
                 "SMA(True Range(1),20) / Close * 100 >= 3 AND "
-                "Market Cap >= 1000 Cr AND Close > EMA60 AND "
+                "Close > EMA60 AND "
                 "(Close > previous 31-day max Close OR "
                 "Close > previous 93-day max Close OR "
                 "Close > previous 186-day max Close)"
@@ -877,7 +871,7 @@ def main():
                 "Close / 60-days-ago Close > 1.5 AND "
                 "Close >= previous 252-day max High * 0.85 AND "
                 "Volume < SMA(Volume,20) * 1.5 AND "
-                "Market Cap > 500 Cr AND Close > ₹50"
+                "Close > ₹50"
             ),
             "high52w": (
                 "Close * Volume > ₹10,000,000 AND "
