@@ -449,7 +449,7 @@ function renderChartWatchlist(activeKey){
     const list=$("chartWatchlist");
     if(!list) return;
     if(activeIndex>=0 && previousScrollTop==null){
-      const rowHeight=42;
+      const rowHeight=44;
       const header=$("chartWatchItems")?.previousElementSibling;
       const headerHeight=header?.offsetHeight||92;
       list.scrollTop=Math.max(0,activeIndex*rowHeight-(list.clientHeight-headerHeight)/2);
