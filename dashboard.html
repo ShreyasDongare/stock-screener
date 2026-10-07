@@ -415,6 +415,17 @@ function closeChart(){
   CHART_ROW=null;
   $("chartBody").innerHTML="";
 }
+const CHART_TAGS_KEY="scn-chart-tags";
+function getTags(){
+  try{
+    const v=JSON.parse(localStorage.getItem(CHART_TAGS_KEY)||"{}");
+    return v && typeof v==="object" ? v : {};
+  }catch(_){ return {}; }
+}
+function saveTags(tags){
+  try{ localStorage.setItem(CHART_TAGS_KEY,JSON.stringify(tags||{})); }catch(_){}
+}
+
 const CHART_WATCH_ROW_HEIGHT=44;
 const CHART_WATCH_BUFFER=12;
 let CHART_WATCH_Q="";
@@ -423,6 +434,7 @@ let CHART_WATCH_SORT="chg";
 let CHART_WATCH_SORT_DIR=-1;
 let CHART_WATCH_ITEMS=[];
 let CHART_WATCH_ACTIVE_KEY="";
+let CHART_WATCH_TAGS={};
 let CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
 
 function chartRowKey(r){
@@ -467,7 +479,7 @@ function chartWatchRowHTML(r,activeKey){
   const priceText=Number.isFinite(price)?f2(price):"—";
   const chgText=Number.isFinite(chg)?((chg>=0?"+":"")+f2(chg)+"%"):"—";
   const chgCls=Number.isFinite(chg)?(chg>=0?"up":"dn"):"";
-  const tag=getTags()[key]||"";
+  const tag=(CHART_WATCH_TAGS||{})[key]||"";
   return '<button class="chart-watch-item '+(key===activeKey?"active ":"")+(tag?"tag-"+esc(tag):"")+'" data-watch-key="'+esc(key)+'">'+
     '<span class="wsymbol"><b>'+esc(r.symbol)+'</b><span class="wexch '+(String(r.exch||"").toUpperCase()==="BSE"?"bse":"nse")+'">'+esc(String(r.exch||"NSE").toUpperCase())+'</span></span>'+
     '<span class="wprice">'+priceText+'</span>'+
@@ -523,6 +535,7 @@ function ensureChartWatchActiveVisible(){
 function renderChartWatchlist(activeKey){
   const el=$("chartWatchlist"); if(!el) return;
   CHART_WATCH_ACTIVE_KEY=activeKey||"";
+  CHART_WATCH_TAGS=getTags();
   CHART_WATCH_ITEMS=chartWatchItems();
   CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
 
@@ -833,7 +846,7 @@ function openTagPalette(key,x,y){
     const b=e.target.closest("[data-palette-color]"); if(!b) return;
     const tags=getTags(), color=b.dataset.paletteColor;
     if(color) tags[key]=color; else delete tags[key];
-    saveTags(tags); closeTagPalette(); renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):key);
+    saveTags(tags); CHART_WATCH_TAGS=tags; closeTagPalette(); renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):key);
   });
 }
 document.addEventListener("contextmenu",e=>{
