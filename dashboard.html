@@ -552,7 +552,6 @@ function openChart(key,row){
   DRAW_TOOL="select";
   const last=n-1, close=Number(d.close[last]), prev=n>1?Number(d.close[last-1]):NaN;
   const dayPct=Number.isFinite(prev)&&prev!==0?(close/prev-1)*100:NaN;
-  const entry=Number(row?.entry), stop=Number(row?.stop);
   const fmt=x=>Number.isFinite(x)?x.toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
 
   $("chartTitle").textContent=d.exch+":"+d.symbol;
@@ -562,8 +561,7 @@ function openChart(key,row){
     '<span style="color:'+(dayPct>=0?ct.up:ct.down)+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
     (Number.isFinite(row?.adx)?'<span style="color:'+ct.text+'">ADX '+fmt(Number(row.adx))+'</span>':'')+
     (row?.setup?'<span style="color:'+ct.ema11+'">'+esc(row.setup)+'</span>':'')+
-    (Number.isFinite(entry)?'<span style="color:'+ct.up+'">Entry ₹'+fmt(entry)+'</span>':'')+
-    (Number.isFinite(stop)?'<span style="color:'+ct.down+'">SL ₹'+fmt(stop)+'</span>':'');
+    ';
 
   // Save the existing watchlist position before rebuilding chartBody. This is the
   // important part: openChart() replaces the DOM, so reading scrollTop after that
@@ -594,9 +592,6 @@ function openChart(key,row){
     priceLineVisible:false,lastValueVisible:true
   });
   candle.setData(candles);
-
-  if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:ct.up,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
-  if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:ct.down,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
 
   const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
   const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
