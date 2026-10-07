@@ -16,17 +16,17 @@ body{margin:0;background:radial-gradient(circle at 12% -8%,color-mix(in srgb,var
 @keyframes softPulse{0%,100%{opacity:.72}50%{opacity:1}}
 .top{background:linear-gradient(135deg,#101820,var(--hdr));color:var(--hdrink);box-shadow:0 8px 28px rgba(0,0,0,.16);position:relative;overflow:hidden}
 .top::after{content:"";position:absolute;inset:auto -10% -55% 35%;height:180px;background:radial-gradient(circle,color-mix(in srgb,var(--acc) 22%,transparent),transparent 68%);pointer-events:none}
-.in{max-width:1240px;margin:0 auto;padding:21px 16px;display:flex;justify-content:space-between;align-items:center;gap:16px;position:relative;z-index:1}
+.in{width:calc(100% - 40px);max-width:none;margin:0 auto;padding:21px 0;display:flex;justify-content:space-between;align-items:center;gap:16px;position:relative;z-index:1}
 .brand{display:flex;align-items:center;gap:0}
 h1{font-size:25px;font-weight:600;margin:0;letter-spacing:-.45px}
 .sub{color:#AEBBC8;font-size:12px;margin-top:5px;font-family:var(--mono);letter-spacing:.15px}
 .status{display:flex;align-items:center;gap:8px;color:#C9D5E1;font:500 10.5px var(--mono);text-transform:uppercase;letter-spacing:.75px}
 .status i{width:7px;height:7px;border-radius:50%;background:#45C98D;box-shadow:0 0 0 4px rgba(69,201,141,.12);animation:softPulse 2.4s ease-in-out infinite}
 .ic{background:rgba(255,255,255,.05);border:1px solid #3A4856;color:var(--hdrink);border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;transition:background .22s ease,transform .22s ease,border-color .22s ease}.ic:hover{background:rgba(255,255,255,.11);transform:translateY(-1px);border-color:#526273}
-main{max-width:1240px;margin:0 auto;padding:22px 16px 52px}
+main{width:calc(100% - 40px);max-width:none;margin:0 auto;padding:22px 0 52px}
 .stale{display:none;background:var(--accbg);border-left:4px solid var(--warn);padding:9px 12px;border-radius:4px;margin-bottom:12px}
 .section-kicker{display:flex;justify-content:space-between;align-items:center;margin:0 2px 11px;color:var(--mute);font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.8px}
-.dashboard-grid{display:grid;grid-template-columns:235px minmax(0,1fr);gap:16px;align-items:start}
+.dashboard-grid{display:grid;grid-template-columns:225px minmax(0,1fr);gap:16px;align-items:start}
 .tabs{display:flex;flex-direction:column;gap:10px;margin:0}
 .tab{width:100%;min-height:92px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 98%,var(--acc)),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 17px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s cubic-bezier(.2,.7,.2,1),border-color .28s ease,background .28s ease}
 .tab:hover{transform:translateX(2px);box-shadow:0 12px 26px rgba(0,0,0,.08);border-color:color-mix(in srgb,var(--acc) 42%,var(--line))}
@@ -64,8 +64,8 @@ tbody tr{transition:background .2s ease,transform .2s ease}tbody tr:hover td{bac
 .foot{padding:8px 12px;color:var(--mute);font-size:12px;border-top:1px solid var(--line)}
 button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 @media(max-width:1000px){.dashboard-grid{grid-template-columns:205px minmax(0,1fr);gap:12px}.wrap{overflow-x:auto;scrollbar-width:thin}table{min-width:860px}}
-@media(max-width:720px){.dashboard-grid{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.tab{min-height:78px}.section-kicker{font-size:9.5px}}
-@media(max-width:420px){.tabs{grid-template-columns:1fr}.tab b{font-size:20px}.tab span{font-size:11.5px}.sp{margin-left:0}input[type=search]{width:100%}}
+@media(max-width:720px){.in,main{width:calc(100% - 24px)}.dashboard-grid{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.tab{min-height:78px}.section-kicker{font-size:9.5px}}
+@media(max-width:420px){.in,main{width:calc(100% - 18px)}.tabs{grid-template-columns:1fr}.tab b{font-size:20px}.tab span{font-size:11.5px}.sp{margin-left:0}input[type=search]{width:100%}}
 </style>
 </head>
 <body>
