@@ -269,9 +269,18 @@ def analyse_m136(
     if not hits:
         return None
 
+    def pct_from_bars(days):
+        old_close = c[-1 - days]
+        if old_close == 0:
+            return np.nan
+        return (c[-1] / old_close - 1) * 100
+
     return {
         **base,
         "breakout": " / ".join(hits),
+        "ret1m": num(pct_from_bars(31), 2),
+        "ret3m": num(pct_from_bars(93), 2),
+        "ret6m": num(pct_from_bars(186), 2),
         "ema60": num(ema60[-1], 2),
         "tr_adr": num(adr, 2),
         "signal": "Close above prior high"
