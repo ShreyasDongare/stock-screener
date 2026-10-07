@@ -262,25 +262,25 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 const SCANS = {
   m136: {
     t: "1M / 3M / 6M",
-    d: "Breakout above the prior 31, 93 or 186 trading-day closing high with ADR and EMA60. Returns show the gain over each lookback.",
+    d: "Common filter: ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then breakout above the prior 31, 93 or 186 trading-day closing high with ADR and EMA60.",
     sort: ["close", -1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["breakout","Breakout","l"],["ema60","EMA60"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
   },
   m30: {
     t: "3M 30% Scan",
-    d: "3-month return above 30%, above EMA75, ADR at least 3%, and traded value above ₹1 Cr.",
+    d: "ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then 3-month return above 30%, above EMA75, ADR at least 3%, and traded value above ₹1 Cr.",
     sort: ["ret3m", -1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["ema75","EMA75"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
   },
   htf: {
     t: "HTF Scan",
-    d: "60-day gain above 50%, within 15% of the prior 252-day high, controlled volume and price above ₹50.",
+    d: "ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then 60-day gain above 50%, within 15% of the prior 252-day high, controlled volume and price above ₹50.",
     sort: ["gain60", -1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["gain60","60D %"],["off_high","Off 252W high %"],["vol_ratio","Vol x"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
   },
   high52w: {
     t: "52Week High",
-    d: "Within 10% of the prior 252-day high, but not above it, with ADR and ₹1 Cr traded-value.",
+    d: "ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then within 10% of the prior 252-day high, but not above it, with ADR and ₹1 Cr traded-value.",
     sort: ["off_high", 1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["off_high","Off 52W high %"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
   }
