@@ -225,7 +225,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 <div style="display:flex;align-items:center;gap:12px"><div class="status"><i></i>LIVE DATA ENGINE</div><button class="ic" id="theme" title="Switch light / dark" aria-label="Switch light or dark theme">◐</button></div></div></header>
 <main>
 <div class="stale" id="stale"></div>
-<div class="section-kicker"><span>Momentum Intelligence</span><span>Stage 2 · Pullback · Breakout / HTF · EP</span></div>
+<div class="section-kicker"><span>Momentum Intelligence</span><span>1M / 3M / 6M · 3M 30% · HTF · 52Week High</span></div>
 <div class="dashboard-grid">
   <aside><div class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></div><button class="copy-all" id="copyAll">Copy All Stocks</button></aside>
   <section class="panel">
@@ -260,38 +260,37 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 </div>
 <script>
 const SCANS = {
-  stage2: {
-    t: "Strong Stage 2",
-    d: "Trend template plus relative strength. A watchlist, not an entry signal.",
-    sort: ["rs", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["rs","RS"],["adx","ADX"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["off_high","Off high %"],["adr","ADR %"],["spark","40 days"]]
+  m136: {
+    t: "1M / 3M / 6M",
+    d: "Breakout above the prior 31, 93 or 186 trading-day closing high with ADR, EMA60 and market-cap filters.",
+    sort: ["close", -1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["breakout","Breakout","l"],["market_cap_cr","Market Cap (Cr)"],["ema60","EMA60"],["tr_adr","ADR %"],["spark","40 days"]]
   },
-  pullback: {
-    t: "Pullback",
-    d: "Close within the set % of EMA 11, EMA 21 or SMA 50. Entry above today's high, stop at the 5-day low.",
-    sort: ["dist", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["adx","ADX"],["level","Level","l"],["dist","Dist %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["entry","Entry"],["stop","Stop"],["risk","Risk %"],["spark","40 days"]]
+  m30: {
+    t: "3M 30% Scan",
+    d: "3-month return above 30%, above EMA75, ADR at least 3%, and traded value above ₹1 Cr.",
+    sort: ["ret3m", -1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret3m","3M %"],["ema75","EMA75"],["tr_adr","ADR %"],["value_cr","Value (Cr)"],["spark","40 days"]]
   },
-  breakout_htf: {
-    t: "Breakout / HTF",
-    d: "Combined view of tight-flag Breakout and High Tight Flag candidates.",
-    sort: ["gain", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["setup","Setup","l"],["state","State","l"],["close","Close"],["adx","ADX"],["gain","Run-up %"],["flag_days","Flag days"],["depth","Dip %"],["entry","Entry"],["stop","Stop"],["risk","Risk %"],["spark","40 days"]]
+  htf: {
+    t: "HTF Scan",
+    d: "60-day gain above 50%, within 15% of the prior 252-day high, controlled volume, market cap above ₹500 Cr and price above ₹50.",
+    sort: ["gain60", -1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["gain60","60D %"],["off_high","Off 252W high %"],["vol_ratio","Vol x"],["market_cap_cr","Market Cap (Cr)"],["spark","40 days"]]
   },
-  ep: {
-    t: "Episodic Pivot",
-    d: "Gap-up on heavy volume after a quiet stretch. Entry above the EP-day high, stop at its low.",
-    sort: ["vol_ratio", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["state","State","l"],["close","Close"],["adx","ADX"],["gap","Gap %"],["vol_ratio","Vol x"],["prior_3m","Prior 3M %"],["adr","ADR %"],["entry","Entry"],["stop","Stop"],["risk","Risk %"],["spark","40 days"]]
+  high52w: {
+    t: "52Week High",
+    d: "Within 10% of the prior 252-day high, but not above it, with ADR, market-cap and ₹1 Cr traded-value filters.",
+    sort: ["off_high", 1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["off_high","Off 52W high %"],["market_cap_cr","Market Cap (Cr)"],["tr_adr","ADR %"],["value_cr","Value (Cr)"],["spark","40 days"]]
   }
-};
-
-const DEFAULT_STATE = { tab: "stage2", ex: "ALL", q: "", rs: 70, off: "", lv: {EMA11:true,EMA21:true,SMA50:true}, risk:"", st:"", key:"rs", dir:-1 };
+}
+const DEFAULT_STATE = { tab: "m136", ex: "ALL", q: "", key: "close", dir: -1 };
 let S = {...DEFAULT_STATE};
 try {
   const saved = JSON.parse(localStorage.getItem("scn") || "{}");
   S = {...DEFAULT_STATE, ...saved, lv:{...DEFAULT_STATE.lv, ...(saved.lv||{})}};
-  if (!SCANS[S.tab]) S.tab = "stage2";
+  if (!SCANS[S.tab]) { S.tab = DEFAULT_STATE.tab; S.key = DEFAULT_STATE.key; S.dir = DEFAULT_STATE.dir; }
 } catch (_) {}
 
 const $ = id => document.getElementById(id);
@@ -301,31 +300,22 @@ let D = null, SHOWN = [];
 
 function sourceRows(tab){
   if (!D || !D.scans) return [];
-  if (tab === "breakout_htf") {
-    const bo = (D.scans.breakout || []).map(r => ({...r, setup:"Breakout", gain:r.runup ?? 0, depth:r.depth ?? null}));
-    const hf = (D.scans.htf || []).map(r => ({...r, setup:"HTF", gain:r.gain ?? 0, depth:r.pullback ?? null}));
-    return bo.concat(hf);
-  }
   return D.scans[tab] || [];
 }
-
 function rows(tab){
   const q = S.q.trim().toUpperCase();
   return sourceRows(tab).filter(r => {
     if (S.ex !== "ALL" && r.exch !== S.ex) return false;
     if (q && !String(r.symbol || "").toUpperCase().includes(q)) return false;
-    if (tab === "stage2") return Number(r.rs || 0) >= Number(S.rs) && (S.off === "" || Number(r.off_high) <= Number(S.off));
-    if (tab === "pullback") return !!S.lv[r.level] && (S.risk === "" || Number(r.risk) <= Number(S.risk));
-    return (S.st === "" || r.state === S.st) && (S.risk === "" || Number(r.risk) <= Number(S.risk));
+    return true;
   });
 }
-
 function valueFor(r,key){
-  if(key === "dist") return Math.abs(Number(r.dist || 0));
-  if(key === "gain") return Number(r.gain || 0);
-  return r[key];
+  const v = r?.[key];
+  if(typeof v === "string") return v.toUpperCase();
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
 }
-
 function spark(a, up){
   if(!Array.isArray(a) || a.length < 2) return "";
   const vals = a.map(Number).filter(Number.isFinite);
@@ -355,6 +345,16 @@ const CELL = {
   dist:r=>`<td>${Number(r.dist)>=0?"+":""}${f2(r.dist)}</td>`,
   risk:r=>`<td class="${Number(r.risk)<=5?"rk-ok":Number(r.risk)<=10?"rk-mid":"rk-hi"}">${f2(r.risk)}</td>`,
   level:r=>`<td class="l">${esc(r.level)}</td>`,
+  breakout:r=>`<td class="l"><span class="tag">${esc(r.breakout)}</span></td>`,
+  market_cap_cr:r=>`<td>${f2(r.market_cap_cr)}</td>`,
+  ema60:r=>`<td>${f2(r.ema60)}</td>`,
+  ema75:r=>`<td>${f2(r.ema75)}</td>`,
+  ret3m:r=>heat(r.ret3m),
+  gain60:r=>heat(r.gain60),
+  off_high:r=>`<td>${f2(r.off_high)}</td>`,
+  vol_ratio:r=>`<td>${f2(r.vol_ratio)}x</td>`,
+  tr_adr:r=>`<td>${f2(r.tr_adr ?? r.adr)}</td>`,
+  value_cr:r=>`<td>${f2(r.value_cr)}</td>`,
   spark:r=>`<td>${spark(r.spark,Number(r.chg)>=0)}</td>`
 };
 
@@ -685,8 +685,8 @@ function openChart(key,row){
   try{
     const markerSeries=candle;
     const markers=[];
-    if(row?.setup || S.tab==="ep" || S.tab==="breakout_htf" || S.tab==="pullback"){
-      markers.push({time:d.dates[last],position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.setup||SCANS[S.tab].t});
+    if(row?.signal || SCANS[S.tab]){
+      markers.push({time:d.dates[last],position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.signal||SCANS[S.tab].t});
     }
     if(markers.length) markerSeries.setMarkers(markers);
   }catch(_){}
@@ -707,17 +707,7 @@ function render(){
   Object.keys(SCANS).forEach(k=>{});
   $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span></button>`}).join("");
   document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ex===S.ex));
-  let filterHTML="";
-  if(S.tab==="stage2"){
-    filterHTML=`<label>Min RS <select id="rs">${options([70,80,90,95],S.rs,v=>v)}</select></label><label>Off 52W high <select id="off">${options(["",25,15,10,5],S.off,v=>v===""?"Any":"≤ "+v+"%")}</select></label>`;
-  } else if(S.tab==="pullback"){
-    filterHTML=Object.keys(S.lv).map(k=>`<button class="chip" data-lv="${k}" aria-pressed="${S.lv[k]}">${k}</button>`).join("")+
-      `<label>Max risk <select id="risk">${options(["",3,5,8,10],S.risk,v=>v===""?"Any":v+"%")}</select></label>`;
-  } else {
-    const states=S.tab==="breakout_htf"?["","Setup","Forming","Triggered"]:["","Today","1d ago","2d ago"];
-    filterHTML=`<label>State <select id="st">${options(states,S.st,v=>v||"Any")}</select></label><label>Max risk <select id="risk">${options(["",5,8,10,15,20],S.risk,v=>v===""?"Any":v+"%")}</select></label>`;
-  }
-  $("filters").innerHTML=filterHTML;
+  const filterHTML = "";  $("filters").innerHTML=filterHTML;
   $("q").placeholder=`Search from ${sourceRows(S.tab).length} stocks`;
   $("desc").textContent=sc.d;
   $("thead").innerHTML="<tr>"+sc.cols.map(([k,t,cl])=>`<th class="${cl||""}"><button data-sort="${k}">${t}${S.key===k?(S.dir>0?" ▲":" ▼"):""}</button></th>`).join("")+"</tr>";
@@ -727,7 +717,7 @@ function render(){
     return S.dir*((Number(x)||0)-(Number(y)||0));
   });
   $("tbody").innerHTML=SHOWN.length ? SHOWN.map(r=>"<tr>"+sc.cols.map(([k])=>CELL[k]?CELL[k](r):`<td>${f2(r[k])}</td>`).join("")+"</tr>").join("") : `<tr><td colspan="${sc.cols.length}" class="empty">No stocks match these filters.</td></tr>`;
-  $("foot").textContent=`Showing ${SHOWN.length} of ${sourceRows(S.tab).length}. Click a symbol to open its chart. ⚠ means check the chart: a corporate action may be unadjusted.`;
+  $("foot").textContent=`Showing ${SHOWN.length} of ${sourceRows(S.tab).length}. Click a symbol to open its chart.${D.stats?.market_cap_loaded===false && ["m136","htf","high52w"].includes(S.tab) ? " Market-cap data not loaded for this scan." : ""}`;
   try { localStorage.setItem("scn",JSON.stringify(S)); } catch (_) {}
 }
 
