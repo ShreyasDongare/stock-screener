@@ -83,7 +83,13 @@ def main():
     payload = json.loads(RESULTS.read_text())
     keys = sorted({r["key"] for rows in payload["scans"].values() for r in rows})
     print(f"Building full chart history for {len(keys)} scanned stocks...")
-    chart, failures = {}, []
+    try:
+        chart = json.loads(OUT.read_text()) if OUT.exists() else {}
+        if not isinstance(chart, dict): chart = {}
+    except Exception:
+        chart = {}
+    failures = []
+    print(f"Existing chart histories available as fallback: {len(chart)}")
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         futures = [pool.submit(fetch_one, key) for key in keys]
         for i, f in enumerate(concurrent.futures.as_completed(futures), 1):
