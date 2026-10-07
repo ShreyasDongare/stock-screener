@@ -337,6 +337,33 @@ def main():
            "config": CFG, "stats": {"stocks": total, "traded_last_day": traded,
                                     "ranked_for_rs": len(rs_raw), "with_a_signal": passed},
            "scans": hits}
+    # Export compact chart history only for stocks that appear in a scanner result.
+    # This keeps the dashboard chart data small while using the exact same EOD prices.
+    chart_keys = {r["key"] for rows in hits.values() for r in rows}
+    chart = {}
+    for key in chart_keys:
+        g = df[df["key"] == key].tail(180).copy()
+        if g.empty:
+            continue
+        cc = g["close"].to_numpy(float)
+        ss = pd.Series(cc)
+        e11 = ss.ewm(span=11, adjust=False).mean().to_numpy()
+        e21 = ss.ewm(span=21, adjust=False).mean().to_numpy()
+        s50 = ss.rolling(50).mean().to_numpy()
+        chart[key] = {
+            "symbol": str(g.iloc[-1]["symbol"]), "exch": str(g.iloc[-1]["exch"]),
+            "dates": g["date"].astype(str).tolist(),
+            "open": [num(x) for x in g["open"]],
+            "high": [num(x) for x in g["high"]],
+            "low": [num(x) for x in g["low"]],
+            "close": [num(x) for x in g["close"]],
+            "volume": [num(x, 0) for x in g["volume"]],
+            "ema11": [num(x) for x in e11],
+            "ema21": [num(x) for x in e21],
+            "sma50": [num(x) for x in s50],
+        }
+    (DATA / "chart_data.json").write_text(json.dumps(chart, separators=(",", ":")))
+
     (DATA / "results.json").write_text(json.dumps(out))
 
     print(f"As of {last}.  Stocks: {total:,}   traded on last day: {traded:,}   ranked for RS: {len(rs_raw):,}")
