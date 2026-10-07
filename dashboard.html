@@ -27,7 +27,7 @@ main{width:calc(100% - 40px);max-width:none;margin:0 auto;padding:22px 0 52px}
 .stale{display:none;background:var(--accbg);border-left:4px solid var(--warn);padding:9px 12px;border-radius:4px;margin-bottom:12px}
 .section-kicker{display:flex;justify-content:space-between;align-items:center;margin:0 2px 11px;color:var(--mute);font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.8px}
 .dashboard-grid{display:grid;grid-template-columns:225px minmax(0,1fr);gap:16px;align-items:start}
-.tabs{display:flex;flex-direction:column;gap:10px;margin:0}
+.tabs{display:flex;flex-direction:column;gap:10px;margin:0;position:sticky;top:18px;align-self:start;height:max-content}
 .tab{width:100%;min-height:92px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 98%,var(--acc)),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 17px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s cubic-bezier(.2,.7,.2,1),border-color .28s ease,background .28s ease}
 .tab:hover{transform:translateX(2px);box-shadow:0 12px 26px rgba(0,0,0,.08);border-color:color-mix(in srgb,var(--acc) 42%,var(--line))}
 .tab:active{transform:translateX(0)}
@@ -64,7 +64,7 @@ tbody tr{transition:background .2s ease,transform .2s ease}tbody tr:hover td{bac
 .foot{padding:8px 12px;color:var(--mute);font-size:12px;border-top:1px solid var(--line)}
 button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 @media(max-width:1000px){.dashboard-grid{grid-template-columns:205px minmax(0,1fr);gap:12px}.wrap{overflow-x:auto;scrollbar-width:thin}table{min-width:860px}}
-@media(max-width:720px){.in,main{width:calc(100% - 24px)}.dashboard-grid{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.tab{min-height:78px}.section-kicker{font-size:9.5px}}
+@media(max-width:720px){.in,main{width:calc(100% - 24px)}.dashboard-grid{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;position:static}.tab{min-height:78px}.section-kicker{font-size:9.5px}}
 @media(max-width:420px){.in,main{width:calc(100% - 18px)}.tabs{grid-template-columns:1fr}.tab b{font-size:20px}.tab span{font-size:11.5px}.sp{margin-left:0}input[type=search]{width:100%}}
 </style>
 </head>
