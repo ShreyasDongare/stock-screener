@@ -114,6 +114,44 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 @media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:none}}
 
 @media(max-width:720px){.chart-modal{padding:6px}.chart-box{width:100%;height:94vh;border-radius:12px}.chart-head{padding:9px 11px}.chart-meta{font-size:10px}.chart-controls .hint{display:none}.chart-legend{padding:6px 10px;gap:9px}}
+:root[data-theme="light"] .chart-modal{background:rgba(30,45,60,.28)}
+:root[data-theme="light"] .chart-box{background:#fff;border-color:#DCE2E8;box-shadow:0 28px 80px rgba(15,30,45,.22)}
+:root[data-theme="light"] .chart-head{background:#F7F9FB;border-color:#DCE2E8}
+:root[data-theme="light"] .chart-title{color:#16212B}
+:root[data-theme="light"] .chart-meta{color:#68788A}
+:root[data-theme="light"] .chart-close{border-color:#D0D8E0;background:#fff;color:#526273}
+:root[data-theme="light"] .chart-close:hover{background:#EEF3F7;color:#16212B}
+:root[data-theme="light"] .chart-watchlist{background:#F7F9FB;border-color:#DCE2E8;scrollbar-color:#B8C5D1 transparent}
+:root[data-theme="light"] .chart-watch-head,
+:root[data-theme="light"] .chart-watch-title,
+:root[data-theme="light"] .chart-watch-help{background:#F7F9FB}
+:root[data-theme="light"] .chart-watch-head{border-color:#E1E6EB}
+:root[data-theme="light"] .chart-watch-title{color:#68788A}
+:root[data-theme="light"] .chart-watch-search{border-color:#D0D8E0;background:#fff;color:#263746}
+:root[data-theme="light"] .chart-watch-search::placeholder{color:#8A99A8}
+:root[data-theme="light"] .chart-watch-search:focus{border-color:#2A5A8E;box-shadow:0 0 0 2px rgba(42,90,142,.12)}
+:root[data-theme="light"] .chart-watch-item{color:#4D5D6D}
+:root[data-theme="light"] .chart-watch-item:hover{background:#EEF3F7;border-color:#D0DCE7}
+:root[data-theme="light"] .chart-watch-item.active{background:#E2ECF6;border-color:#6B98C2;color:#16212B}
+:root[data-theme="light"] .chart-watch-item.active .wsetup{color:#4E6B85}
+:root[data-theme="light"] .chart-watch-item .wsetup{color:#7A8998}
+:root[data-theme="light"] .chart-tag-dot{background:#9AA8B5;box-shadow:0 0 0 1px rgba(20,40,60,.08)}
+:root[data-theme="light"] .chart-controls{background:#F7F9FB;border-color:#DCE2E8}
+:root[data-theme="light"] .chart-controls button{border-color:#D0D8E0;background:#fff;color:#526273}
+:root[data-theme="light"] .chart-controls button:hover,
+:root[data-theme="light"] .chart-controls button.active{color:#fff;border-color:#2A5A8E;background:#2A5A8E}
+:root[data-theme="light"] .chart-legend{background:#fff;border-color:#DCE2E8;color:#68788A}
+:root[data-theme="light"] .chart-legend b{color:#344454}
+:root[data-theme="light"] .chart-toolrow{background:#F7F9FB;border-color:#DCE2E8}
+:root[data-theme="light"] .chart-toolgroup{border-color:#DCE2E8}
+:root[data-theme="light"] .chart-toolrow button{border-color:#D0D8E0;background:#fff;color:#526273}
+:root[data-theme="light"] .chart-toolrow button:hover,
+:root[data-theme="light"] .chart-toolrow button.active{background:#E2ECF6;border-color:#6B98C2;color:#16212B}
+:root[data-theme="light"] .chart-cross-ohlc{border-color:#D0D8E0;background:rgba(255,255,255,.92)}
+:root[data-theme="light"] .chart-cross-ohlc span{color:#68788A}
+:root[data-theme="light"] .chart-cross-ohlc b{color:#16212B}
+:root[data-theme="light"] .chart-tag-palette{background:#fff;border-color:#D0D8E0;box-shadow:0 12px 32px rgba(15,30,45,.2)}
+
 </style>
 </head>
 <body>
@@ -438,7 +476,16 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
 function openChart(key,row){
   if(!CHART || !CHART[key] || typeof LightweightCharts==="undefined") return;
   const d=CHART[key], n=d.dates.length;
-  const dark=true;
+  const dark=document.documentElement.dataset.theme==="dark";
+  const ct=dark ? {
+    bg:"#0D131A", text:"#91A2B3", grid:"rgba(125,145,165,.075)", border:"#293542",
+    cross:"#71869B", crossLabel:"#33485B", up:"#20A46B", down:"#D95353",
+    ema11:"#58A6E6", ema21:"#E7B84B", sma50:"#B17DE6", volume:"#3E5368"
+  } : {
+    bg:"#FFFFFF", text:"#526273", grid:"rgba(82,98,115,.10)", border:"#DCE2E8",
+    cross:"#7A8C9D", crossLabel:"#526273", up:"#17794F", down:"#B83232",
+    ema11:"#2A78B8", ema21:"#B07A00", sma50:"#7B4FA3", volume:"#8A9AAA"
+  };
   CHART_ROW=row||null;
   DRAW_KEY=key;
   DRAW_DATA=loadDrawings();
@@ -452,12 +499,12 @@ function openChart(key,row){
   $("chartTitle").textContent=d.exch+":"+d.symbol;
   $("chartMeta").textContent=d.dates[0]+" → "+d.dates[last]+" · "+n+" sessions · EOD";
   $("chartStats").innerHTML=
-    '<span style="color:#DDE6EF">₹'+fmt(close)+'</span>'+
-    '<span style="color:'+(dayPct>=0?'#45C98D':'#E56C6C')+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
-    (Number.isFinite(row?.adx)?'<span style="color:#9FB0C0">ADX '+fmt(Number(row.adx))+'</span>':'')+
-    (row?.setup?'<span style="color:#80B2E6">'+esc(row.setup)+'</span>':'')+
-    (Number.isFinite(entry)?'<span style="color:#45C98D">Entry ₹'+fmt(entry)+'</span>':'')+
-    (Number.isFinite(stop)?'<span style="color:#E56C6C">SL ₹'+fmt(stop)+'</span>':'');
+    '<span style="color:'+ct.text+'">₹'+fmt(close)+'</span>'+
+    '<span style="color:'+(dayPct>=0?ct.up:ct.down)+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
+    (Number.isFinite(row?.adx)?'<span style="color:'+ct.text+'">ADX '+fmt(Number(row.adx))+'</span>':'')+
+    (row?.setup?'<span style="color:'+ct.ema11+'">'+esc(row.setup)+'</span>':'')+
+    (Number.isFinite(entry)?'<span style="color:'+ct.up+'">Entry ₹'+fmt(entry)+'</span>':'')+
+    (Number.isFinite(stop)?'<span style="color:'+ct.down+'">SL ₹'+fmt(stop)+'</span>':'');
 
   $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
   $("chartModal").classList.add("open");
@@ -466,11 +513,11 @@ function openChart(key,row){
 
   const chart=LightweightCharts.createChart(host,{
     width:host.clientWidth,height:host.clientHeight,
-    layout:{background:{type:LightweightCharts.ColorType.Solid,color:"#0D131A"},textColor:"#91A2B3",fontFamily:"IBM Plex Mono, monospace",fontSize:11},
-    grid:{vertLines:{color:"rgba(125,145,165,.075)"},horzLines:{color:"rgba(125,145,165,.075)"}},
-    rightPriceScale:{borderColor:"#293542",scaleMargins:{top:.06,bottom:.24},minimumWidth:74},
-    timeScale:{borderColor:"#293542",timeVisible:false,secondsVisible:false,rightOffset:6,barSpacing:8,minBarSpacing:2},
-    crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:"#71869B",width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:"#33485B"},horzLine:{color:"#71869B",width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:"#33485B"}},
+    layout:{background:{type:LightweightCharts.ColorType.Solid,color:ct.bg},textColor:ct.text,fontFamily:"IBM Plex Mono, monospace",fontSize:11},
+    grid:{vertLines:{color:ct.grid},horzLines:{color:ct.grid}},
+    rightPriceScale:{borderColor:ct.border,scaleMargins:{top:.06,bottom:.24},minimumWidth:74},
+    timeScale:{borderColor:ct.border,timeVisible:false,secondsVisible:false,rightOffset:6,barSpacing:8,minBarSpacing:2},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:ct.cross,width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:ct.crossLabel},horzLine:{color:ct.cross,width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:ct.crossLabel}},
     handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},
     handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:true},
     localization:{priceFormatter:p=>Number(p).toLocaleString("en-IN",{maximumFractionDigits:2})}
@@ -479,28 +526,28 @@ function openChart(key,row){
 
   const candles=d.dates.map((time,i)=>({time,open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]})).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
   const candle=chart.addSeries(LightweightCharts.CandlestickSeries,{
-    upColor:"#20A46B",downColor:"#D95353",borderUpColor:"#20A46B",borderDownColor:"#D95353",wickUpColor:"#20A46B",wickDownColor:"#D95353",
+    upColor:ct.up,downColor:ct.down,borderUpColor:ct.up,borderDownColor:ct.down,wickUpColor:ct.up,wickDownColor:ct.down,
     priceLineVisible:false,lastValueVisible:true
   });
   candle.setData(candles);
 
-  if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:"#45C98D",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
-  if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:"#E56C6C",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
+  if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:ct.up,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
+  if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:ct.down,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
 
-  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:"#58A6E6",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
-  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:"#E7B84B",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
-  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:"#B17DE6",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
   ema11.setData(d.dates.map((time,i)=>({time,value:+d.ema11[i]})).filter(x=>Number.isFinite(x.value)));
   ema21.setData(d.dates.map((time,i)=>({time,value:+d.ema21[i]})).filter(x=>Number.isFinite(x.value)));
   sma50.setData(d.dates.map((time,i)=>({time,value:+d.sma50[i]})).filter(x=>Number.isFinite(x.value) && x.value>0));
 
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
     priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
-    color:"#3E5368"
+    color:ct.volume
   });
   volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
   volume.setData(d.dates.map((time,i)=>({
-    time,value:+d.volume[i],color:+d.close[i]>=+d.open[i]?"rgba(32,164,107,.55)":"rgba(217,83,83,.55)"
+    time,value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
   })).filter(x=>Number.isFinite(x.value)));
 
   CHART_SERIES={candle,ema11,ema21,sma50,volume};
@@ -513,7 +560,7 @@ function openChart(key,row){
     const markerSeries=candle;
     const markers=[];
     if(row?.setup || S.tab==="ep" || S.tab==="breakout_htf" || S.tab==="pullback"){
-      markers.push({time:d.dates[last],position:"belowBar",color:"#45C98D",shape:"arrowUp",text:row?.setup||SCANS[S.tab].t});
+      markers.push({time:d.dates[last],position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.setup||SCANS[S.tab].t});
     }
     if(markers.length) markerSeries.setMarkers(markers);
   }catch(_){}
@@ -617,6 +664,7 @@ function wire(){
       const root=document.documentElement, current=root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
       root.dataset.theme=current==="dark"?"light":"dark";
       try{localStorage.setItem("scn-theme",root.dataset.theme)}catch(_){}
+      if(LW && CHART_ROW && CHART[CHART_ROW.key]) openChart(CHART_ROW.key,CHART_ROW);
       return;
     }
   });
