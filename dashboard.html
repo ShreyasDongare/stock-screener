@@ -105,7 +105,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-host.drawing .draw-capture{display:block}
 .chart-host.drawing .chart-tooltip{display:none!important}
 .draw-label{font:500 10px var(--mono);fill:#DDE6EF}
-.chart-ohlc{position:absolute;left:10px;top:9px;z-index:5;pointer-events:none;display:none;padding:7px 9px;border:1px solid #2D3D4C;border-radius:7px;background:rgba(13,19,26,.86);backdrop-filter:blur(5px);box-shadow:0 8px 24px rgba(0,0,0,.22);font:10px/1.5 var(--mono);color:#B9C6D3}
+.chart-ohlc{display:none!important}
 .chart-ohlc .tt-date{color:#E8EEF5;font-weight:600;margin-bottom:3px}
 .chart-ohlc .tt-grid{display:grid;grid-template-columns:auto auto;gap:1px 10px}
 .chart-ohlc b{color:#E8EEF5;font-weight:500}
@@ -429,29 +429,17 @@ function bindDrawingCapture(){
   },true);
 }
 function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
-  const host=$("chartHost"), tip=document.createElement("div");
-  tip.className="chart-ohlc"; tip.id="chartOhlc"; host.appendChild(tip);
+  const host=$("chartHost");
   chart.subscribeCrosshairMove(p=>{
+    const bar=$("chartCrossOhlc");
     if(!p || !p.point || p.point.x<0 || p.point.y<0 || p.point.x>host.clientWidth || p.point.y>host.clientHeight || !p.time){
-      tip.style.display="none";
-      const bar=$("chartCrossOhlc"); if(bar) bar.innerHTML="";
+      if(bar) bar.innerHTML="";
       return;
     }
-    const cd=p.seriesData.get(candle), ed=p.seriesData.get(ema11), e2=p.seriesData.get(ema21), sm=p.seriesData.get(sma50), vd=p.seriesData.get(volume);
-    if(!cd){tip.style.display="none";return;}
+    const cd=p.seriesData.get(candle);
+    if(!cd){if(bar) bar.innerHTML="";return;}
     const fmt=v=>Number.isFinite(Number(v))?Number(v).toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
-    const date=String(p.time);
-    const bar=$("chartCrossOhlc");
     if(bar) bar.innerHTML='<span>O <b>'+fmt(cd.open)+'</b></span><span>H <b>'+fmt(cd.high)+'</b></span><span>L <b>'+fmt(cd.low)+'</b></span><span>C <b>'+fmt(cd.close)+'</b></span>';
-    tip.innerHTML='<div class="tt-date">'+date+'</div><div class="tt-grid">'+
-      '<span>O</span><b>'+fmt(cd.open)+'</b><span>H</span><b>'+fmt(cd.high)+'</b>'+
-      '<span>L</span><b>'+fmt(cd.low)+'</b><span>C</span><b>'+fmt(cd.close)+'</b>'+
-      '<span>Vol</span><b>'+fmt(vd?.value)+'</b>'+
-      '<span>EMA11</span><b>'+fmt(ed?.value)+'</b><span>EMA21</span><b>'+fmt(e2?.value)+'</b>'+
-      '<span>SMA50</span><b>'+fmt(sm?.value)+'</b></div>';
-    const left=Math.max(8,Math.min(host.clientWidth-tip.offsetWidth-8,p.point.x+14));
-    const top=Math.max(8,Math.min(host.clientHeight-tip.offsetHeight-8,p.point.y-12));
-    tip.style.left=left+"px"; tip.style.top=top+"px"; tip.style.display="block";
   });
 }
 
