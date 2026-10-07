@@ -16,8 +16,10 @@ Output:
     data/chart_data.json
 
 
-The scanner deliberately does NOT add extra ADX, EMA-stack, momentum,
-liquidity, or risk filters that were not present in the supplied screeners.
+Common filters requested for all four scans:
+    - ADX(14) must be >= 20
+    - stock must have gained >= 30% over at least one of:
+      31, 93, or 186 trading days
 """
 import json
 from datetime import datetime
@@ -32,6 +34,11 @@ DATA = Path("data")
 # Exact user-supplied constants
 # ------------------------------------------------------------
 CFG = {
+    "common": {
+        "min_adx": 20.0,
+        "min_return_pct": 30.0,
+        "return_windows": (31, 93, 186),
+    },
     "m136": {
         "name": "1M / 3M / 6M Scan",
         "adr_min_pct": 3.0,
@@ -564,8 +571,11 @@ def analyse_stock(
 
     n = len(g)
 
-    # Minimum needed by the least demanding scan.
-    if n < 21:
+    # Common filters now apply to every scan:
+    # - at least +30% over one of the 1M/3M/6M trading-day windows
+    # - ADX(14) >= 20
+    # These filters are applied before the individual scan logic.
+    if n <= max(CFG["common"]["return_windows"]):
         return {}
 
     c = g["close"].to_numpy(float)
@@ -592,6 +602,24 @@ def analyse_stock(
         c,
     )
     adx = adx_wilder(h, l, c, 14)
+
+    latest_adx = adx[-1]
+    if not np.isfinite(latest_adx) or latest_adx < CFG["common"]["min_adx"]:
+        return {}
+
+    returns = []
+    for days in CFG["common"]["return_windows"]:
+        old_close = c[-1 - days]
+        if old_close == 0 or not np.isfinite(old_close):
+            returns.append(np.nan)
+        else:
+            returns.append((c[-1] / old_close - 1) * 100)
+
+    if not any(
+        np.isfinite(r) and r >= CFG["common"]["min_return_pct"]
+        for r in returns
+    ):
+        return {}
 
     base = base_row(
         key,
