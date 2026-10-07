@@ -42,11 +42,11 @@ CFG = {
         # locked/illiquid UC counters rather than normally tradeable movers.
         "tradability": {
             "lookback_days": 20,
+            "min_avg_value_rupees": 10_000_000.0,
             "near_uc_pct": 4.9,
             "max_open_close_pct": 0.15,
             "min_near_uc_days": 7,
             "min_open_close_days": 7,
-            "max_avg_value_rupees": 10_000_000.0,
         },
     },
     "m136": {
@@ -632,24 +632,37 @@ def analyse_stock(
         return {}
 
     # Tradability filter:
-    # Keep genuinely strong stocks that only occasionally hit UC, but
-    # remove persistent locked/illiquid behaviour. We use a proxy for
-    # near-UC days because the OHLC database does not contain each stock's
-    # exchange circuit-band metadata.
+    # First require a minimum 20-session average traded value so the
+    # scanner focuses on stocks that can realistically be entered/exited.
+    # Then apply the stricter locked/UC pattern check only as an additional
+    # rejection condition. Occasional UC days in an otherwise liquid stock
+    # are therefore kept.
     tcfg = CFG["common"]["tradability"]
     lookback = tcfg["lookback_days"]
 
     if n >= lookback + 1:
-        recent_close = c[-lookback - 1:]
+        recent_close = c[-lookback:]
         recent_open = g["open"].to_numpy(float)[-lookback:]
         recent_volume = v[-lookback:]
 
+        trading_value = recent_close * recent_volume
+        avg_value = float(np.nanmean(trading_value))
+
+        if (
+            not np.isfinite(avg_value)
+            or avg_value < tcfg["min_avg_value_rupees"]
+        ):
+            return {}
+
+        # Detect persistent locked/UC behaviour after the basic liquidity
+        # gate. This does not reject a liquid stock merely for having a few
+        # upper-circuit sessions.
         daily_change = (
             recent_close[1:] / recent_close[:-1] - 1
         ) * 100
 
         open_close_pct = (
-            np.abs(recent_open - recent_close[1:])
+            np.abs(recent_open[1:] - recent_close[1:])
             / recent_close[1:]
         ) * 100
 
@@ -660,13 +673,9 @@ def analyse_stock(
             np.sum(open_close_pct <= tcfg["max_open_close_pct"])
         )
 
-        trading_value = recent_close[1:] * recent_volume
-        avg_value = float(np.nanmean(trading_value))
-
         if (
             near_uc_days >= tcfg["min_near_uc_days"]
             and open_close_days >= tcfg["min_open_close_days"]
-            and avg_value < tcfg["max_avg_value_rupees"]
         ):
             return {}
 
