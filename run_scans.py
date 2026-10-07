@@ -4,6 +4,9 @@ Stage 3 (v2): three scans on the adjusted prices from build_prices.py.
   1. Strong Stage 2   : Minervini-style trend template + relative strength rank
   2. Pullback         : close within +/-2% of EMA11 / EMA21 / SMA50 (tightness only)
   3. High tight flag  : big run-up, then a tight flag (forming or triggered)
+  4. Breakout         : top performers in a tight, higher-low flag (Qullamaggie style).
+                        Setup = trigger above the flag high. Triggered = closed above it on volume.
+  5. Episodic pivot   : gap-up on heavy volume after a quiet stretch (last 3 days)
 
 Run:  python run_scans.py
 Out:  data/results.json   (the dashboard reads this)
@@ -45,6 +48,32 @@ CFG = {
         "days_ago": 21,             # 21 trading days is about 30 calendar days
         "apply_to": ["stage2", "pullback"],
     },
+    "breakout": {                   # leaders in a tight flag, buy the break of the flag high
+        "enabled": True,
+        "min_adr_pct": 4.0,         # needs a stock that moves: 20-day average daily range
+        "min_rank": 90,             # momentum rank 1-99: best of the 1M / 3M / 6M return ranks
+        "lookback_days": 30,        # flag high must be within this many days
+        "flag_min_days": 5,         # flag at least a week old (no one-day "flags")
+        "runup_days": 63,           # look this far before the flag high for the prior run-up
+        "min_runup_pct": 30,        # low-to-flag-high gain before the flag
+        "max_depth_pct": 25,        # flag may not dip more than this from its high
+        "max_below_pct": 7,         # setup: close within this % under the flag high
+        "tight_ratio": 0.9,         # check 1: last-5-day range <= 0.9 x the average of the last 30 days
+        "vol_dry_ratio": 0.9,       # check 3: last-5-day volume <= 0.9 x the 50 days before that
+        "min_checks": 2,            # need 2 of 3: tight range, higher lows, volume dry-up
+        "break_vol_ratio": 1.5,     # triggered: today's volume >= 1.5 x its 20-day average
+        "max_extended_pct": 8,      # triggered: skip if the close is already >8% over the flag high
+        "max_risk_adr": 1.5,        # skip if stop is wider than 1.5 x ADR
+    },
+    "ep": {                         # episodic pivot: news / earnings gap on heavy volume
+        "enabled": True,
+        "lookback_days": 3,         # today and the 2 days before
+        "min_gap_pct": 8,           # open vs previous close
+        "max_gap_pct": 40,          # above this it is usually a data / corporate action artifact
+        "min_vol_ratio": 3,         # volume >= 3 x 20-day average
+        "min_close_pos": 0.6,       # close in the upper 40% of the day's range
+        "max_prior_3m_pct": 40,     # stock was NOT already extended (neglected before the news)
+    },
     "htf": {"flagpole_days": 40, "min_gain_pct": 70, "flag_min_days": 15,
             "flag_max_days": 25, "max_pullback_pct": 25},
 }
@@ -58,10 +87,11 @@ def num(x, d=2):
 def analyse(key, g, review_keys, recent_keys):
     """Returns (info, hits). info feeds the RS ranking, hits are scan results."""
     n = len(g)
-    info = {"key": key, "rs_raw": None}
+    info = {"key": key, "rs_raw": None, "perf": None}
     if n < CFG["min_bars"]:
         return info, {}
     c, h, v = (g[k].to_numpy(float) for k in ("close", "high", "volume"))
+    o = g["open"].to_numpy(float)
     l = g["low"].to_numpy(float)
     l = np.where(l > 0, l, c)
     val = g["value"].to_numpy(float)
@@ -82,12 +112,16 @@ def analyse(key, g, review_keys, recent_keys):
     if liquid and n >= 253:             # IBD-style weighted 3/6/9/12 month return
         r = lambda d: c[i] / c[i - d] - 1
         info["rs_raw"] = 0.4 * r(63) + 0.2 * r(126) + 0.2 * r(189) + 0.2 * r(252)
+    if liquid and n > max(M["days"].values()):    # 1M / 3M / 6M returns, ranked later in main()
+        info["perf"] = {k: c[i] / c[i - d] - 1 for k, d in M["days"].items()}
     if not liquid or adr < CFG["min_adr_pct"]:
         return info, {}
 
     s = pd.Series(c)
     ema11 = s.ewm(span=11, adjust=False).mean().to_numpy()
     ema21 = s.ewm(span=21, adjust=False).mean().to_numpy()
+    ema10 = s.ewm(span=10, adjust=False).mean().to_numpy()
+    ema20 = s.ewm(span=20, adjust=False).mean().to_numpy()
     sma50 = s.rolling(50).mean().to_numpy()
 
     T = CFG["ema_then"]
@@ -135,6 +169,69 @@ def analyse(key, g, review_keys, recent_keys):
                              "above_low": num((c[i] / lo52 - 1) * 100, 0),
                              "sma200_slope": num((sma200[i] / sma200[i - st["slope_days"]] - 1) * 100, 1),
                              "signal": "Stage 2 uptrend"}
+
+    # ---- 4. breakout: leader in a tight flag, buy the break of the flag high ----
+    B = CFG["breakout"]
+    if B["enabled"] and adr >= B["min_adr_pct"]:
+        w = B["lookback_days"]
+        pk = i - w + int(np.argmax(h[i - w:i]))          # flag high, before today
+        top, flag_len = h[pk], i - pk
+        runup = (top / l[max(0, pk - B["runup_days"]):pk + 1].min() - 1) * 100
+        depth = (top - l[pk + 1:i + 1].min()) / top * 100 if flag_len >= 1 else 0.0
+
+        def cons(e):
+            """Is the flag ending at bar e tight? Returns (surfing the 10/20 EMA, [3 checks])."""
+            rr = (h[:e + 1] - l[:e + 1]) / c[:e + 1] * 100
+            ok = [bool(rr[-5:].mean() <= B["tight_ratio"] * rr[-30:].mean()),
+                  bool(l[e - 4:e + 1].min() >= l[e - 9:e - 4].min()),
+                  bool(v[e - 4:e + 1].mean() <= B["vol_dry_ratio"] * v[e - 54:e - 4].mean())]
+            surf = bool(c[e] > ema20[e] and ema10[e] > ema20[e] > sma50[e])
+            return surf, ok
+
+        def brk(state, entry, stop, ok, vr):
+            risk = (entry - stop) / entry * 100
+            if risk / adr > B["max_risk_adr"]:
+                return
+            finish("breakout", entry, stop, state=state, runup=num(runup, 0), depth=num(depth, 1),
+                   flag_days=int(flag_len), vol_ratio=num(vr, 1), risk_adr=num(risk / adr, 2),
+                   checks=", ".join(nm for nm, k in zip(("tight range", "higher lows", "volume dry-up"), ok) if k),
+                   signal="Closed above flag high on volume" if state == "Triggered"
+                   else "Tight flag, trigger above its high")
+
+        if flag_len >= B["flag_min_days"] and runup >= B["min_runup_pct"] and depth <= B["max_depth_pct"]:
+            if c[i] <= top:                                    # still inside the flag
+                surf, ok = cons(i)
+                if surf and sum(ok) >= B["min_checks"] and c[i] >= top * (1 - B["max_below_pct"] / 100):
+                    base_v = v[-55:-5].mean()
+                    brk("Setup", top, l[-3:].min(), ok, v[-5:].mean() / base_v if base_v > 0 else 0)
+            else:                                              # closed above the flag high today
+                surf, ok = cons(i - 1)
+                avg_v = v[i - 20:i].mean()
+                vr = v[i] / avg_v if avg_v > 0 else 0
+                pos = (c[i] - l[i]) / (h[i] - l[i]) if h[i] > l[i] else 1.0
+                if (surf and sum(ok) >= B["min_checks"] and vr >= B["break_vol_ratio"] and pos >= 0.5
+                        and c[i] <= top * (1 + B["max_extended_pct"] / 100)):
+                    brk("Triggered", top, l[i], ok, vr)
+
+    # ---- 5. episodic pivot: gap-up on heavy volume after a quiet stretch ----
+    E = CFG["ep"]
+    if E["enabled"]:
+        for k in range(i, i - E["lookback_days"], -1):         # most recent day first
+            if k < 64:
+                break
+            avg_v = v[k - 20:k].mean()
+            gap = (o[k] / c[k - 1] - 1) * 100
+            if avg_v <= 0 or not (E["min_gap_pct"] <= gap <= E["max_gap_pct"]):
+                continue
+            vr = v[k] / avg_v
+            pos = (c[k] - l[k]) / (h[k] - l[k]) if h[k] > l[k] else 1.0
+            prior = (c[k - 1] / c[k - 64] - 1) * 100
+            if (vr >= E["min_vol_ratio"] and pos >= E["min_close_pos"]
+                    and prior <= E["max_prior_3m_pct"] and c[i] >= o[k]):
+                finish("ep", h[k:i + 1].max(), l[k], state="Today" if k == i else f"{i - k}d ago",
+                       gap=num(gap, 1), vol_ratio=num(vr, 1), prior_3m=num(prior, 0), days_ago=int(i - k),
+                       signal="Gap-up on heavy volume: buy above the EP-day high, stop at its low")
+                break
 
     # pullback and flag also need the short-term trend stack
     if not (ema11[i] > ema21[i] > sma50[i] and c[i] > sma50[i]):
@@ -188,8 +285,8 @@ def main():
         raise SystemExit(f"ABORT: only {latest:,} of {known:,} stocks traded on {last}. "
                          "The latest day looks incomplete. results.json was NOT updated.")
 
-    hits = {"stage2": [], "pullback": [], "htf": []}
-    rs_raw = {}
+    hits = {"stage2": [], "pullback": [], "htf": [], "breakout": [], "ep": []}
+    rs_raw, perf_raw = {}, {}
     total = traded = 0
     for key, g in df.groupby("key", sort=False):
         total += 1
@@ -199,6 +296,8 @@ def main():
         info, res = analyse(key, g, review_keys, recent_keys)
         if info["rs_raw"] is not None:
             rs_raw[key] = info["rs_raw"]
+        if info["perf"] is not None:
+            perf_raw[key] = info["perf"]
         for name, row in res.items():
             hits[name].append(row)
 
@@ -210,6 +309,17 @@ def main():
         if r["rs"] >= CFG["stage2"]["min_rs"]:
             keep.append(r)
     hits["stage2"] = sorted(keep, key=lambda r: -r["rs"])
+    # momentum rank for the breakout scan: rank 1M, 3M and 6M returns separately among liquid
+    # stocks, a stock's rank is its best of the three (it only has to be a top performer once)
+    mrank = (pd.DataFrame(perf_raw).T.rank(pct=True) * 98 + 1).max(axis=1).round().astype(int) \
+        if perf_raw else pd.Series(dtype=int)
+    keep = []
+    for r in hits["breakout"]:
+        r["rank"] = int(mrank.get(r["key"], 0))
+        if r["rank"] >= CFG["breakout"]["min_rank"]:
+            keep.append(r)
+    hits["breakout"] = sorted(keep, key=lambda r: (r["state"] != "Triggered", -r["rank"]))
+    hits["ep"].sort(key=lambda r: (r["days_ago"], -r["vol_ratio"]))
     hits["pullback"].sort(key=lambda r: abs(r["dist"]))
     hits["htf"].sort(key=lambda r: (r["state"] != "Triggered", -r["gain"]))
 
