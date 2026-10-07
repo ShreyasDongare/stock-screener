@@ -132,8 +132,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-tag-choice.none{background:linear-gradient(135deg,transparent 44%,#D95353 45%,#D95353 55%,transparent 56%),#1A2530}.chart-tag-choice.red{background:#D95353}.chart-tag-choice.orange{background:#E6973D}.chart-tag-choice.yellow{background:#E7B84B}.chart-tag-choice.green{background:#45C98D}.chart-tag-choice.blue{background:#58A6E6}.chart-tag-choice.purple{background:#B17DE6}
 .chart-tag-choice::after{content:attr(aria-label);position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);display:none;padding:3px 6px;border-radius:4px;background:#0B1117;color:#DDE6EF;font:9px var(--mono);white-space:nowrap;pointer-events:none}
 .chart-tag-choice:hover::after{display:block}
-.chart-host{position:relative;flex:1;min-width:0;inset:auto}
-:root[data-theme="light"] .chart-watchlist{background:#F7F9FB;border-color:#DCE2E8}
+.chart-host{position:relative;flex:1;min-width:0;inset:auto;background:#0D131A}
+:root[data-theme="light"] .chart-watchlist{background:#F7F9FB;border-color:#DCE2E8}:root[data-theme="light"] .chart-host{background:#FFFFFF}
 :root[data-theme="light"] .chart-watch-head,:root[data-theme="light"] .chart-watch-title,:root[data-theme="light"] .chart-watch-help{background:#F7F9FB}
 :root[data-theme="light"] .chart-watch-head{border-color:#E1E6EB}
 :root[data-theme="light"] .chart-watch-title{color:#68788A}
@@ -548,6 +548,11 @@ function renderChartWatchlist(activeKey){
     '<div class="chart-watch-help">Click = EOD chart · Double-click = TradingView</div>';
 
   updateChartWatchVirtual(true);
+
+  // Some browsers report a zero-height flex child for one frame while the
+  // chart modal is opening. Recalculate after layout so rows cannot remain
+  // invisible.
+  requestAnimationFrame(()=>updateChartWatchVirtual(true));
 
   const scroll=$("chartWatchScroll");
   if(scroll){
