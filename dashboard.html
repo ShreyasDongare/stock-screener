@@ -820,7 +820,13 @@ async function load(){
     if(!resp.ok) throw new Error("HTTP "+resp.status);
     D=await resp.json();
     try { const cr=await fetch("data/chart_data.json?"+Date.now(),{cache:"no-store"}); CHART=cr.ok?await cr.json():{}; } catch (_) { CHART={}; }
-    $("meta").textContent=`${D.asof||"—"} · ${Number(D.stats?.traded_last_day||0).toLocaleString("en-IN")} stocks traded · updated ${String(D.generated||"—").replace("T"," ")}`;
+    const lastRefresh=D.generated?new Date(D.generated):null;
+    const now=new Date();
+    const nextRefresh=new Date(now);
+    nextRefresh.setHours(18,0,0,0);
+    if(nextRefresh<=now) nextRefresh.setDate(nextRefresh.getDate()+1);
+    const fmtIST=d=>d.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true});
+    $("meta").textContent=`${D.asof||"—"} · ${Number(D.stats?.traded_last_day||0).toLocaleString("en-IN")} stocks traded · Last refresh: ${lastRefresh?fmtIST(lastRefresh):"—"} IST · Next refresh: ${fmtIST(nextRefresh)} IST`;
     const age=(Date.now()-new Date(D.asof))/864e5;
     if(Number.isFinite(age)&&age>4){$("stale").style.display="block";$("stale").textContent=`Data is ${Math.floor(age)} days old.`;}
     render();
