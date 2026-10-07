@@ -692,7 +692,11 @@ document.addEventListener("keydown",e=>{
     if(p){e.preventDefault();closeTagPalette();return;}
     e.preventDefault();closeChart();return;
   }
-  const items=chartRows();
+  // Navigate only within the current watchlist/search result set.
+  // Previously arrows used all scan datasets, which could jump to an unrelated stock.
+  const allItems=chartRows();
+  const q=CHART_WATCH_Q.trim().toUpperCase();
+  const items=allItems.filter(r=>!q||String(r.symbol||"").toUpperCase().includes(q));
   const active=CHART_ROW?.key;
   let idx=items.findIndex(x=>x.key===active);
   if(!items.length) return;
