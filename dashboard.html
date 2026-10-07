@@ -295,6 +295,37 @@ function options(values,current,label){
 let LW = null;
 let CHART = null, CHART_ROW = null;
 let CHART_SERIES = {};
+let CHART_WATCH_Q="";
+let CHART_WATCH_SCROLL_TOP=null;
+function chartRows(){
+  const all=Object.values(D?.scans||{}).flat().filter(r=>r&&r.symbol);
+  const seen=new Set();
+  return all.filter(r=>{const k=r.key||((r.exch||"NSE")+":"+r.symbol); if(seen.has(k)) return false; seen.add(k); return true;});
+}
+function renderChartWatchlist(activeKey){
+  const el=$("chartWatchlist"); if(!el) return;
+  const previousScrollTop=CHART_WATCH_SCROLL_TOP!=null?CHART_WATCH_SCROLL_TOP:el.scrollTop;
+  CHART_WATCH_SCROLL_TOP=null;
+  const all=chartRows(), q=CHART_WATCH_Q.trim().toUpperCase();
+  const items=all.filter(r=>!q||String(r.symbol||"").toUpperCase().includes(q));
+  el.innerHTML='<div class="chart-watch-head"><div class="chart-watch-title">Scanned Stocks</div><input id="chartWatchSearch" class="chart-watch-search" placeholder="Search symbol..." value="'+esc(CHART_WATCH_Q)+'"></div><div class="chart-watch-items">'+
+    items.map(r=>{
+      const key=r.key||((r.exch||"NSE")+":"+r.symbol);
+      const rs=Number(r.rs), chg=Number(r.chg);
+      const rsText=Number.isFinite(rs)?"RS "+f2(rs):"RS —";
+      const chgText=Number.isFinite(chg)?((chg>=0?"+":"")+f2(chg)+"%"):"—";
+      const chgCls=Number.isFinite(chg)?(chg>=0?"up":"dn"):"";
+      return '<button class="chart-watch-item '+(key===activeKey?"active":"")+'" data-watch-key="'+esc(key)+'"><span><b>'+esc(r.symbol)+'</b></span><span class="wsetup">'+rsText+' · <span class="'+chgCls+'">'+chgText+'</span></span></button>';
+    }).join("")+
+    '</div><div class="chart-watch-help">Click = EOD chart · Double-click = TradingView</div>';
+  const search=$("chartWatchSearch");
+  if(search) search.addEventListener("input",e=>{
+    CHART_WATCH_Q=e.target.value;
+    renderChartWatchlist(activeKey);
+    const s=$("chartWatchSearch"); s?.focus(); s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);
+  });
+  el.scrollTo({top:Math.max(0,previousScrollTop),left:0,behavior:"instant"});
+}
 function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
   const host=$("chartHost");
   chart.subscribeCrosshairMove(p=>{
