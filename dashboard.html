@@ -100,6 +100,7 @@ const S={tab:'stage2',ex:'ALL',q:'',rs:70,off:'',lv:{EMA11:true,EMA21:true,SMA50
 try{Object.assign(S,JSON.parse(localStorage.getItem('scn')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('scn',JSON.stringify(S))}catch(e){}};
 const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let D=null,SHOWN=[];
 const f2=x=>x==null?'':Number(x).toLocaleString('en-IN',{maximumFractionDigits:2});
 const val=(r,k)=>k==='dist'?Math.abs(r.dist):r[k];
@@ -110,15 +111,15 @@ function spark(a,up){if(!a||a.length<2)return'';const mn=Math.min(...a),mx=Math.
  return `<svg width="96" height="28" viewBox="0 0 96 28" aria-hidden="true"><polyline points="${p.map(x=>x.join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="1.6"/><circle cx="${e[0]}" cy="${e[1]}" r="2.4" fill="${c}"/></svg>`}
 const heat=v=>v==null?'<td></td>':`<td class="${v>=0?'up':'dn'}" style="background:color-mix(in srgb,var(--${v>=0?'up':'dn'}) ${Math.min(26,Math.abs(v)/5)}%,transparent)">${v>=0?'+':''}${f2(v)}</td>`;
 const CELL={
- symbol:r=>`<td class="sym l"><a href="${tv(r)}" target="_blank" rel="noopener" title="Open chart">${r.symbol}</a>${r.note?` <span class="w" title="${r.note.replace(/"/g,'&quot;')}">⚠</span>`:''}</td>`,
- exch:r=>`<td class="l"><span class="ex">${r.exch}</span></td>`,
+ symbol:r=>`<td class="sym l"><a href="${tv(r)}" target="_blank" rel="noopener" title="Open chart">${esc(r.symbol)}</a>${r.note?` <span class="w" title="${esc(r.note)}">⚠</span>`:''}</td>`,
+ exch:r=>`<td class="l"><span class="ex">${esc(r.exch)}</span></td>`,
  chg:r=>`<td class="${r.chg>=0?'up':'dn'}">${r.chg>=0?'+':''}${f2(r.chg)}</td>`,
  rs:r=>`<td><span class="rs"><i style="width:${r.rs*.4}px"></i><b>${r.rs}</b></span></td>`,
  ret1m:r=>heat(r.ret1m),ret3m:r=>heat(r.ret3m),ret6m:r=>heat(r.ret6m),
  dist:r=>`<td>${r.dist>=0?'+':''}${f2(r.dist)}</td>`,
  risk:r=>`<td class="${r.risk<=5?'rk-ok':r.risk<=10?'rk-mid':'rk-hi'}">${f2(r.risk)}</td>`,
- state:r=>`<td class="l"><span class="tag ${r.state==='Triggered'?'t':''}">${r.state}</span></td>`,
- level:r=>`<td class="l">${r.level}</td>`,
+ state:r=>`<td class="l"><span class="tag ${r.state==='Triggered'?'t':''}">${esc(r.state)}</span></td>`,
+ level:r=>`<td class="l">${esc(r.level)}</td>`,
  spark:r=>`<td>${spark(r.spark,r.chg>=0)}</td>`
 };
 function rows(tab){const q=S.q.trim().toUpperCase();
