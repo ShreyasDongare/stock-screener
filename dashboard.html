@@ -34,6 +34,7 @@ main{width:calc(100% - 40px);max-width:none;height:calc(100vh - 86px);margin:0 a
 .tab:active{transform:translateX(0)}
 .tab b{display:block;font:500 29px/1.1 var(--mono);letter-spacing:-.5px}.tab span{color:var(--mute);font-size:12.5px}
 .tab[aria-selected="true"]{border-color:color-mix(in srgb,var(--acc) 68%,var(--line));background:linear-gradient(180deg,var(--accbg),var(--panel));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 11%,transparent)}
+.copy-all{width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.copy-all:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
 .tab[aria-selected="true"]::after{content:"";position:absolute;left:auto;right:0;top:15px;bottom:15px;width:2px;background:var(--acc);border-radius:2px;transform-origin:center;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(15,30,45,.065);overflow:hidden;animation:smoothEnter .38s cubic-bezier(.2,.7,.2,1) both;display:flex;flex-direction:column;min-height:0}
 .tools{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 95%,var(--bg))}
@@ -83,15 +84,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 <div class="stale" id="stale"></div>
 <div class="section-kicker"><span>Momentum Intelligence</span><span>Stage 2 · Pullback · Breakout / HTF · EP</span></div>
 <div class="dashboard-grid">
-  <aside class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></aside>
+  <aside><div class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></div><button class="copy-all" id="copyAll">Copy All Stocks</button></aside>
   <section class="panel">
  <div class="tools">
   <div class="grp"><button class="chip" data-ex="ALL">All</button><button class="chip" data-ex="NSE">NSE</button><button class="chip" data-ex="BSE">BSE</button></div>
   <input type="search" id="q" placeholder="Search symbol  ( / )" aria-label="Search symbol">
   <div class="grp" id="filters"></div>
   <span class="sp"></span>
-  <label>Copy as <select id="fmt"><option value="tv">TradingView</option><option value="plain">Plain symbols</option></select></label>
-  <button class="btn" id="copy">Copy list</button>
+
  </div>
  <p class="desc" id="desc"></p>
  <div class="wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -127,7 +127,7 @@ const SCANS = {
   }
 };
 
-const DEFAULT_STATE = { tab: "stage2", ex: "ALL", q: "", rs: 70, off: "", lv: {EMA11:true,EMA21:true,SMA50:true}, risk:"", st:"", fmt:"tv", key:"rs", dir:-1 };
+const DEFAULT_STATE = { tab: "stage2", ex: "ALL", q: "", rs: 70, off: "", lv: {EMA11:true,EMA21:true,SMA50:true}, risk:"", st:"", key:"rs", dir:-1 };
 let S = {...DEFAULT_STATE};
 try {
   const saved = JSON.parse(localStorage.getItem("scn") || "{}");
@@ -210,7 +210,6 @@ function render(){
   Object.keys(SCANS).forEach(k=>{});
   $("tabs").innerHTML=Object.keys(SCANS).map(k=>`<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===S.tab}"><b>${rows(k).length}</b><span>${sc===SCANS[k]?SCANS[k].t:SCANS[k].t}</span></button>`).join("");
   document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ex===S.ex));
-  $("fmt").value=S.fmt;
   let filterHTML="";
   if(S.tab==="stage2"){
     filterHTML=`<label>Min RS <select id="rs">${options([70,80,90,95],S.rs,v=>v)}</select></label><label>Off 52W high <select id="off">${options(["",25,15,10,5],S.off,v=>v===""?"Any":"≤ "+v+"%")}</select></label>`;
@@ -241,10 +240,12 @@ function wire(){
     if(x){S.ex=x.dataset.ex;render();return}
     if(l){S.lv[l.dataset.lv]=!S.lv[l.dataset.lv];render();return}
     if(s){const k=s.dataset.sort;S.dir=S.key===k?-S.dir:1;S.key=k;render();return}
-    if(e.target.id==="copy"){
-      const sy=SHOWN.map(r=>S.fmt==="tv"?`${r.exch}:${r.symbol}`:r.symbol);
-      navigator.clipboard?.writeText(S.fmt==="tv"?sy.join(","):sy.join("\n")).then(()=>{
-        const b=e.target, old=b.textContent; b.textContent=`Copied ${sy.length}`; setTimeout(()=>b.textContent=old,1200);
+    if(e.target.id==="copyAll"){
+      const all=[];
+      Object.keys(SCANS).forEach(tab=>sourceRows(tab).forEach(r=>{if(r.symbol) all.push(r.symbol)}));
+      const sy=[...new Set(all)];
+      navigator.clipboard?.writeText(sy.join("\n")).then(()=>{
+        const b=e.target, old=b.textContent; b.textContent="Copied "+sy.length+" Stocks"; setTimeout(()=>b.textContent=old,1400);
       }).catch(()=>{});
       return;
     }
