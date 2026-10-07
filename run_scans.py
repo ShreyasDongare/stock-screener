@@ -15,7 +15,6 @@ All settings are in CFG below.
 import json
 from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -24,7 +23,6 @@ DATA = Path("data")
 
 # ------------------------- settings -------------------------
 CFG = {
-    "min_traded_ratio": 0.6,        # abort (keep old results.json) if fewer stocks than this traded on the latest day
     "min_bars": 80,                 # minimum history for any scan
     "min_adr_pct": 3.0,             # 20-day average daily range %, applies to ALL scans
     "min_avg_value_cr": 1.0,        # 20-day avg traded value in rupees crore, applies to ALL scans
@@ -138,7 +136,7 @@ def analyse(key, g, review_keys, recent_keys):
     if key in recent_keys:
         note.append("split/bonus adjusted in last 60 days")
     base = dict(
-        key=key, symbol=row0["symbol"], exch=row0["exch"], name=str(row0["name"]) if pd.notna(row0["name"]) else "",
+        key=key, symbol=row0["symbol"], exch=row0["exch"], name=row0["name"],
         close=num(c[i]), chg=num((c[i] / c[i - 1] - 1) * 100), adr=num(adr, 1),
         value_cr=num(avg_val_cr, 1), ema11=num(ema11[i]), ema21=num(ema21[i]),
         sma50=num(sma50[i]), spark=[num(x) for x in c[-40:]], note="; ".join(note),
@@ -272,18 +270,7 @@ def main():
     dates = sorted(df["date"].unique())
     last = dates[-1]
     review_keys = set(ev.loc[ev["method"] == "review", "key"])
-    recent_keys = set(ev.loc[(ev["method"] != "review") & (ev["date"] >= dates[max(0, len(dates) - 60)]), "key"])
-
-    # sanity checks: refuse to publish results built from a half-downloaded latest day
-    exch_last = df.groupby("exch")["date"].max()
-    if exch_last.nunique() > 1:
-        raise SystemExit(f"ABORT: exchanges disagree on the latest date ({exch_last.to_dict()}). "
-                         "One exchange's file for the latest day is missing; results would be partial.")
-    latest = df.loc[df["date"] == last, "key"].nunique()
-    known = df["key"].nunique()
-    if latest / known < CFG["min_traded_ratio"]:
-        raise SystemExit(f"ABORT: only {latest:,} of {known:,} stocks traded on {last}. "
-                         "The latest day looks incomplete. results.json was NOT updated.")
+    recent_keys = set(ev.loc[(ev["method"] != "review") & (ev["date"] >= dates[-60]), "key"])
 
     hits = {"stage2": [], "pullback": [], "htf": [], "breakout": [], "ep": []}
     rs_raw, perf_raw = {}, {}
@@ -324,7 +311,7 @@ def main():
     hits["htf"].sort(key=lambda r: (r["state"] != "Triggered", -r["gain"]))
 
     passed = len({r["key"] for rows in hits.values() for r in rows})
-    out = {"asof": last, "generated": datetime.now(ZoneInfo("Asia/Kolkata")).replace(tzinfo=None).isoformat(timespec="seconds"),
+    out = {"asof": last, "generated": datetime.now().isoformat(timespec="seconds"),
            "config": CFG, "stats": {"stocks": total, "traded_last_day": traded,
                                     "ranked_for_rs": len(rs_raw), "with_a_signal": passed},
            "scans": hits}

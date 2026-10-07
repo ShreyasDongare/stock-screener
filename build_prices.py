@@ -27,10 +27,8 @@ NSE_SERIES = {"EQ", "BE"}
 BSE_SERIES = {"A", "B", "T", "X", "XT"}
 EVENT_THRESHOLD = 0.05      # detector 1: previous-close mismatch above 5%
 DROP_BELOW, JUMP_ABOVE = 0.78, 1.28   # detector 2: moves price bands can't produce
-SNAP_TOLERANCE = 0.04       # how close (in log terms, ~4%) to a clean ratio to adjust. Kept tight so a
-                            # genuine one-day crash in a no-price-band stock is not mistaken for a split
-CLEAN_DOWN = [1 / n for n in range(2, 51)] + [2/5, 3/5, 2/3]   # splits and bonuses (3/4 removed: 4:3 is
-                                                              # almost never seen, but -25% crashes are)
+SNAP_TOLERANCE = 0.10       # how close (in log terms, ~10%) to a clean ratio to adjust
+CLEAN_DOWN = [1 / n for n in range(2, 51)] + [2/5, 3/5, 2/3, 3/4]   # splits and bonuses
 CLEAN_UP = list(range(2, 21))                                        # consolidations
 # ---------------------------------
 
@@ -49,8 +47,6 @@ def load(exch, keep_series):
             frames.append(pd.read_csv(f, usecols=USE))
         except Exception as e:
             print(f"skipping unreadable file {f.name}: {e}")
-    if not frames:
-        raise SystemExit(f"No readable files in {RAW / exch}. Run fetch_bhav.py first.")
     df = pd.concat(frames, ignore_index=True).rename(columns=NAMES)
     df["exch"] = exch.upper()
     for c in ("series", "isin", "symbol"):
@@ -77,16 +73,8 @@ def main():
         return show(a.show.upper())
 
     nse, bse = load("nse", NSE_SERIES), load("bse", BSE_SERIES)
-    # Stocks listed on both: use NSE. If a stock migrated from BSE to NSE inside our window, its
-    # earlier BSE bars are relabelled to the NSE symbol so the history is one continuous series.
-    first_nse = nse.groupby("isin")["date"].min()
-    nse_symbol = nse.sort_values("date").groupby("isin")["symbol"].last()
-    both = bse[bse["isin"].isin(first_nse.index)]
-    older = both[both["date"] < both["isin"].map(first_nse)].copy()
-    older["symbol"] = older["isin"].map(nse_symbol)
-    older["exch"] = "NSE"
-    bse = bse[~bse["isin"].isin(set(nse["isin"]))]       # BSE-exclusive stocks only
-    df = pd.concat([nse, older, bse], ignore_index=True)
+    bse = bse[~bse["isin"].isin(set(nse["isin"]))]       # keep BSE-exclusive stocks only
+    df = pd.concat([nse, bse], ignore_index=True)
     df["key"] = df["exch"] + ":" + df["symbol"]           # symbol, not ISIN: ISINs change at splits
     df = df.sort_values(["key", "date"]).reset_index(drop=True)
     df["prev_actual"] = df.groupby("key")["close"].shift(1)
