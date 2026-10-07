@@ -56,6 +56,7 @@ th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);whit
 td.l,th.l{text-align:left;font-family:var(--sans)}
 thead th{position:sticky;top:0;z-index:2;background:var(--panel);padding:0;color:var(--mute);font:500 12px var(--sans);border-bottom:2px solid var(--line)}
 th button{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;padding:9px 10px;text-align:right}
+th:has(button[data-sort="adx"]),td:has(.adx-cell){min-width:64px}
 th.l button{text-align:left}th button:hover{color:var(--ink)}
 tr:last-child td{border-bottom:0}
 td:first-child,th:first-child{position:sticky;left:0;background:var(--panel)}
@@ -191,7 +192,7 @@ const CELL = {
   state:r=>`<td class="l"><span class="tag ${r.state==="Triggered"?"t":""}">${esc(r.state)}</span></td>`,
   chg:r=>`<td class="${Number(r.chg)>=0?"up":"dn"}">${Number(r.chg)>=0?"+":""}${f2(r.chg)}</td>`,
   rs:r=>`<td><span class="rs"><i style="width:${Math.min(40,Number(r.rs||0)*.4)}px"></i><b>${f2(r.rs)}</b></span></td>`,
-  adx:r=>heat(r.adx),
+  adx:r=>`<td class="adx-cell">${f2(r.adx)}</td>`,
   ret1m:r=>heat(r.ret1m), ret3m:r=>heat(r.ret3m), ret6m:r=>heat(r.ret6m),
   dist:r=>`<td>${Number(r.dist)>=0?"+":""}${f2(r.dist)}</td>`,
   risk:r=>`<td class="${Number(r.risk)<=5?"rk-ok":Number(r.risk)<=10?"rk-mid":"rk-hi"}">${f2(r.risk)}</td>`,
