@@ -506,9 +506,6 @@ def analyse_high52w(
     if n <= 252:
         return None
 
-    if not np.isfinite(market_cap_cr):
-        return None
-
     value_rupees = c[-1] * v[-1]
 
     adr = (
