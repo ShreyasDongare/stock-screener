@@ -91,6 +91,43 @@ def true_range(high, low, close):
     ])
 
 
+def adx_wilder(high, low, close, period=14):
+    """Wilder ADX(14), using standard directional movement and ATR smoothing."""
+    high_s = pd.Series(high, dtype=float)
+    low_s = pd.Series(low, dtype=float)
+    close_s = pd.Series(close, dtype=float)
+
+    up_move = high_s.diff()
+    down_move = -low_s.diff()
+
+    plus_dm = pd.Series(
+        np.where((up_move > down_move) & (up_move > 0), up_move, 0.0),
+        index=high_s.index,
+    )
+    minus_dm = pd.Series(
+        np.where((down_move > up_move) & (down_move > 0), down_move, 0.0),
+        index=high_s.index,
+    )
+
+    prev_close = close_s.shift(1)
+    tr = pd.concat([
+        high_s - low_s,
+        (high_s - prev_close).abs(),
+        (low_s - prev_close).abs(),
+    ], axis=1).max(axis=1)
+
+    atr = tr.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+    plus_sm = plus_dm.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+    minus_sm = minus_dm.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+
+    plus_di = 100 * plus_sm / atr.replace(0, np.nan)
+    minus_di = 100 * minus_sm / atr.replace(0, np.nan)
+
+    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan)
+    adx = dx.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+    return adx.to_numpy()
+
+
 def load_events():
     """
     Events remain optional.
@@ -148,6 +185,7 @@ def base_row(
     l,
     v,
     tr,
+    adx,
     review_keys,
     recent_keys,
 ):
@@ -193,6 +231,7 @@ def base_row(
         "volume": num(v[i], 0),
         "value_cr": num(value_rupees / 1e7, 2),
         "adr": num(adr, 2),
+        "adx": num(adx[i], 2),
         "note": "; ".join(note),
         "spark": [
             num(x)
@@ -554,6 +593,7 @@ def analyse_stock(
         l,
         c,
     )
+    adx = adx_wilder(h, l, c, 14)
 
     base = base_row(
         key,
@@ -563,6 +603,7 @@ def analyse_stock(
         l,
         v,
         tr,
+        adx,
         review_keys,
         recent_keys,
     )
