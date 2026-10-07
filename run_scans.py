@@ -26,6 +26,7 @@ CFG = {
     "min_bars": 80,                 # minimum history for any scan
     "min_adr_pct": 3.0,             # 20-day average daily range %, applies to ALL scans
     "min_avg_value_cr": 1.0,        # 20-day avg traded value in rupees crore, applies to ALL scans
+    "min_adx": 20,                   # remove stocks with ADX below 20 (trend too weak/choppy)
     "max_risk_pct": None,           # pullback / flag only: e.g. 10 drops setups with stop wider than 10%
     "stage2": {                     # needs 253+ bars (SMA200 + 52-week range + 12-month RS)
         "slope_days": 22,           # 200-day average must be higher than this many days ago
@@ -108,6 +109,26 @@ def analyse(key, g, review_keys, recent_keys):
         and any(mom[k] >= min_mom for k in ("1m", "3m", "6m"))
     )
     if not momentum_floor_ok:
+        return info, {}
+
+    # Universal ADX filter: remove weak/choppy stocks with ADX < 20.
+    # Wilder-style 14-period ADX.
+    prev_c = np.roll(c, 1)
+    prev_c[0] = c[0]
+    tr = np.maximum.reduce([h - l, np.abs(h - prev_c), np.abs(l - prev_c)])
+    up = np.diff(h, prepend=h[0])
+    down = -np.diff(l, prepend=l[0])
+    plus_dm = np.where((up > down) & (up > 0), up, 0.0)
+    minus_dm = np.where((down > up) & (down > 0), down, 0.0)
+    period = 14
+    tr_s = pd.Series(tr).ewm(alpha=1/period, adjust=False).mean()
+    plus_s = pd.Series(plus_dm).ewm(alpha=1/period, adjust=False).mean()
+    minus_s = pd.Series(minus_dm).ewm(alpha=1/period, adjust=False).mean()
+    plus_di = 100 * plus_s / tr_s.replace(0, np.nan)
+    minus_di = 100 * minus_s / tr_s.replace(0, np.nan)
+    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan)
+    adx = dx.ewm(alpha=1/period, adjust=False).mean().to_numpy()
+    if not np.isfinite(adx[i]) or adx[i] < CFG["min_adx"]:
         return info, {}
 
     pick = any if M["match"] == "any" else all
