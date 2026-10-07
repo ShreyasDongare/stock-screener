@@ -827,6 +827,8 @@ function wire(){
     const chartBtn=e.target.closest("[data-chart-key]");
     const watchBtn=e.target.closest("[data-watch-key]");
     if(!D) return;
+    // Desktop only: double-click opens TradingView. Mobile long-press is reserved for colour tagging.
+    if(!window.matchMedia("(hover:hover) and (pointer:fine)").matches) return;
     e.preventDefault();
     clearTimeout(chartClickTimer);
     if(chartBtn){
@@ -886,11 +888,38 @@ function openTagPalette(key,x,y){
     saveTags(tags); CHART_WATCH_TAGS=tags; closeTagPalette(); renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):key); if($("watchlistModal")?.classList.contains("open")) renderColourWatchlist();
   });
 }
+let chartWatchLongPressTimer=null;
+let chartWatchLongPressMoved=false;
 document.addEventListener("contextmenu",e=>{
   const item=e.target.closest("[data-watch-key]");
   if(!item || !$("chartModal").classList.contains("open")) return;
-  e.preventDefault();
-  openTagPalette(item.dataset.watchKey,e.clientX,e.clientY);
+  // Desktop: right-click opens the colour palette.
+  if(window.matchMedia("(hover:hover) and (pointer:fine)").matches){
+    e.preventDefault();
+    openTagPalette(item.dataset.watchKey,e.clientX,e.clientY);
+  }
+});
+document.addEventListener("pointerdown",e=>{
+  const item=e.target.closest("[data-watch-key]");
+  if(!item || !$("chartModal").classList.contains("open")) return;
+  if(!window.matchMedia("(hover:none) and (pointer:coarse)").matches) return;
+  chartWatchLongPressMoved=false;
+  const key=item.dataset.watchKey, x=e.clientX, y=e.clientY;
+  clearTimeout(chartWatchLongPressTimer);
+  chartWatchLongPressTimer=setTimeout(()=>{
+    if(!chartWatchLongPressMoved) openTagPalette(key,x,y);
+  },550);
+});
+document.addEventListener("pointermove",e=>{
+  if(chartWatchLongPressTimer && (Math.abs(e.movementX)>4 || Math.abs(e.movementY)>4)){
+    chartWatchLongPressMoved=true;
+    clearTimeout(chartWatchLongPressTimer);
+    chartWatchLongPressTimer=null;
+  }
+});
+document.addEventListener("pointerup",()=>{
+  clearTimeout(chartWatchLongPressTimer);
+  chartWatchLongPressTimer=null;
 });
 document.addEventListener("click",e=>{
   if(!e.target.closest(".chart-tag-palette")) closeTagPalette();
