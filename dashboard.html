@@ -81,20 +81,20 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-link:hover{color:var(--acc);text-decoration:underline}
 .chart-modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}
 .chart-modal.open{display:flex}
-.chart-box{width:min(1240px,97vw);height:min(780px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;overflow:hidden}
-.chart-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
-.chart-title{font:700 16px var(--sans);color:var(--ink)}
-.chart-meta{color:var(--mute);font:12px var(--mono);margin-left:4px}
-.chart-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:5px 10px;cursor:pointer}
+.chart-box{width:min(1420px,98vw);height:min(860px,95vh);background:#0d131a;border:1px solid #293542;border-radius:14px;box-shadow:0 28px 100px rgba(0,0,0,.48);display:flex;flex-direction:column;overflow:hidden}
+.chart-head{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#101820;border-bottom:1px solid #293542;min-height:58px}
+.chart-title{font:700 17px var(--sans);color:#E8EEF5;letter-spacing:-.2px}
+.chart-meta{color:#8191A1;font:11px var(--mono);margin-left:2px}
+.chart-close{margin-left:auto;border:1px solid #344352;background:#151E27;color:#B9C6D3;border-radius:7px;padding:6px 10px;cursor:pointer}.chart-close:hover{background:#202B36;color:#fff}
 .chart-body{position:relative;flex:1;min-height:0;padding:0}
 .chart-host{position:absolute;inset:0}
 .chart-tooltip{position:absolute;z-index:4;pointer-events:none;display:none;min-width:190px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:color-mix(in srgb,var(--panel) 94%,transparent);box-shadow:0 8px 24px rgba(0,0,0,.16);backdrop-filter:blur(4px);font:11px/1.45 var(--mono);color:var(--ink)}
 .chart-tooltip .tt-date{font-weight:600;margin-bottom:4px}.chart-tooltip .tt-grid{display:grid;grid-template-columns:auto auto;gap:2px 12px}
-.chart-controls{display:flex;gap:6px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 96%,var(--bg))}
-.chart-controls button{border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:6px;padding:4px 9px;font:500 11px var(--sans);cursor:pointer}.chart-controls button:hover,.chart-controls button.active{color:var(--ink);border-color:var(--acc);background:var(--accbg)}
+.chart-controls{display:flex;gap:6px;align-items:center;padding:8px 12px;border-top:1px solid #293542;background:#101820}
+.chart-controls button{border:1px solid #344352;background:#151E27;color:#93A3B3;border-radius:6px;padding:5px 11px;font:500 11px var(--sans);cursor:pointer}.chart-controls button:hover,.chart-controls button.active{color:#fff;border-color:#4D87C2;background:#20354A}
 .chart-controls .hint{margin-left:auto;color:var(--mute);font:11px var(--mono)}
-.chart-legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 16px;color:var(--mute);font:11px var(--sans);border-top:1px solid var(--line)}
-.chart-legend b{color:var(--ink)}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;padding:7px 14px;color:#8191A1;background:#0D131A;font:11px var(--sans);border-top:1px solid #293542}
+.chart-legend b{color:#DDE6EF}
 @media(max-width:720px){.chart-modal{padding:6px}.chart-box{width:100%;height:94vh;border-radius:12px}.chart-head{padding:9px 11px}.chart-meta{font-size:10px}.chart-controls .hint{display:none}.chart-legend{padding:6px 10px;gap:9px}}
 </style>
 </head>
@@ -122,9 +122,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 </main>
 <div class="chart-modal" id="chartModal" role="dialog" aria-modal="true" aria-label="Stock chart">
   <div class="chart-box">
-    <div class="chart-head"><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
+    <div class="chart-head"><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><div id="chartStats" style="display:flex;gap:14px;margin-left:10px;align-items:center;font:11px var(--mono)"></div><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
     <div class="chart-body" id="chartBody"></div>
-    <div class="chart-controls"><button id="chartReset">Reset Zoom</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><span class="hint">Scroll = zoom · Drag = pan · Crosshair = OHLCV</span></div><div class="chart-legend"><span>▮ <b>Price</b></span><span>— EMA11</span><span>— EMA21</span><span>— SMA50</span><span>▮ Volume</span></div>
+    <div class="chart-controls"><button id="chartReset">Reset Zoom</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><span class="hint">Scroll = zoom · Drag = pan · Crosshair = OHLCV</span></div><div class="chart-legend"><span>● <b>Price</b></span><span style="color:#58A6E6">━ EMA11</span><span style="color:#E7B84B">━ EMA21</span><span style="color:#B17DE6">━ SMA50</span><span>▮ Volume</span><span style="margin-left:auto">Scroll zoom · Drag pan · Crosshair OHLCV</span></div>
   </div>
 </div>
 <script>
@@ -266,67 +266,96 @@ function makeSeries(chart, type, options){
 
 function openChart(key,row){
   if(!CHART || !CHART[key] || typeof LightweightCharts==="undefined") return;
-  const d=CHART[key], n=d.dates.length, theme=chartTheme();
+  const d=CHART[key], n=d.dates.length;
+  const dark=true;
   CHART_ROW=row||null;
+  const last=n-1, close=Number(d.close[last]), prev=n>1?Number(d.close[last-1]):NaN;
+  const dayPct=Number.isFinite(prev)&&prev!==0?(close/prev-1)*100:NaN;
+  const entry=Number(row?.entry), stop=Number(row?.stop);
+  const fmt=x=>Number.isFinite(x)?x.toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
+
   $("chartTitle").textContent=d.exch+":"+d.symbol;
-  $("chartMeta").textContent=d.dates[0]+" → "+d.dates[n-1]+" · "+n+" sessions · EOD";
+  $("chartMeta").textContent=d.dates[0]+" → "+d.dates[last]+" · "+n+" sessions · EOD";
+  $("chartStats").innerHTML=
+    '<span style="color:#DDE6EF">₹'+fmt(close)+'</span>'+
+    '<span style="color:'+(dayPct>=0?'#45C98D':'#E56C6C')+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
+    (Number.isFinite(row?.adx)?'<span style="color:#9FB0C0">ADX '+fmt(Number(row.adx))+'</span>':'')+
+    (row?.setup?'<span style="color:#80B2E6">'+esc(row.setup)+'</span>':'')+
+    (Number.isFinite(entry)?'<span style="color:#45C98D">Entry ₹'+fmt(entry)+'</span>':'')+
+    (Number.isFinite(stop)?'<span style="color:#E56C6C">SL ₹'+fmt(stop)+'</span>':'');
+
   $("chartBody").innerHTML='<div class="chart-host" id="chartHost"></div><div class="chart-tooltip" id="chartTooltip"></div>';
   $("chartModal").classList.add("open");
-
   const host=$("chartHost");
+
   const chart=LightweightCharts.createChart(host,{
     width:host.clientWidth,height:host.clientHeight,
-    layout:{background:{type:LightweightCharts.ColorType.Solid,color:theme.bg},textColor:theme.textColor,fontFamily:"IBM Plex Mono, monospace",fontSize:11},
-    grid:{vertLines:{color:theme.gridColor},horzLines:{color:theme.gridColor}},
-    rightPriceScale:{borderColor:theme.gridColor,scaleMargins:{top:.06,bottom:.18}},
-    timeScale:{borderColor:theme.gridColor,timeVisible:false,secondsVisible:false,rightOffset:4,barSpacing:7,minBarSpacing:2},
-    crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:theme.textColor,width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:theme.ema11},horzLine:{color:theme.textColor,width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:theme.ema11}},
+    layout:{background:{type:LightweightCharts.ColorType.Solid,color:"#0D131A"},textColor:"#91A2B3",fontFamily:"IBM Plex Mono, monospace",fontSize:11},
+    grid:{vertLines:{color:"rgba(125,145,165,.075)"},horzLines:{color:"rgba(125,145,165,.075)"}},
+    rightPriceScale:{borderColor:"#293542",scaleMargins:{top:.06,bottom:.24},minimumWidth:74},
+    timeScale:{borderColor:"#293542",timeVisible:false,secondsVisible:false,rightOffset:6,barSpacing:8,minBarSpacing:2},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:"#71869B",width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:"#33485B"},horzLine:{color:"#71869B",width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:"#33485B"}},
     handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},
-    handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:true}
+    handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:true},
+    localization:{priceFormatter:p=>Number(p).toLocaleString("en-IN",{maximumFractionDigits:2})}
   });
   LW=chart;
 
-  const candles=d.dates.map((time,i)=>({time,open:Number(d.open[i]),high:Number(d.high[i]),low:Number(d.low[i]),close:Number(d.close[i])})).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
-  const candle=makeSeries(chart,"candlestick",{upColor:theme.up,downColor:theme.down,borderUpColor:theme.up,borderDownColor:theme.down,wickUpColor:theme.up,wickDownColor:theme.down});
+  const candles=d.dates.map((time,i)=>({time,open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]})).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
+  const candle=chart.addSeries(LightweightCharts.CandlestickSeries,{
+    upColor:"#20A46B",downColor:"#D95353",borderUpColor:"#20A46B",borderDownColor:"#D95353",wickUpColor:"#20A46B",wickDownColor:"#D95353",
+    priceLineVisible:false,lastValueVisible:true
+  });
   candle.setData(candles);
 
-  if(row){
-    const entry=Number(row.entry),stop=Number(row.stop);
-    if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:theme.up,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
-    if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:theme.down,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
-  }
+  if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:"#45C98D",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
+  if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:"#E56C6C",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
 
-  const ema11=makeSeries(chart,"line",{color:theme.ema11,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
-  const ema21=makeSeries(chart,"line",{color:theme.ema21,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
-  const sma50=makeSeries(chart,"line",{color:theme.sma50,lineWidth:1.5,lastValueVisible:false,priceLineVisible:false});
-  ema11.setData(d.dates.map((time,i)=>({time,value:Number(d.ema11[i])})).filter(x=>Number.isFinite(x.value)));
-  ema21.setData(d.dates.map((time,i)=>({time,value:Number(d.ema21[i])})).filter(x=>Number.isFinite(x.value)));
-  sma50.setData(d.dates.map((time,i)=>({time,value:Number(d.sma50[i])})).filter(x=>Number.isFinite(x.value)));
+  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:"#58A6E6",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:"#E7B84B",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:"#B17DE6",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  ema11.setData(d.dates.map((time,i)=>({time,value:+d.ema11[i]})).filter(x=>Number.isFinite(x.value)));
+  ema21.setData(d.dates.map((time,i)=>({time,value:+d.ema21[i]})).filter(x=>Number.isFinite(x.value)));
+  sma50.setData(d.dates.map((time,i)=>({time,value:+d.sma50[i]})).filter(x=>Number.isFinite(x.value)));
 
-  const volume=makeSeries(chart,"histogram",{priceFormat:{type:"volume"},priceScaleId:"volume",color:"rgba(120,145,170,.45)",lastValueVisible:false,priceLineVisible:false});
-  volume.priceScale().applyOptions({scaleMargins:{top:.82,bottom:0}});
-  volume.setData(d.dates.map((time,i)=>({time,value:Number(d.volume[i]),color:Number(d.close[i])>=Number(d.open[i])?theme.up:theme.down})).filter(x=>Number.isFinite(x.value)));
+  const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
+    priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
+    color:"#3E5368"
+  });
+  volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
+  volume.setData(d.dates.map((time,i)=>({
+    time,value:+d.volume[i],color:+d.close[i]>=+d.open[i]?"rgba(32,164,107,.55)":"rgba(217,83,83,.55)"
+  })).filter(x=>Number.isFinite(x.value)));
 
-  const tooltip=$("chartTooltip");
-  const byTime=new Map(d.dates.map((time,i)=>[time,i]));
+  // Setup marker on the latest relevant day.
+  try{
+    const markerSeries=candle;
+    const markers=[];
+    if(row?.setup || S.tab==="ep" || S.tab==="breakout_htf" || S.tab==="pullback"){
+      markers.push({time:d.dates[last],position:"belowBar",color:"#45C98D",shape:"arrowUp",text:row?.setup||SCANS[S.tab].t});
+    }
+    if(markers.length) markerSeries.setMarkers(markers);
+  }catch(_){}
+
+  const tooltip=$("chartTooltip"), byTime=new Map(d.dates.map((time,i)=>[time,i]));
   chart.subscribeCrosshairMove(param=>{
-    if(!param.time || !param.point || !host.contains(param.sourceEvent?.target)) { tooltip.style.display="none"; return; }
-    const i=byTime.get(param.time); if(i==null) return;
-    const o=Number(d.open[i]),h=Number(d.high[i]),l=Number(d.low[i]),cl=Number(d.close[i]),v=Number(d.volume[i]);
-    const fmt=x=>Number.isFinite(x)?x.toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
-    const chg=Number.isFinite(o)&&o!==0?((cl-o)/o*100):NaN;
-    tooltip.innerHTML='<div class="tt-date">'+esc(d.dates[i])+'</div><div class="tt-grid"><span>O</span><b>'+fmt(o)+'</b><span>H</span><b>'+fmt(h)+'</b><span>L</span><b>'+fmt(l)+'</b><span>C</span><b>'+fmt(cl)+'</b><span>Chg</span><b class="'+(chg>=0?"up":"dn")+'">'+(chg>=0?"+":"")+fmt(chg)+'%</b><span>Vol</span><b>'+fmt(v)+'</b></div>';
-    const pad=12,tw=205,left=Math.max(pad,Math.min(host.clientWidth-tw-pad,param.point.x+14));
-    tooltip.style.left=left+"px"; tooltip.style.top=Math.max(pad,Math.min(host.clientHeight-100-pad,param.point.y-20))+"px"; tooltip.style.display="block";
+    if(!param.time || !param.point){tooltip.style.display="none";return;}
+    const i=byTime.get(param.time); if(i==null)return;
+    const o=+d.open[i],h=+d.high[i],l=+d.low[i],cl=+d.close[i],v=+d.volume[i];
+    const chg=i>0&&+d.close[i-1]!==0?(cl/+d.close[i-1]-1)*100:NaN;
+    tooltip.innerHTML='<div class="tt-date">'+esc(d.dates[i])+'</div><div class="tt-grid">'+
+      '<span>O</span><b>'+fmt(o)+'</b><span>H</span><b>'+fmt(h)+'</b><span>L</span><b>'+fmt(l)+'</b>'+
+      '<span>C</span><b>'+fmt(cl)+'</b><span>Chg</span><b class="'+(chg>=0?"up":"dn")+'">'+(chg>=0?"+":"")+fmt(chg)+'%</b>'+
+      '<span>Vol</span><b>'+fmt(v)+'</b></div>';
+    const tw=205,left=Math.max(10,Math.min(host.clientWidth-tw-10,param.point.x+14));
+    tooltip.style.left=left+"px";tooltip.style.top=Math.max(10,Math.min(host.clientHeight-108,param.point.y-22))+"px";tooltip.style.display="block";
   });
 
-  const resize=()=>{if(LW){LW.applyOptions({width:host.clientWidth,height:host.clientHeight});}};
-  const ro=new ResizeObserver(resize); ro.observe(host);
-  chart.timeScale().fitContent();
-  chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+4});
+  const resize=()=>{if(LW)LW.applyOptions({width:host.clientWidth,height:host.clientHeight});};
+  const ro=new ResizeObserver(resize);ro.observe(host);
+  chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+5});
   requestAnimationFrame(resize);
 }
-
 function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
@@ -396,7 +425,7 @@ function wire(){
 }
 
 $("chartClose").addEventListener("click",closeChart);
-$("chartReset").addEventListener("click",()=>{if(LW){LW.timeScale().fitContent();LW.timeScale().setVisibleLogicalRange({from:Math.max(0,CHART_ROW?120:0),to:(CHART_ROW&&CHART[CHART_ROW.key]?CHART[CHART_ROW.key].dates.length+4:9999)});}});
+$("chartReset").addEventListener("click",()=>{if(LW&&CHART_ROW&&CHART[CHART_ROW.key]){const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+5});}});
 function setChartWindow(days){if(!LW||!CHART_ROW||!CHART[CHART_ROW.key])return;const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-days),to:n+4});}
 $("chart120").addEventListener("click",()=>setChartWindow(120));
 $("chart60").addEventListener("click",()=>setChartWindow(60));
