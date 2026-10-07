@@ -264,25 +264,25 @@ const SCANS = {
     t: "1M / 3M / 6M",
     d: "Breakout above the prior 31, 93 or 186 trading-day closing high with ADR and EMA60. Returns show the gain over each lookback.",
     sort: ["close", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["breakout","Breakout","l"],["ema60","EMA60"],["tr_adr","ADR %"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["breakout","Breakout","l"],["ema60","EMA60"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
   },
   m30: {
     t: "3M 30% Scan",
     d: "3-month return above 30%, above EMA75, ADR at least 3%, and traded value above ₹1 Cr.",
     sort: ["ret3m", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret3m","3M %"],["ema75","EMA75"],["tr_adr","ADR %"],["value_cr","Value (Cr)"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret3m","3M %"],["ema75","EMA75"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
   },
   htf: {
     t: "HTF Scan",
-    d: "60-day gain above 50%, within 15% of the prior 252-day high, controlled volume, market cap above ₹500 Cr and price above ₹50.",
+    d: "60-day gain above 50%, within 15% of the prior 252-day high, controlled volume and price above ₹50.",
     sort: ["gain60", -1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["gain60","60D %"],["off_high","Off 252W high %"],["vol_ratio","Vol x"],["market_cap_cr","Market Cap (Cr)"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["gain60","60D %"],["off_high","Off 252W high %"],["vol_ratio","Vol x"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
   },
   high52w: {
     t: "52Week High",
-    d: "Within 10% of the prior 252-day high, but not above it, with ADR, market-cap and ₹1 Cr traded-value filters.",
+    d: "Within 10% of the prior 252-day high, but not above it, with ADR and ₹1 Cr traded-value.",
     sort: ["off_high", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["off_high","Off 52W high %"],["market_cap_cr","Market Cap (Cr)"],["tr_adr","ADR %"],["value_cr","Value (Cr)"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["off_high","Off 52W high %"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
   }
 }
 const DEFAULT_STATE = { tab: "m136", ex: "ALL", q: "", key: "close", dir: -1 };
@@ -717,7 +717,7 @@ function render(){
     return S.dir*((Number(x)||0)-(Number(y)||0));
   });
   $("tbody").innerHTML=SHOWN.length ? SHOWN.map(r=>"<tr>"+sc.cols.map(([k])=>CELL[k]?CELL[k](r):`<td>${f2(r[k])}</td>`).join("")+"</tr>").join("") : `<tr><td colspan="${sc.cols.length}" class="empty">No stocks match these filters.</td></tr>`;
-  $("foot").textContent=`Showing ${SHOWN.length} of ${sourceRows(S.tab).length}. Click a symbol to open its chart.${D.stats?.market_cap_loaded===false && ["m136","htf","high52w"].includes(S.tab) ? " Market-cap data not loaded for this scan." : ""}`;
+  $("foot").textContent=`Showing ${SHOWN.length} of ${sourceRows(S.tab).length}. Click a symbol to open its chart.${""}`;
   try { localStorage.setItem("scn",JSON.stringify(S)); } catch (_) {}
 }
 
