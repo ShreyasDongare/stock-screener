@@ -708,6 +708,7 @@ function render(){
   $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span></button>`}).join("");
   document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ex===S.ex));
   const filterHTML = "";  $("filters").innerHTML=filterHTML;
+  $("q").value=S.q||"";
   $("q").placeholder=`Search from ${sourceRows(S.tab).length} stocks`;
   $("desc").textContent=sc.d;
   $("thead").innerHTML="<tr>"+sc.cols.map(([k,t,cl])=>`<th class="${cl||""}"><button data-sort="${k}">${t}${S.key===k?(S.dir>0?" ▲":" ▼"):""}</button></th>`).join("")+"</tr>";
