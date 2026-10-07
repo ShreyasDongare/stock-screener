@@ -530,7 +530,7 @@ function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
   Object.keys(SCANS).forEach(k=>{});
-  $("tabs").innerHTML=Object.keys(SCANS).map(k=>`<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===S.tab}"><span>${SCANS[k].t}</span></button>`).join("");
+  $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span></button>`}).join("");
   document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ex===S.ex));
   let filterHTML="";
   if(S.tab==="stage2"){
