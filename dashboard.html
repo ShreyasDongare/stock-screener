@@ -578,7 +578,7 @@ function wire(){
     if(!r || !r.symbol) return;
     const suffix=r.exch==="BSE"?".BO":".NS";
     const dhanSymbol=String(r.symbol)+suffix;
-    const url="https://tv.dhan.co/chart/?symbol="+encodeURIComponent(dhanSymbol);
+    const url="https://tv.dhan.co/?symbol="+encodeURIComponent(dhanSymbol);
     window.open(url,"_blank","noopener,noreferrer");
   };
   document.addEventListener("click",e=>{
