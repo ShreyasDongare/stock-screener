@@ -99,7 +99,11 @@ const SCANS={
   cols:[['symbol','Symbol','l'],['exch','Exch','l'],['state','State','l'],['close','Close'],['gap','Gap %'],['vol_ratio','Vol x'],['prior_3m','Prior 3M %'],['adr','ADR %'],['entry','Entry'],['stop','Stop'],['risk','Risk %'],['spark','40 days']]}
 };
 const S={tab:'stage2',ex:'ALL',q:'',rs:70,off:'',lv:{EMA11:true,EMA21:true,SMA50:true},risk:'',st:'',fmt:'tv',key:'rs',dir:-1};
-try{Object.assign(S,JSON.parse(localStorage.getItem('scn')||'{}'))}catch(e){}
+try{
+ Object.assign(S,JSON.parse(localStorage.getItem('scn')||'{}'));
+ // Migrate saved tab names from the old five-box dashboard.
+ if(S.tab==='breakout'||S.tab==='htf') S.tab='breakout_htf';
+}catch(e){}
 const save=()=>{try{localStorage.setItem('scn',JSON.stringify(S))}catch(e){}};
 const $=id=>document.getElementById(id);
 let D=null,SHOWN=[];
