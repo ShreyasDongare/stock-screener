@@ -6,7 +6,7 @@ Stage 3 (v2): three scans on the adjusted prices from build_prices.py.
   3. High tight flag  : big run-up, then a tight flag (forming or triggered)
   4. Breakout         : top performers in a tight, higher-low flag (Qullamaggie style).
                         Setup = trigger above the flag high. Triggered = closed above it on volume.
-  5. Episodic pivot   : gap-up on heavy volume after a quiet stretch (last 3 days)
+  5. Episodic pivot   : gap-up on heavy volume after a relatively quiet 6-month period
 
 Run:  python run_scans.py
 Out:  data/results.json   (the dashboard reads this)
@@ -63,14 +63,15 @@ CFG = {
         "max_extended_pct": 8,      # triggered: skip if the close is already >8% over the flag high
         "max_risk_adr": 1.5,        # skip if stop is wider than 1.5 x ADR
     },
-    "ep": {                         # episodic pivot: news / earnings gap on heavy volume
+    "ep": {                         # India-focused, moderately loose episodic pivot
         "enabled": True,
         "lookback_days": 3,         # today and the 2 days before
-        "min_gap_pct": 8,           # open vs previous close
-        "max_gap_pct": 40,          # above this it is usually a data / corporate action artifact
-        "min_vol_ratio": 3,         # volume >= 3 x 20-day average
-        "min_close_pos": 0.6,       # close in the upper 40% of the day's range
-        "max_prior_3m_pct": 40,     # stock was NOT already extended (neglected before the news)
+        "min_gap_pct": 6,           # open vs previous close
+        "max_gap_pct": 35,          # avoid extreme/data/corporate-action gaps
+        "min_vol_ratio": 2,         # volume >= 2 x 20-day average
+        "min_close_pos": 0.55,      # close in the upper 45% of the day's range
+        "prior_days": 126,           # about 6 months of trading days
+        "max_prior_move_pct": 50,   # allow stocks that moved up/down <= 50% before the event
     },
     "htf": {"flagpole_days": 40, "min_gain_pct": 70, "flag_min_days": 15,
             "flag_max_days": 25, "max_pullback_pct": 25},
@@ -223,9 +224,9 @@ def analyse(key, g, review_keys, recent_keys):
                 continue
             vr = v[k] / avg_v
             pos = (c[k] - l[k]) / (h[k] - l[k]) if h[k] > l[k] else 1.0
-            prior = (c[k - 1] / c[k - 64] - 1) * 100
+            prior = (c[k - 1] / c[k - E["prior_days"]] - 1) * 100
             if (vr >= E["min_vol_ratio"] and pos >= E["min_close_pos"]
-                    and prior <= E["max_prior_3m_pct"] and c[i] >= o[k]):
+                    and abs(prior) <= E["max_prior_move_pct"] and c[i] >= o[k]):
                 finish("ep", h[k:i + 1].max(), l[k], state="Today" if k == i else f"{i - k}d ago",
                        gap=num(gap, 1), vol_ratio=num(vr, 1), prior_3m=num(prior, 0), days_ago=int(i - k),
                        signal="Gap-up on heavy volume: buy above the EP-day high, stop at its low")
