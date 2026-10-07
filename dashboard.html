@@ -380,6 +380,11 @@ function renderChartWatchlist(activeKey){
   if(search){
     search.addEventListener("input",e=>{CHART_WATCH_Q=e.target.value;renderChartWatchlist(activeKey);const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
   }
+  // Keep the active stock visible without jumping the watchlist to the top.
+  const activeItem=el.querySelector(".chart-watch-item.active");
+  if(activeItem){
+    activeItem.scrollIntoView({behavior:"auto",block:"nearest",inline:"nearest"});
+  }
 }
 
 
