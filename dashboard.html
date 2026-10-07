@@ -361,29 +361,33 @@ function cycleTag(key){
 let CHART_WATCH_Q="";
 function renderChartWatchlist(activeKey){
   const el=$("chartWatchlist"); if(!el) return;
+  // Preserve the user's exact watchlist scroll position when the chart changes.
+  // Rebuilding innerHTML creates new list items; restoring scrollTop prevents the
+  // active stock from jumping the list, while a direct scrollTop adjustment below
+  // moves only this panel when the active item is genuinely outside the viewport.
+  const previousScrollTop=el.scrollTop;
   const all=chartRows(), tags=getTags(), q=CHART_WATCH_Q.trim().toUpperCase();
   const items=all.filter(r=>!q || String(r.symbol||"").toUpperCase().includes(q));
-  el.innerHTML='<div class="chart-watch-head">'+
-    '<div class="chart-watch-title">Scanned Stocks</div>'+
-    '<input class="chart-watch-search" id="chartWatchSearch" type="search" value="'+esc(CHART_WATCH_Q)+'" placeholder="Search from '+all.length+' stocks" aria-label="Search stocks">'+
-    '<div class="chart-watch-help">↑ ↓ switch · Right-click stock = colour tag</div>'+
-    '</div>'+
-    '<div class="chart-watch-items">'+
-    (items.length ? items.map(r=>{
-      const tag=tags[r.key]||"";
-      return '<button class="chart-watch-item '+(r.key===activeKey?'active ':'')+(tag?'tag-'+tag:'')+'" data-watch-key="'+esc(r.key)+'">'+
-        '<span>'+esc(r.symbol)+'</span><span class="wsetup">'+esc(r.watchSetup||"")+'</span>'+
-        '<span class="chart-tag-dot '+tag+'" data-tag-key="'+esc(r.key)+'" title="Colour tag"></span></button>';
-    }).join("") : '<div class="chart-watch-help" style="padding-top:12px">No stocks found</div>')+
-    '</div>';
-  const search=$("chartWatchSearch");
+  el.innerHTML=  const search=$("chartWatchSearch");
   if(search){
     search.addEventListener("input",e=>{CHART_WATCH_Q=e.target.value;renderChartWatchlist(activeKey);const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
   }
-  // Keep the active stock visible without jumping the watchlist to the top.
+  // Restore the exact position first. Only move the watchlist if the new
+  // active item is actually outside the visible list area. Do not use
+  // scrollIntoView(), because it can also scroll other ancestors/page.
+  el.scrollTop=previousScrollTop;
   const activeItem=el.querySelector(".chart-watch-item.active");
   if(activeItem){
-    activeItem.scrollIntoView({behavior:"auto",block:"nearest",inline:"nearest"});
+    const er=el.getBoundingClientRect();
+    const hr=el.querySelector(".chart-watch-head")?.getBoundingClientRect();
+    const ar=activeItem.getBoundingClientRect();
+    const topLimit=er.top+(hr?.height||0)+2;
+    const bottomLimit=er.bottom-2;
+    if(ar.top<topLimit){
+      el.scrollTop+=ar.top-topLimit;
+    }else if(ar.bottom>bottomLimit){
+      el.scrollTop+=ar.bottom-bottomLimit;
+    }
   }
 }
 
