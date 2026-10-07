@@ -674,6 +674,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("keydown",e=>{
   if(!$("chartModal").classList.contains("open")) return;
+  if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName) && e.key!=="Escape") return;
   if(e.key==="Escape"){
     if(DRAW_TOOL!=="select"){e.preventDefault();setDrawTool("select");DRAW_PENDING=null;return;}
     const p=document.querySelector(".chart-tag-palette");
