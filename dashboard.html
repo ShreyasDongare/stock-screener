@@ -183,7 +183,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
     <button class="indicator active" data-indicator="sma50">SMA50</button>
     <button class="indicator active" data-indicator="volume">Volume</button>
   </div>
-  <button id="chartReset">Reset</button><button id="chartFit">Fit</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><button id="chartFullscreen">⛶ Fullscreen</button>
+  <div class="chart-tf-group"><button class="chart-tf active" data-chart-tf="D">Daily</button><button class="chart-tf" data-chart-tf="W">Weekly</button></div><button id="chartReset">Reset</button><button id="chartFit">Fit</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><button id="chartFullscreen">⛶ Fullscreen</button>
   <span class="hint">Scroll = zoom · Drag = pan · Crosshair OHLC shown bottom-right</span>
 </div><div class="chart-legend"><span>● <b>Price</b></span><span style="color:#58A6E6">━ EMA11</span><span style="color:#E7B84B">━ EMA21</span><span style="color:#B17DE6">━ SMA50</span><span>▮ Volume</span><span style="margin-left:auto">Scroll zoom · Drag pan · Crosshair price/time</span></div>
   </div>
@@ -295,6 +295,49 @@ function options(values,current,label){
 let LW = null;
 let CHART = null, CHART_ROW = null;
 let CHART_SERIES = {};
+let CHART_TF = "D";
+
+function weeklyChartData(src){
+  const out={dates:[],open:[],high:[],low:[],close:[],volume:[]};
+  let cur=null;
+  for(let i=0;i<src.dates.length;i++){
+    const date=String(src.dates[i]);
+    const dt=new Date(date+"T00:00:00Z");
+    const day=dt.getUTCDay();
+    const monday=new Date(dt);
+    const diff=day===0?-6:1-day;
+    monday.setUTCDate(dt.getUTCDate()+diff);
+    const week=monday.toISOString().slice(0,10);
+    if(week!==cur){
+      cur=week;
+      out.dates.push(week);
+      out.open.push(Number(src.open[i]));
+      out.high.push(Number(src.high[i]));
+      out.low.push(Number(src.low[i]));
+      out.close.push(Number(src.close[i]));
+      out.volume.push(Number(src.volume[i])||0);
+    }else{
+      const j=out.close.length-1;
+      out.high[j]=Math.max(out.high[j],Number(src.high[i]));
+      out.low[j]=Math.min(out.low[j],Number(src.low[i]));
+      out.close[j]=Number(src.close[i]);
+      out.volume[j]+=(Number(src.volume[i])||0);
+    }
+  }
+  const close=out.close;
+  const ema=(span)=>{
+    const a=2/(span+1), z=[]; let prev=close[0];
+    for(const x of close){prev=a*x+(1-a)*prev;z.push(Number(prev.toFixed(4)));}
+    return z;
+  };
+  const sma=(n)=>close.map((_,i)=>i>=n-1?Number((close.slice(i-n+1,i+1).reduce((a,b)=>a+b,0)/n).toFixed(4)):null);
+  out.ema11=ema(11); out.ema21=ema(21); out.sma50=sma(50);
+  return {...src,...out};
+}
+
+function chartDataForTimeframe(src){
+  return CHART_TF==="W" ? weeklyChartData(src) : src;
+}
 let CHART_WATCH_Q="";
 let CHART_WATCH_SCROLL_TOP=null;
 function chartRows(){
@@ -343,7 +386,7 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
 
 function openChart(key,row){
   if(!CHART || !CHART[key] || typeof LightweightCharts==="undefined") return;
-  const d=CHART[key], n=d.dates.length;
+  const baseD=CHART[key], d=chartDataForTimeframe(baseD), n=d.dates.length;
   const dark=document.documentElement.dataset.theme==="dark";
   const ct=dark ? {
     bg:"#0D131A", text:"#91A2B3", grid:"rgba(125,145,165,.075)", border:"#293542",
@@ -360,7 +403,8 @@ function openChart(key,row){
   const fmt=x=>Number.isFinite(x)?x.toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
 
   $("chartTitle").textContent=d.exch+":"+d.symbol;
-  $("chartMeta").textContent=d.dates[0]+" → "+d.dates[last]+" · "+n+" sessions · EOD";
+  $("chartMeta").textContent=d.dates[0]+" → "+d.dates[last]+" · "+n+" "+(CHART_TF==="W"?"weeks":"sessions")+" · "+(CHART_TF==="W"?"Weekly":"EOD");
+  document.querySelectorAll("[data-chart-tf]").forEach(b=>b.classList.toggle("active",b.dataset.chartTf===CHART_TF));
   $("chartStats").innerHTML=
     '<span style="color:'+ct.text+'">₹'+fmt(close)+'</span>'+
     '<span style="color:'+(dayPct>=0?ct.up:ct.down)+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
@@ -430,8 +474,7 @@ function openChart(key,row){
 
 
   const resize=()=>{if(LW)LW.applyOptions({width:host.clientWidth,height:host.clientHeight});};
-  const ro=new ResizeObserver(()=>{resize();renderDrawings();});ro.observe(host);
-  chart.timeScale().subscribeVisibleLogicalRangeChange(()=>renderDrawings());
+  const ro=new ResizeObserver(()=>{resize();});ro.observe(host);
   // Default view: latest 120 trading days, with 12-candle right breathing room.
   // Vertical chart margins are controlled by the price scale: 18% top / 12% bottom.
   chart.applyOptions({rightPriceScale:{scaleMargins:{top:.18,bottom:.12}}});
@@ -482,6 +525,8 @@ function wire(){
     window.open(url,"_blank","noopener,noreferrer");
   };
   document.addEventListener("click",e=>{
+    const tfBtn=e.target.closest("[data-chart-tf]");
+    if(tfBtn){ CHART_TF=tfBtn.dataset.chartTf==="W"?"W":"D"; if(CHART_ROW) openChart(CHART_ROW.key,CHART_ROW); return; }
     const chartBtn=e.target.closest("[data-chart-key]");
     const watchBtn=e.target.closest("[data-watch-key]");
     const tagBtn=e.target.closest("[data-tag-key]");
