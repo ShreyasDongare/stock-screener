@@ -124,7 +124,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
   <div class="chart-box">
     <div class="chart-head"><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><div id="chartStats" style="display:flex;gap:14px;margin-left:10px;align-items:center;font:11px var(--mono)"></div><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
     <div class="chart-body" id="chartBody"></div>
-    <div class="chart-controls"><button id="chartReset">Reset Zoom</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><span class="hint">Scroll = zoom · Drag = pan · Crosshair = OHLCV</span></div><div class="chart-legend"><span>● <b>Price</b></span><span style="color:#58A6E6">━ EMA11</span><span style="color:#E7B84B">━ EMA21</span><span style="color:#B17DE6">━ SMA50</span><span>▮ Volume</span><span style="margin-left:auto">Scroll zoom · Drag pan · Crosshair OHLCV</span></div>
+    <div class="chart-controls"><button id="chartReset">Reset</button><button id="chartFit">Fit</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><button id="chartFullscreen">⛶ Fullscreen</button><span class="hint">Scroll = zoom · Drag = pan · Crosshair = price/time</span></div><div class="chart-legend"><span>● <b>Price</b></span><span style="color:#58A6E6">━ EMA11</span><span style="color:#E7B84B">━ EMA21</span><span style="color:#B17DE6">━ SMA50</span><span>▮ Volume</span><span style="margin-left:auto">Scroll zoom · Drag pan · Crosshair price/time</span></div>
   </div>
 </div>
 <script>
@@ -284,7 +284,7 @@ function openChart(key,row){
     (Number.isFinite(entry)?'<span style="color:#45C98D">Entry ₹'+fmt(entry)+'</span>':'')+
     (Number.isFinite(stop)?'<span style="color:#E56C6C">SL ₹'+fmt(stop)+'</span>':'');
 
-  $("chartBody").innerHTML='<div class="chart-host" id="chartHost"></div><div class="chart-tooltip" id="chartTooltip"></div>';
+  $("chartBody").innerHTML='<div class="chart-host" id="chartHost"></div>';
   $("chartModal").classList.add("open");
   const host=$("chartHost");
 
@@ -337,19 +337,7 @@ function openChart(key,row){
     if(markers.length) markerSeries.setMarkers(markers);
   }catch(_){}
 
-  const tooltip=$("chartTooltip"), byTime=new Map(d.dates.map((time,i)=>[time,i]));
-  chart.subscribeCrosshairMove(param=>{
-    if(!param.time || !param.point){tooltip.style.display="none";return;}
-    const i=byTime.get(param.time); if(i==null)return;
-    const o=+d.open[i],h=+d.high[i],l=+d.low[i],cl=+d.close[i],v=+d.volume[i];
-    const chg=i>0&&+d.close[i-1]!==0?(cl/+d.close[i-1]-1)*100:NaN;
-    tooltip.innerHTML='<div class="tt-date">'+esc(d.dates[i])+'</div><div class="tt-grid">'+
-      '<span>O</span><b>'+fmt(o)+'</b><span>H</span><b>'+fmt(h)+'</b><span>L</span><b>'+fmt(l)+'</b>'+
-      '<span>C</span><b>'+fmt(cl)+'</b><span>Chg</span><b class="'+(chg>=0?"up":"dn")+'">'+(chg>=0?"+":"")+fmt(chg)+'%</b>'+
-      '<span>Vol</span><b>'+fmt(v)+'</b></div>';
-    const tw=205,left=Math.max(10,Math.min(host.clientWidth-tw-10,param.point.x+14));
-    tooltip.style.left=left+"px";tooltip.style.top=Math.max(10,Math.min(host.clientHeight-108,param.point.y-22))+"px";tooltip.style.display="block";
-  });
+
 
   const resize=()=>{if(LW)LW.applyOptions({width:host.clientWidth,height:host.clientHeight});};
   const ro=new ResizeObserver(resize);ro.observe(host);
@@ -426,6 +414,8 @@ function wire(){
 
 $("chartClose").addEventListener("click",closeChart);
 $("chartReset").addEventListener("click",()=>{if(LW&&CHART_ROW&&CHART[CHART_ROW.key]){const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+5});}});
+$("chartFit").addEventListener("click",()=>{if(LW){try{LW.timeScale().fitContent();}catch(_){} }});
+$("chartFullscreen").addEventListener("click",()=>{const box=document.querySelector(".chart-box");if(!document.fullscreenElement){box?.requestFullscreen?.();}else{document.exitFullscreen?.();}});
 function setChartWindow(days){if(!LW||!CHART_ROW||!CHART[CHART_ROW.key])return;const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-days),to:n+4});}
 $("chart120").addEventListener("click",()=>setChartWindow(120));
 $("chart60").addEventListener("click",()=>setChartWindow(60));
