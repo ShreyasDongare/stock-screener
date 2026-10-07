@@ -410,7 +410,7 @@ function openChart(key,row){
     '<span style="color:'+(dayPct>=0?ct.up:ct.down)+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
     (Number.isFinite(row?.adx)?'<span style="color:'+ct.text+'">ADX '+fmt(Number(row.adx))+'</span>':'')+
     (row?.setup?'<span style="color:'+ct.ema11+'">'+esc(row.setup)+'</span>':'')+
-    ';
+    '';
 
   // Save the existing watchlist position before rebuilding chartBody. This is the
   // important part: openChart() replaces the DOM, so reading scrollTop after that
@@ -641,7 +641,6 @@ document.addEventListener("keydown",e=>{
   if(!$("chartModal").classList.contains("open")) return;
   if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName) && e.key!=="Escape") return;
   if(e.key==="Escape"){
-    if(DRAW_TOOL!=="select"){e.preventDefault();setDrawTool("select");DRAW_PENDING=null;return;}
     const p=document.querySelector(".chart-tag-palette");
     if(p){e.preventDefault();closeTagPalette();return;}
     e.preventDefault();closeChart();return;
@@ -677,12 +676,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="1"){e.preventDefault();setChartWindow(120);return;}
   if(e.key==="2"){e.preventDefault();setChartWindow(60);return;}
   if(e.key==="3"){e.preventDefault();setChartWindow(30);return;}
-  if(e.key.toLowerCase()==="f"){e.preventDefault();try{LW?.timeScale().fitContent();renderDrawings()}catch(_){}}
-  if(e.key.toLowerCase()==="h"){e.preventDefault();setDrawTool("hline");return;}
-  if(e.key.toLowerCase()==="t"){e.preventDefault();setDrawTool("trend");return;}
-  if(e.key.toLowerCase()==="r"){e.preventDefault();setDrawTool("rect");return;}
-  if(e.key.toLowerCase()==="m"){e.preventDefault();setDrawTool("measure");return;}
-  if(e.key==="Delete" || e.key==="Backspace"){if(DRAW_TOOL!=="select"){e.preventDefault();setDrawTool("select");return;}}
+  if(e.key.toLowerCase()==="f"){e.preventDefault();try{LW?.timeScale().fitContent();}catch(_){}}
 });
 
 async function load(){
