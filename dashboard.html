@@ -370,7 +370,20 @@ function renderChartWatchlist(activeKey){
   CHART_WATCH_SCROLL_TOP=null;
   const all=chartRows(), tags=getTags(), q=CHART_WATCH_Q.trim().toUpperCase();
   const items=all.filter(r=>!q || String(r.symbol||"").toUpperCase().includes(q));
-  el.innerHTML=  const search=$("chartWatchSearch");
+  el.innerHTML='<div class="chart-watch-head">'+
+    '<div class="chart-watch-title">Scanned Stocks</div>'+
+    '<input class="chart-watch-search" id="chartWatchSearch" type="search" value="'+esc(CHART_WATCH_Q)+'" placeholder="Search from '+all.length+' stocks" aria-label="Search stocks">'+
+    '<div class="chart-watch-help">↑ ↓ switch · Right-click stock = colour tag</div>'+
+    '</div>'+
+    '<div class="chart-watch-items">'+
+    (items.length ? items.map(r=>{
+      const tag=tags[r.key]||"";
+      return '<button class="chart-watch-item '+(r.key===activeKey?'active ':'')+(tag?'tag-'+tag:'')+'" data-watch-key="'+esc(r.key)+'">'+
+        '<span>'+esc(r.symbol)+'</span><span class="wsetup">'+esc(r.watchSetup||"")+'</span>'+
+        '<span class="chart-tag-dot '+tag+'" data-tag-key="'+esc(r.key)+'" title="Colour tag"></span></button>';
+    }).join("") : '<div class="chart-watch-help" style="padding-top:12px">No stocks found</div>')+
+    '</div>';
+  const search=$("chartWatchSearch");
   if(search){
     search.addEventListener("input",e=>{CHART_WATCH_Q=e.target.value;renderChartWatchlist(activeKey);const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
   }
