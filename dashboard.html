@@ -492,7 +492,7 @@ function openChart(key,row){
   const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:"#B17DE6",lineWidth:2,lastValueVisible:false,priceLineVisible:false});
   ema11.setData(d.dates.map((time,i)=>({time,value:+d.ema11[i]})).filter(x=>Number.isFinite(x.value)));
   ema21.setData(d.dates.map((time,i)=>({time,value:+d.ema21[i]})).filter(x=>Number.isFinite(x.value)));
-  sma50.setData(d.dates.map((time,i)=>({time,value:+d.sma50[i]})).filter(x=>Number.isFinite(x.value)));
+  sma50.setData(d.dates.map((time,i)=>({time,value:+d.sma50[i]})).filter(x=>Number.isFinite(x.value) && i>=49));
 
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
     priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
