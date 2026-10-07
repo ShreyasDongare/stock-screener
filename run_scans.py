@@ -101,11 +101,11 @@ def analyse(key, g, review_keys, recent_keys):
     mom = None
     if n > max(M["days"].values()):
         mom = {k: (c[i] / c[i - d] - 1) * 100 for k, d in M["days"].items()}
-    # Universal momentum filter: remove any stock that gained <30% in even one period.
+    # Universal momentum filter: at least one of 1M / 3M / 6M must be >= 30%.
     min_mom = CFG["min_momentum_pct"]
     momentum_floor_ok = (
         mom is not None
-        and all(mom[k] >= min_mom for k in ("1m", "3m", "6m"))
+        and any(mom[k] >= min_mom for k in ("1m", "3m", "6m"))
     )
     if not momentum_floor_ok:
         return info, {}
