@@ -87,7 +87,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-title{font:700 17px var(--sans);color:#E8EEF5;letter-spacing:-.2px}.chart-cross-ohlc{position:absolute;right:86px;bottom:10px;z-index:6;display:flex;gap:10px;align-items:center;padding:6px 9px;border:1px solid #2D3D4C;border-radius:6px;background:rgba(13,19,26,.9);backdrop-filter:blur(5px);font:500 10px var(--mono);white-space:nowrap;pointer-events:none}.chart-cross-ohlc span{color:#8191A1}.chart-cross-ohlc b{color:#E8EEF5;font-weight:500}
 .chart-meta{color:#8191A1;font:11px var(--mono);margin-left:2px}
 .chart-close{margin-left:auto;border:1px solid #344352;background:#151E27;color:#B9C6D3;border-radius:7px;padding:6px 10px;cursor:pointer}.chart-close:hover{background:#202B36;color:#fff}
-.chart-body{position:relative;flex:1;min-height:0;padding:0;display:flex}.chart-watchlist{width:250px;flex:0 0 250px;background:#101820;border-right:1px solid #293542;overflow-y:auto;overflow-x:hidden;padding:8px;scrollbar-width:thin;scrollbar-color:#34495A transparent;scroll-behavior:smooth;overscroll-behavior:contain}.chart-watchlist::-webkit-scrollbar{width:5px}.chart-watchlist::-webkit-scrollbar-track{background:transparent}.chart-watchlist::-webkit-scrollbar-thumb{background:#34495A;border-radius:999px;border:1px solid transparent;background-clip:padding-box}.chart-watchlist::-webkit-scrollbar-thumb:hover{background:#4D87C2}.chart-watch-head{position:sticky;top:0;z-index:10;background:#101820;padding:4px 0 5px;border-bottom:1px solid #1F2B36}.chart-watch-title{color:#8191A1;font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.7px;padding:2px 7px 6px;background:#101820}.chart-watch-search{position:relative;z-index:1;width:100%;box-sizing:border-box;margin:0 0 5px;padding:7px 8px;border:1px solid #2D3D4C;border-radius:7px;background:#0D151D;color:#DDE6EF;outline:none;font:10px var(--mono);transition:border-color .2s,box-shadow .2s,transform .2s}.chart-watch-search::placeholder{color:#607384}.chart-watch-search:focus{border-color:#4D87C2;box-shadow:0 0 0 2px rgba(77,135,194,.12);transform:translateY(-1px)}.chart-watch-columns{display:grid;grid-template-columns:minmax(0,1fr) 72px 58px;gap:4px;align-items:center;padding:2px 7px 4px;color:#66798C;font:600 8px var(--mono);text-transform:uppercase;letter-spacing:.35px}.chart-watch-columns button{all:unset;box-sizing:border-box;cursor:pointer;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chart-watch-columns button:not(:first-child){text-align:right}.chart-watch-columns button:hover{color:#B9C6D3}.chart-watch-columns button.active{color:#8FB9DF}.chart-watch-items{display:block;padding-top:3px}.chart-watch-item{scroll-margin-top:92px;height:42px;display:grid;grid-template-columns:minmax(0,1fr) 72px 58px;gap:4px;align-items:center;width:100%;padding:6px 7px;margin:0 0 2px;border:1px solid transparent;border-radius:6px;background:transparent;color:#B9C6D3;text-align:left;font:500 10px var(--mono);cursor:pointer;transition:background .15s,border-color .15s,transform .15s}.chart-watch-item:hover{background:#182430;border-color:#2D4254}.chart-watch-item.active{background:#20354A;border-color:#4D87C2;color:#fff;box-shadow:inset 2px 0 0 #58A6E6}.chart-watch-item>span{min-width:0;white-space:nowrap}.chart-watch-item>span:not(:first-child){text-align:right}.chart-watch-item .wsymbol{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;overflow:visible}.chart-watch-item .wsymbol>b{display:block;white-space:nowrap;overflow:visible;color:inherit;font-weight:600}.chart-watch-item .wexch{display:inline-block;padding:1px 4px;border-radius:3px;font:600 7px var(--mono);line-height:1.15;letter-spacing:.4px}.chart-watch-item .wexch.nse{color:#58A6E6;background:rgba(88,166,230,.10);border:1px solid rgba(88,166,230,.30)}.chart-watch-item .wexch.bse{color:#E56C6C;background:rgba(229,108,108,.10);border:1px solid rgba(229,108,108,.30)}.chart-watch-item .wprice,.chart-watch-item .wchg{font-size:9px}.chart-watch-item .wprice{color:#8EA0B2}.chart-watch-item.active .wprice{color:#C7D8E8}.chart-watch-item .wchg.up{color:#45C98D}.chart-watch-item .wchg.dn{color:#E56C6C}.chart-watch-item.tag-red{background:rgba(217,83,83,.13);border-color:rgba(217,83,83,.38)}.chart-watch-item.tag-orange{background:rgba(230,151,61,.13);border-color:rgba(230,151,61,.38)}.chart-watch-item.tag-yellow{background:rgba(231,184,75,.13);border-color:rgba(231,184,75,.38)}.chart-watch-item.tag-green{background:rgba(69,201,141,.13);border-color:rgba(69,201,141,.38)}.chart-watch-item.tag-blue{background:rgba(88,166,230,.13);border-color:rgba(88,166,230,.38)}.chart-watch-item.tag-purple{background:rgba(177,125,230,.13);border-color:rgba(177,125,230,.38)}.chart-tag-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px;margin-left:7px;background:#4A5866;box-shadow:0 0 0 1px rgba(255,255,255,.08)}.chart-tag-dot.red{background:#D95353}.chart-tag-dot.orange{background:#E6973D}.chart-tag-dot.yellow{background:#E7B84B}.chart-tag-dot.green{background:#45C98D}.chart-tag-dot.blue{background:#58A6E6}.chart-tag-dot.purple{background:#B17DE6}.chart-watch-help{color:#607384;font:9px var(--mono);padding:3px 7px 1px;line-height:1.35;background:#101820}.chart-tag-palette{position:fixed;z-index:100;display:flex;gap:7px;padding:8px;background:#111A22;border:1px solid #344352;border-radius:9px;box-shadow:0 12px 32px rgba(0,0,0,.45)}.chart-tag-choice{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;background:#344352;position:relative}.chart-tag-choice:hover{transform:scale(1.08);border-color:#8EA4B8}.chart-tag-choice.none{background:linear-gradient(135deg,transparent 44%,#D95353 45%,#D95353 55%,transparent 56%),#1A2530}.chart-tag-choice.red{background:#D95353}.chart-tag-choice.orange{background:#E6973D}.chart-tag-choice.yellow{background:#E7B84B}.chart-tag-choice.green{background:#45C98D}.chart-tag-choice.blue{background:#58A6E6}.chart-tag-choice.purple{background:#B17DE6}.chart-tag-choice::after{content:attr(aria-label);position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);display:none;padding:3px 6px;border-radius:4px;background:#0B1117;color:#DDE6EF;font:9px var(--mono);white-space:nowrap;pointer-events:none}.chart-tag-choice:hover::after{display:block}.chart-watch-help{color:#607384;font:9px var(--mono);padding:4px 7px 2px;line-height:1.5}.chart-host{position:relative;flex:1;min-width:0;inset:auto}
+.chart-body{position:relative;flex:1;min-height:0;padding:0;display:flex}.chart-watchlist{width:250px;flex:0 0 250px;background:#101820;border-right:1px solid #293542;overflow:hidden;padding:8px;display:flex;flex-direction:column;min-height:0}.chart-watchlist::-webkit-scrollbar{width:5px}.chart-watchlist::-webkit-scrollbar-track{background:transparent}.chart-watchlist::-webkit-scrollbar-thumb{background:#34495A;border-radius:999px;border:1px solid transparent;background-clip:padding-box}.chart-watchlist::-webkit-scrollbar-thumb:hover{background:#4D87C2}.chart-watch-head{position:sticky;top:0;z-index:10;background:#101820;padding:4px 0 5px;border-bottom:1px solid #1F2B36}.chart-watch-title{color:#8191A1;font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.7px;padding:2px 7px 6px;background:#101820}.chart-watch-search{position:relative;z-index:1;width:100%;box-sizing:border-box;margin:0 0 5px;padding:7px 8px;border:1px solid #2D3D4C;border-radius:7px;background:#0D151D;color:#DDE6EF;outline:none;font:10px var(--mono);transition:border-color .2s,box-shadow .2s,transform .2s}.chart-watch-search::placeholder{color:#607384}.chart-watch-search:focus{border-color:#4D87C2;box-shadow:0 0 0 2px rgba(77,135,194,.12);transform:translateY(-1px)}.chart-watch-columns{display:grid;grid-template-columns:minmax(0,1fr) 72px 58px;gap:4px;align-items:center;padding:2px 7px 4px;color:#66798C;font:600 8px var(--mono);text-transform:uppercase;letter-spacing:.35px}.chart-watch-columns button{all:unset;box-sizing:border-box;cursor:pointer;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chart-watch-columns button:not(:first-child){text-align:right}.chart-watch-columns button:hover{color:#B9C6D3}.chart-watch-columns button.active{color:#8FB9DF}.chart-watch-items{display:block;padding-top:3px}.chart-watch-item{scroll-margin-top:92px;height:42px;display:grid;grid-template-columns:minmax(0,1fr) 72px 58px;gap:4px;align-items:center;width:100%;padding:6px 7px;margin:0 0 2px;border:1px solid transparent;border-radius:6px;background:transparent;color:#B9C6D3;text-align:left;font:500 10px var(--mono);cursor:pointer;transition:background .15s,border-color .15s,transform .15s}.chart-watch-item:hover{background:#182430;border-color:#2D4254}.chart-watch-item.active{background:#20354A;border-color:#4D87C2;color:#fff;box-shadow:inset 2px 0 0 #58A6E6}.chart-watch-item>span{min-width:0;white-space:nowrap}.chart-watch-item>span:not(:first-child){text-align:right}.chart-watch-item .wsymbol{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;overflow:visible}.chart-watch-item .wsymbol>b{display:block;white-space:nowrap;overflow:visible;color:inherit;font-weight:600}.chart-watch-item .wexch{display:inline-block;padding:1px 4px;border-radius:3px;font:600 7px var(--mono);line-height:1.15;letter-spacing:.4px}.chart-watch-item .wexch.nse{color:#58A6E6;background:rgba(88,166,230,.10);border:1px solid rgba(88,166,230,.30)}.chart-watch-item .wexch.bse{color:#E56C6C;background:rgba(229,108,108,.10);border:1px solid rgba(229,108,108,.30)}.chart-watch-item .wprice,.chart-watch-item .wchg{font-size:9px}.chart-watch-item .wprice{color:#8EA0B2}.chart-watch-item.active .wprice{color:#C7D8E8}.chart-watch-item .wchg.up{color:#45C98D}.chart-watch-item .wchg.dn{color:#E56C6C}.chart-watch-item.tag-red{background:rgba(217,83,83,.13);border-color:rgba(217,83,83,.38)}.chart-watch-item.tag-orange{background:rgba(230,151,61,.13);border-color:rgba(230,151,61,.38)}.chart-watch-item.tag-yellow{background:rgba(231,184,75,.13);border-color:rgba(231,184,75,.38)}.chart-watch-item.tag-green{background:rgba(69,201,141,.13);border-color:rgba(69,201,141,.38)}.chart-watch-item.tag-blue{background:rgba(88,166,230,.13);border-color:rgba(88,166,230,.38)}.chart-watch-item.tag-purple{background:rgba(177,125,230,.13);border-color:rgba(177,125,230,.38)}.chart-tag-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px;margin-left:7px;background:#4A5866;box-shadow:0 0 0 1px rgba(255,255,255,.08)}.chart-tag-dot.red{background:#D95353}.chart-tag-dot.orange{background:#E6973D}.chart-tag-dot.yellow{background:#E7B84B}.chart-tag-dot.green{background:#45C98D}.chart-tag-dot.blue{background:#58A6E6}.chart-tag-dot.purple{background:#B17DE6}.chart-watch-help{color:#607384;font:9px var(--mono);padding:3px 7px 1px;line-height:1.35;background:#101820}.chart-tag-palette{position:fixed;z-index:100;display:flex;gap:7px;padding:8px;background:#111A22;border:1px solid #344352;border-radius:9px;box-shadow:0 12px 32px rgba(0,0,0,.45)}.chart-tag-choice{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;background:#344352;position:relative}.chart-tag-choice:hover{transform:scale(1.08);border-color:#8EA4B8}.chart-tag-choice.none{background:linear-gradient(135deg,transparent 44%,#D95353 45%,#D95353 55%,transparent 56%),#1A2530}.chart-tag-choice.red{background:#D95353}.chart-tag-choice.orange{background:#E6973D}.chart-tag-choice.yellow{background:#E7B84B}.chart-tag-choice.green{background:#45C98D}.chart-tag-choice.blue{background:#58A6E6}.chart-tag-choice.purple{background:#B17DE6}.chart-tag-choice::after{content:attr(aria-label);position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);display:none;padding:3px 6px;border-radius:4px;background:#0B1117;color:#DDE6EF;font:9px var(--mono);white-space:nowrap;pointer-events:none}.chart-tag-choice:hover::after{display:block}.chart-watch-help{color:#607384;font:9px var(--mono);padding:4px 7px 2px;line-height:1.5}.chart-host{position:relative;flex:1;min-width:0;inset:auto}
 .chart-tooltip{position:absolute;z-index:4;pointer-events:none;display:none;min-width:190px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:color-mix(in srgb,var(--panel) 94%,transparent);box-shadow:0 8px 24px rgba(0,0,0,.16);backdrop-filter:blur(4px);font:11px/1.45 var(--mono);color:var(--ink)}
 .chart-tooltip .tt-date{font-weight:600;margin-bottom:4px}.chart-tooltip .tt-grid{display:grid;grid-template-columns:auto auto;gap:2px 12px}
 .chart-controls{display:flex;gap:6px;align-items:center;padding:8px 12px;border-top:1px solid #293542;background:#101820}
@@ -118,7 +118,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 :root[data-theme="light"] .chart-meta{color:#68788A}
 :root[data-theme="light"] .chart-close{border-color:#D0D8E0;background:#fff;color:#526273}
 :root[data-theme="light"] .chart-close:hover{background:#EEF3F7;color:#16212B}
-:root[data-theme="light"] .chart-watchlist{background:#F7F9FB;border-color:#DCE2E8;scrollbar-color:#B8C5D1 transparent}
+:root[data-theme="light"] .chart-watchlist{background:#F7F9FB;border-color:#DCE2E8}
+:root[data-theme="light"] .chart-watch-scroll{scrollbar-color:#B8C5D1 transparent}
 :root[data-theme="light"] .chart-watch-head,
 :root[data-theme="light"] .chart-watch-title,
 :root[data-theme="light"] .chart-watch-help{background:#F7F9FB}
@@ -385,13 +386,10 @@ function chartWatchItems(){
 
 function renderChartWatchlist(activeKey){
   const el=$("chartWatchlist"); if(!el) return;
-  const previousScrollTop=CHART_WATCH_SCROLL_TOP!=null?CHART_WATCH_SCROLL_TOP:el.scrollTop;
+  const previousScrollTop=CHART_WATCH_SCROLL_TOP!=null?CHART_WATCH_SCROLL_TOP:0;
   CHART_WATCH_SCROLL_TOP=null;
   const items=chartWatchItems();
 
-  // Clusterize virtualizes the long watchlist: only the visible rows plus a
-  // small buffer are kept in the DOM, while the scrollbar still represents
-  // the full list.
   if(CHART_WATCH_CLUSTER){
     try{CHART_WATCH_CLUSTER.destroy();}catch(_){}
     CHART_WATCH_CLUSTER=null;
@@ -421,19 +419,20 @@ function renderChartWatchlist(activeKey){
         '<button type="button" data-watch-sort="chg" class="'+(CHART_WATCH_SORT==="chg"?"active":"")+'">Change %'+sortMark("chg")+'</button>'+
       '</div>'+
     '</div>'+
-    '<div class="chart-watch-items clusterize-content" id="chartWatchItems"></div>'+
+    '<div class="chart-watch-scroll" id="chartWatchScroll">'+
+      '<div class="chart-watch-items clusterize-content" id="chartWatchItems"></div>'+
+    '</div>'+
     '<div class="chart-watch-help">Click = EOD chart · Double-click = TradingView</div>';
 
   if(typeof Clusterize==="function"){
     CHART_WATCH_CLUSTER=new Clusterize({
       rows:rows,
-      scrollId:"chartWatchlist",
+      scrollId:"chartWatchScroll",
       contentId:"chartWatchItems",
       rows_in_block:50,
       blocks_in_cluster:4
     });
   }else{
-    // Graceful fallback if the CDN is temporarily unavailable.
     $("chartWatchItems").innerHTML=rows.join("");
   }
 
@@ -446,30 +445,27 @@ function renderChartWatchlist(activeKey){
 
   const activeIndex=items.findIndex(r=>(r.key||((r.exch||"NSE")+":"+r.symbol))===activeKey);
   requestAnimationFrame(()=>{
-    const list=$("chartWatchlist");
-    const content=$("chartWatchItems");
-    if(!list || !content) return;
+    const scroll=$("chartWatchScroll");
+    if(!scroll) return;
 
-    const header=content.previousElementSibling;
-    const headerHeight=header?.offsetHeight||92;
+    // The scroll container now contains only rows, so its geometry matches
+    // Clusterize's virtual row calculations exactly.
     const rowHeight=44;
-
     if(activeIndex>=0){
-      // Keep the active stock visible. If it is already visible, preserve
-      // the user's current scroll position. Otherwise move just enough to
-      // reveal the active row.
-      const rowTop=headerHeight+(activeIndex*rowHeight);
+      const rowTop=activeIndex*rowHeight;
       const rowBottom=rowTop+rowHeight;
-      const viewTop=list.scrollTop;
-      const viewBottom=viewTop+list.clientHeight;
+      const viewTop=scroll.scrollTop;
+      const viewBottom=viewTop+scroll.clientHeight;
 
       if(rowTop < viewTop+4){
-        list.scrollTop=Math.max(0,rowTop-8);
+        scroll.scrollTop=Math.max(0,rowTop-8);
       }else if(rowBottom > viewBottom-4){
-        list.scrollTop=Math.max(0,rowBottom-list.clientHeight+8);
+        scroll.scrollTop=Math.max(0,rowBottom-scroll.clientHeight+8);
+      }else if(previousScrollTop){
+        scroll.scrollTop=previousScrollTop;
       }
     }else{
-      list.scrollTop=Math.max(0,previousScrollTop||0);
+      scroll.scrollTop=Math.max(0,previousScrollTop);
     }
   });
 }
@@ -519,7 +515,7 @@ function openChart(key,row){
   // Save the existing watchlist position before rebuilding chartBody. This is the
   // important part: openChart() replaces the DOM, so reading scrollTop after that
   // replacement would always return 0 and make the list jump to the top.
-  const oldWatchlist=$("chartWatchlist");
+  const oldWatchlist=$("chartWatchScroll") || $("chartWatchlist");
   CHART_WATCH_SCROLL_TOP=oldWatchlist ? oldWatchlist.scrollTop : null;
   $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
   $("chartModal").classList.add("open");
