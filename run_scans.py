@@ -342,7 +342,7 @@ def main():
     chart_keys = {r["key"] for rows in hits.values() for r in rows}
     chart = {}
     for key in chart_keys:
-        g = df[df["key"] == key].tail(180).copy()
+        g = df[df["key"] == key].tail(252).copy()
         if g.empty:
             continue
         cc = g["close"].to_numpy(float)
