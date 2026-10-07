@@ -49,6 +49,10 @@ jobs:
         run: |
           python run_scans.py
 
+      - name: Build full chart history
+        run: |
+          python build_chart_history.py
+
       - name: Publish scan results
         run: |
           git config user.name "github-actions[bot]"
