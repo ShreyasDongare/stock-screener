@@ -38,6 +38,16 @@ CFG = {
         "min_adx": 20.0,
         "min_return_pct": 30.0,
         "return_windows": (31, 93, 186),
+        # Tradability filter: remove stocks that repeatedly behave like
+        # locked/illiquid UC counters rather than normally tradeable movers.
+        "tradability": {
+            "lookback_days": 20,
+            "near_uc_pct": 4.9,
+            "max_open_close_pct": 0.15,
+            "min_near_uc_days": 7,
+            "min_open_close_days": 7,
+            "max_avg_value_rupees": 10_000_000.0,
+        },
     },
     "m136": {
         "name": "1M / 3M / 6M Scan",
@@ -620,6 +630,45 @@ def analyse_stock(
         for r in returns
     ):
         return {}
+
+    # Tradability filter:
+    # Keep genuinely strong stocks that only occasionally hit UC, but
+    # remove persistent locked/illiquid behaviour. We use a proxy for
+    # near-UC days because the OHLC database does not contain each stock's
+    # exchange circuit-band metadata.
+    tcfg = CFG["common"]["tradability"]
+    lookback = tcfg["lookback_days"]
+
+    if n >= lookback + 1:
+        recent_close = c[-lookback - 1:]
+        recent_open = g["open"].to_numpy(float)[-lookback:]
+        recent_volume = v[-lookback:]
+
+        daily_change = (
+            recent_close[1:] / recent_close[:-1] - 1
+        ) * 100
+
+        open_close_pct = (
+            np.abs(recent_open - recent_close[1:])
+            / recent_close[1:]
+        ) * 100
+
+        near_uc_days = int(
+            np.sum(daily_change >= tcfg["near_uc_pct"])
+        )
+        open_close_days = int(
+            np.sum(open_close_pct <= tcfg["max_open_close_pct"])
+        )
+
+        trading_value = recent_close[1:] * recent_volume
+        avg_value = float(np.nanmean(trading_value))
+
+        if (
+            near_uc_days >= tcfg["min_near_uc_days"]
+            and open_close_days >= tcfg["min_open_close_days"]
+            and avg_value < tcfg["max_avg_value_rupees"]
+        ):
+            return {}
 
     base = base_row(
         key,
