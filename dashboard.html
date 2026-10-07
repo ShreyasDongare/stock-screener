@@ -338,6 +338,12 @@ function weeklyChartData(src){
 function chartDataForTimeframe(src){
   return CHART_TF==="W" ? weeklyChartData(src) : src;
 }
+function closeChart(){
+  $("chartModal").classList.remove("open");
+  if(LW){ try{LW.remove();}catch(_){} LW=null; }
+  CHART_ROW=null;
+  $("chartBody").innerHTML="";
+}
 let CHART_WATCH_Q="";
 let CHART_WATCH_SCROLL_TOP=null;
 function chartRows(){
