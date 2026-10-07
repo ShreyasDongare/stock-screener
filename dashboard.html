@@ -240,7 +240,7 @@ function heat(v){
 }
 
 const CELL = {
-  symbol:r=>`<td class="sym l"><button class="chart-link" data-chart-key="${esc(r.key)}" title="Open EOD chart">${esc(r.symbol)}</button>${r.note ? ` <span class="w" title="${esc(r.note)}">⚠</span>` : ""}</td>`,
+  symbol:r=>`<td class="sym l"><button class="chart-link" data-chart-key="${esc(r.key)}" title="Click for EOD chart · Double-click for Dhan TradingView">${esc(r.symbol)}</button>${r.note ? ` <span class="w" title="${esc(r.note)}">⚠</span>` : ""}</td>`,
   exch:r=>`<td class="l"><span class="ex">${esc(r.exch)}</span></td>`,
   setup:r=>`<td class="l"><span class="tag">${esc(r.setup)}</span></td>`,
   state:r=>`<td class="l"><span class="tag ${r.state==="Triggered"?"t":""}">${esc(r.state)}</span></td>`,
@@ -573,13 +573,26 @@ document.addEventListener("click",e=>{
 });
 
 function wire(){
+  let chartClickTimer=null;
+  const openDhanChart=(r)=>{
+    if(!r || !r.symbol) return;
+    const suffix=r.exch==="BSE"?".BO":".NS";
+    const dhanSymbol=String(r.symbol)+suffix;
+    const url="https://tv.dhan.co/chart/?symbol="+encodeURIComponent(dhanSymbol);
+    window.open(url,"_blank","noopener,noreferrer");
+  };
   document.addEventListener("click",e=>{
     const chartBtn=e.target.closest("[data-chart-key]");
     const watchBtn=e.target.closest("[data-watch-key]");
     const tagBtn=e.target.closest("[data-tag-key]");
     if(tagBtn){ e.stopPropagation(); return; }
     if(watchBtn){ const key=watchBtn.dataset.watchKey; const r=chartRows().find(x=>x.key===key); openChart(key,r); return; }
-    if(chartBtn){ const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey); openChart(chartBtn.dataset.chartKey,r); return; }
+    if(chartBtn){
+      const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey);
+      clearTimeout(chartClickTimer);
+      chartClickTimer=setTimeout(()=>openChart(chartBtn.dataset.chartKey,r),220);
+      return;
+    }
     const t=e.target.closest("[data-tab]"), x=e.target.closest("[data-ex]"), s=e.target.closest("[data-sort]"), l=e.target.closest("[data-lv]");
     if(t){S.tab=t.dataset.tab;S.st="";[S.key,S.dir]=SCANS[S.tab].sort;render();return}
     if(x){S.ex=x.dataset.ex;render();return}
@@ -600,6 +613,14 @@ function wire(){
       try{localStorage.setItem("scn-theme",root.dataset.theme)}catch(_){}
       return;
     }
+  });
+  document.addEventListener("dblclick",e=>{
+    const chartBtn=e.target.closest("[data-chart-key]");
+    if(!chartBtn || !D) return;
+    e.preventDefault();
+    clearTimeout(chartClickTimer);
+    const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey);
+    openDhanChart(r);
   });
   document.addEventListener("change",e=>{
     const id=e.target.id;
