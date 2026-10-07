@@ -35,7 +35,8 @@ main{width:calc(100% - 40px);max-width:none;height:calc(100vh - 86px);margin:0 a
 .tab:active{transform:translateX(0)}
 .tab b{display:block;font:500 29px/1.1 var(--mono);letter-spacing:-.5px}.tab span{color:var(--mute);font-size:12.5px}
 .tab[aria-selected="true"]{border-color:color-mix(in srgb,var(--acc) 68%,var(--line));background:linear-gradient(180deg,var(--accbg),var(--panel));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 11%,transparent)}
-.copy-all{width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.copy-all:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
+.watchlist-open{width:100%;margin-top:8px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.watchlist-open:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
+.watchlist-modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.watchlist-modal.open{display:flex}.watchlist-box{width:min(900px,94vw);height:min(760px,88vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 28px 100px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}.watchlist-head{display:flex;align-items:center;gap:10px;padding:15px 17px;border-bottom:1px solid var(--line)}.watchlist-title{font:600 16px var(--sans)}.watchlist-count{color:var(--mute);font:10px var(--mono)}.watchlist-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.watchlist-close:hover{color:var(--ink);border-color:var(--acc)}.watchlist-body{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:12px}.watchlist-section{border:1px solid var(--line);border-radius:12px;overflow:hidden}.watchlist-section-head{display:flex;align-items:center;gap:8px;padding:9px 11px;background:color-mix(in srgb,var(--panel) 92%,var(--bg));border-bottom:1px solid var(--line);font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.45px}.watchlist-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}.watchlist-dot.red{background:#D95353}.watchlist-dot.orange{background:#E6973D}.watchlist-dot.yellow{background:#E7B84B}.watchlist-dot.green{background:#45C98D}.watchlist-dot.blue{background:#58A6E6}.watchlist-dot.purple{background:#B17DE6}.watchlist-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;padding:10px}.watchlist-stock{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);cursor:pointer;text-align:left}.watchlist-stock:hover{border-color:var(--acc);background:var(--hover);transform:translateY(-1px)}.watchlist-stock-name{font:600 11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.watchlist-stock-exch{font:600 8px var(--mono);padding:2px 4px;border-radius:3px}.watchlist-stock-exch.nse{color:#2A78B8;background:rgba(42,120,184,.10)}.watchlist-stock-exch.bse{color:#D95353;background:rgba(217,83,83,.10)}.watchlist-empty{padding:28px;text-align:center;color:var(--mute);font:12px var(--sans)}.copy-all{width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.copy-all:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
 .tab[aria-selected="true"]::after{content:"";position:absolute;left:auto;right:0;top:15px;bottom:15px;width:2px;background:var(--acc);border-radius:2px;transform-origin:center;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(15,30,45,.065);overflow:hidden;animation:smoothEnter .38s cubic-bezier(.2,.7,.2,1) both;display:flex;flex-direction:column;min-height:0}
 .tools{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 95%,var(--bg))}
@@ -227,7 +228,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 <div class="stale" id="stale"></div>
 <div class="section-kicker"><span>Momentum Intelligence</span><span>1M / 3M / 6M · 3M 30% · HTF · 52Week High</span></div>
 <div class="dashboard-grid">
-  <aside><div class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></div><button class="copy-all" id="copyAll">Copy All Stocks</button></aside>
+  <aside><div class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></div><button class="copy-all" id="copyAll">Copy All Stocks</button><button class="watchlist-open" id="watchlistOpen">🎨 My Watchlist</button></aside>
   <section class="panel">
  <div class="tools">
   <div class="grp"><button class="chip" data-ex="ALL">All</button><button class="chip" data-ex="NSE">NSE</button><button class="chip" data-ex="BSE">BSE</button></div>
@@ -242,6 +243,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
   </section>
 </div>
 </main>
+<div class="watchlist-modal" id="watchlistModal" role="dialog" aria-modal="true" aria-label="Colour watchlist">
+  <div class="watchlist-box">
+    <div class="watchlist-head"><div class="watchlist-title">My Colour Watchlist</div><div class="watchlist-count" id="watchlistCount"></div><button class="watchlist-close" id="watchlistClose" aria-label="Close watchlist">✕</button></div>
+    <div class="watchlist-body" id="watchlistBody"></div>
+  </div>
+</div>
 <div class="chart-modal" id="chartModal" role="dialog" aria-modal="true" aria-label="Stock chart">
   <div class="chart-box">
     <div class="chart-head"><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><div id="chartStats" style="display:flex;gap:14px;margin-left:10px;align-items:center;font:11px var(--mono)"></div><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
@@ -701,6 +708,44 @@ function openChart(key,row){
   chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+12});
   requestAnimationFrame(resize);
 }
+const WATCHLIST_COLORS=[["red","Red"],["orange","Orange"],["yellow","Yellow"],["green","Green"],["blue","Blue"],["purple","Purple"]];
+
+function renderColourWatchlist(){
+  const body=$("watchlistBody"), countEl=$("watchlistCount");
+  if(!body) return;
+  const tags=getTags();
+  CHART_WATCH_TAGS=tags;
+  const byColor={};
+  WATCHLIST_COLORS.forEach(([color])=>byColor[color]=[]);
+  chartRows().forEach(r=>{
+    const key=chartRowKey(r), color=tags[key];
+    if(byColor[color]) byColor[color].push(r);
+  });
+  const total=Object.values(byColor).reduce((n,a)=>n+a.length,0);
+  if(countEl) countEl.textContent=total+" tagged stock"+(total===1?"":"s");
+  if(!total){
+    body.innerHTML='<div class="watchlist-empty">No coloured stocks yet. Right-click a stock in the chart watchlist and choose a colour.</div>';
+    return;
+  }
+  body.innerHTML=WATCHLIST_COLORS.filter(([color])=>byColor[color].length).map(([color,label])=>{
+    const items=byColor[color].sort((a,b)=>String(a.symbol).localeCompare(String(b.symbol)));
+    return '<section class="watchlist-section"><div class="watchlist-section-head"><span class="watchlist-dot '+color+'"></span><span>'+label+'</span><span class="watchlist-count">'+items.length+'</span></div><div class="watchlist-items">'+
+      items.map(r=>{
+        const key=chartRowKey(r), ex=String(r.exch||"NSE").toUpperCase(), cls=ex==="BSE"?"bse":"nse";
+        return '<button class="watchlist-stock" data-colour-watch-key="'+esc(key)+'"><span class="watchlist-stock-name">'+esc(r.symbol)+'</span><span class="watchlist-stock-exch '+cls+'">'+esc(ex)+'</span></button>';
+      }).join("")+
+      '</div></section>';
+  }).join("");
+}
+
+function openColourWatchlist(){
+  renderColourWatchlist();
+  $("watchlistModal")?.classList.add("open");
+}
+function closeColourWatchlist(){
+  $("watchlistModal")?.classList.remove("open");
+}
+
 function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
@@ -817,6 +862,7 @@ $("chart120").addEventListener("click",()=>setChartWindow(120));
 $("chart60").addEventListener("click",()=>setChartWindow(60));
 $("chart30").addEventListener("click",()=>setChartWindow(30));
 
+$("watchlistModal")?.addEventListener("click",e=>{if(e.target.id==="watchlistModal") closeColourWatchlist()});
 $("chartModal").addEventListener("click",e=>{if(e.target.id==="chartModal") closeChart()});
 function closeTagPalette(){document.querySelector(".chart-tag-palette")?.remove();}
 function openTagPalette(key,x,y){
@@ -837,7 +883,7 @@ function openTagPalette(key,x,y){
     const b=e.target.closest("[data-palette-color]"); if(!b) return;
     const tags=getTags(), color=b.dataset.paletteColor;
     if(color) tags[key]=color; else delete tags[key];
-    saveTags(tags); CHART_WATCH_TAGS=tags; closeTagPalette(); renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):key);
+    saveTags(tags); CHART_WATCH_TAGS=tags; closeTagPalette(); renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):key); if($("watchlistModal")?.classList.contains("open")) renderColourWatchlist();
   });
 }
 document.addEventListener("contextmenu",e=>{
