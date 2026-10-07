@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Momentum Scanner • Market Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#EEF1F4;--panel:#fff;--ink:#16212B;--mute:#68788A;--line:#DCE2E8;--hover:#F2F6FA;--up:#17794F;--dn:#B83232;--acc:#2A5A8E;--accbg:#E2ECF6;--warn:#B16A00;--hdr:#15212C;--hdrink:#fff;
 --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
@@ -75,21 +76,26 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 @media(max-width:1000px){.dashboard-grid{grid-template-columns:205px minmax(0,1fr);gap:12px}.wrap{overflow:auto;scrollbar-width:thin}table{min-width:860px}}
 @media(max-width:720px){html,body{height:auto;overflow:auto}.in,main{width:calc(100% - 24px)}main{height:auto;overflow:visible;padding-bottom:28px}.dashboard-grid{grid-template-columns:1fr;overflow:visible}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;position:static}.tab{min-height:78px}.panel{min-height:520px}.wrap{overflow:auto;max-height:60vh}.section-kicker{font-size:9.5px}}
 @media(max-width:420px){.in,main{width:calc(100% - 18px)}.tabs{grid-template-columns:1fr}.tab b{font-size:20px}.tab span{font-size:11.5px}.sp{margin-left:0}input[type=search]{width:100%}}
-/* In-dashboard EOD chart */
+/* In-dashboard interactive EOD chart */
 .chart-link{all:unset;cursor:pointer;color:var(--ink);font-weight:600;font-family:var(--sans)}
 .chart-link:hover{color:var(--acc);text-decoration:underline}
-.chart-modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.58);backdrop-filter:blur(5px)}
+.chart-modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}
 .chart-modal.open{display:flex}
-.chart-box{width:min(1100px,96vw);height:min(720px,88vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden}
-.chart-head{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.chart-box{width:min(1240px,97vw);height:min(780px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;overflow:hidden}
+.chart-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
 .chart-title{font:700 16px var(--sans);color:var(--ink)}
 .chart-meta{color:var(--mute);font:12px var(--mono);margin-left:4px}
 .chart-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:5px 10px;cursor:pointer}
-.chart-body{position:relative;flex:1;min-height:0;padding:10px 12px}
-.chart-svg{width:100%;height:100%;display:block}
-.chart-legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 16px 12px;color:var(--mute);font:11px var(--sans)}
+.chart-body{position:relative;flex:1;min-height:0;padding:0}
+.chart-host{position:absolute;inset:0}
+.chart-tooltip{position:absolute;z-index:4;pointer-events:none;display:none;min-width:190px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:color-mix(in srgb,var(--panel) 94%,transparent);box-shadow:0 8px 24px rgba(0,0,0,.16);backdrop-filter:blur(4px);font:11px/1.45 var(--mono);color:var(--ink)}
+.chart-tooltip .tt-date{font-weight:600;margin-bottom:4px}.chart-tooltip .tt-grid{display:grid;grid-template-columns:auto auto;gap:2px 12px}
+.chart-controls{display:flex;gap:6px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 96%,var(--bg))}
+.chart-controls button{border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:6px;padding:4px 9px;font:500 11px var(--sans);cursor:pointer}.chart-controls button:hover,.chart-controls button.active{color:var(--ink);border-color:var(--acc);background:var(--accbg)}
+.chart-controls .hint{margin-left:auto;color:var(--mute);font:11px var(--mono)}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 16px;color:var(--mute);font:11px var(--sans);border-top:1px solid var(--line)}
 .chart-legend b{color:var(--ink)}
-@media(max-width:720px){.chart-modal{padding:8px}.chart-box{width:100%;height:90vh}.chart-head{padding:10px 12px}.chart-body{padding:6px}}
+@media(max-width:720px){.chart-modal{padding:6px}.chart-box{width:100%;height:94vh;border-radius:12px}.chart-head{padding:9px 11px}.chart-meta{font-size:10px}.chart-controls .hint{display:none}.chart-legend{padding:6px 10px;gap:9px}}
 </style>
 </head>
 <body>
@@ -118,7 +124,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
   <div class="chart-box">
     <div class="chart-head"><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
     <div class="chart-body" id="chartBody"></div>
-    <div class="chart-legend"><span>▮ <b>Price</b></span><span>— EMA11</span><span>— EMA21</span><span>— SMA50</span><span>▮ Volume</span></div>
+    <div class="chart-controls"><button id="chartReset">Reset Zoom</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><span class="hint">Scroll = zoom · Drag = pan · Crosshair = OHLCV</span></div><div class="chart-legend"><span>▮ <b>Price</b></span><span>— EMA11</span><span>— EMA21</span><span>— SMA50</span><span>▮ Volume</span></div>
   </div>
 </div>
 <script>
@@ -226,30 +232,102 @@ function options(values,current,label){
   return values.map(v=>`<option value="${esc(v)}" ${String(v)===String(current)?"selected":""}>${label(v)}</option>`).join("");
 }
 
-function closeChart(){
-  $("chartModal").classList.remove("open"); $("chartBody").innerHTML="";
+let LW = null;
+let CHART = null, CHART_ROW = null;
+
+function chartTheme(){
+  const dark=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim().startsWith("#") &&
+    matchMedia("(prefers-color-scheme: dark)").matches;
+  const root=document.documentElement, explicit=root.dataset.theme;
+  const isDark=explicit==="dark" || (!explicit && matchMedia("(prefers-color-scheme: dark)").matches);
+  return {
+    textColor:isDark?"#B7C3CF":"#5D6B78",
+    gridColor:isDark?"rgba(140,155,170,.10)":"rgba(70,90,110,.10)",
+    bg:isDark?"#171E26":"#FFFFFF",
+    up:isDark?"#3FBE8C":"#17794F",
+    down:isDark?"#E56C6C":"#B83232",
+    ema11:isDark?"#80B2E6":"#2A5A8E",
+    ema21:isDark?"#3FBE8C":"#17794F",
+    sma50:isDark?"#9AA7B5":"#68788A"
+  };
 }
+
+function closeChart(){
+  $("chartModal").classList.remove("open");
+  if(LW){ try{LW.remove();}catch(_){} LW=null; }
+  CHART_ROW=null;
+  $("chartBody").innerHTML="";
+}
+
+function makeSeries(chart, type, options){
+  if(type==="candlestick") return chart.addSeries(LightweightCharts.CandlestickSeries,options);
+  if(type==="histogram") return chart.addSeries(LightweightCharts.HistogramSeries,options);
+  return chart.addSeries(LightweightCharts.LineSeries,options);
+}
+
 function openChart(key,row){
-  if(!CHART || !CHART[key]) return;
-  const d=CHART[key], n=d.dates.length, W=1000,H=520,left=58,right=16,top=18,bottom=76,pw=W-left-right,ph=H-top-bottom;
+  if(!CHART || !CHART[key] || typeof LightweightCharts==="undefined") return;
+  const d=CHART[key], n=d.dates.length, theme=chartTheme();
+  CHART_ROW=row||null;
   $("chartTitle").textContent=d.exch+":"+d.symbol;
   $("chartMeta").textContent=d.dates[0]+" → "+d.dates[n-1]+" · "+n+" sessions · EOD";
-  const lo=Math.min.apply(null,d.low.filter(Number.isFinite)), hi=Math.max.apply(null,d.high.filter(Number.isFinite));
-  const vr=Math.max.apply(null,d.volume.filter(Number.isFinite).concat([1]));
-  const px=function(v){return top+(hi-v)/(hi-lo||1)*ph}, xx=function(i){return left+(i/Math.max(n-1,1))*pw}, bw=Math.max(2,Math.min(9,pw/n*.62));
-  const line=function(a){return a.map(function(v,i){return Number.isFinite(Number(v))?xx(i)+","+px(Number(v)):null}).filter(Boolean).join(" ")};
-  let svg="<svg class=\"chart-svg\" viewBox=\"0 0 "+W+" "+H+"\" preserveAspectRatio=\"none\">";
-  [0,.25,.5,.75,1].forEach(function(t){const y=top+t*ph;svg+="<line x1=\""+left+"\" x2=\""+(W-right)+"\" y1=\""+y+"\" y2=\""+y+"\" stroke=\"currentColor\" opacity=\".09\"/>"});
-  svg+="<polyline points=\""+line(d.ema11)+"\" fill=\"none\" stroke=\"var(--acc)\" stroke-width=\"1.7\"/>";
-  svg+="<polyline points=\""+line(d.ema21)+"\" fill=\"none\" stroke=\"var(--up)\" stroke-width=\"1.5\" opacity=\".8\"/>";
-  svg+="<polyline points=\""+line(d.sma50)+"\" fill=\"none\" stroke=\"var(--mute)\" stroke-width=\"1.4\" opacity=\".85\"/>";
-  d.volume.forEach(function(v,i){const vh=Number(v)/vr*(ph*.18),y=top+ph-vh;svg+="<rect x=\""+(xx(i)-bw/2)+"\" y=\""+y+"\" width=\""+bw+"\" height=\""+vh+"\" fill=\"currentColor\" opacity=\".12\"/>"});
-  d.open.forEach(function(o,i){const c=Number(d.close[i]),h=Number(d.high[i]),l=Number(d.low[i]);if(![o,c,h,l].every(Number.isFinite))return;const up=c>=Number(o),stroke=up?"var(--up)":"var(--dn)",y1=px(h),y2=px(l),yo=px(Number(o)),yc=px(c),by=Math.min(yo,yc),bh=Math.max(1,Math.abs(yc-yo));svg+="<line x1=\""+xx(i)+"\" x2=\""+xx(i)+"\" y1=\""+y1+"\" y2=\""+y2+"\" stroke=\""+stroke+"\"/><rect x=\""+(xx(i)-bw/2)+"\" y=\""+by+"\" width=\""+bw+"\" height=\""+bh+"\" fill=\""+stroke+"\" opacity=\".82\"/>"});
-  if(row){[["entry","var(--up)"],["stop","var(--dn)"]].forEach(function(z){const v=Number(row[z[0]]);if(Number.isFinite(v)){const y=px(v);svg+="<line x1=\""+left+"\" x2=\""+(W-right)+"\" y1=\""+y+"\" y2=\""+y+"\" stroke=\""+z[1]+"\" stroke-dasharray=\"7 5\"/><text x=\""+(W-right-4)+"\" y=\""+(y-4)+"\" text-anchor=\"end\" fill=\"currentColor\" font-size=\"11\">"+z[0].toUpperCase()+" "+f2(v)+"</text>"}})}
-  [0,Math.floor((n-1)/2),n-1].forEach(function(i){svg+="<text x=\""+xx(i)+"\" y=\""+(H-42)+"\" text-anchor=\"middle\" fill=\"currentColor\" opacity=\".55\" font-size=\"11\">"+esc(d.dates[i])+"</text>"});
-  [0,.5,1].forEach(function(t){const v=hi-(hi-lo)*t;svg+="<text x=\""+(left-8)+"\" y=\""+(top+t*ph+4)+"\" text-anchor=\"end\" fill=\"currentColor\" opacity=\".55\" font-size=\"11\">"+f2(v)+"</text>"});
-  svg+="</svg>"; $("chartBody").innerHTML=svg; $("chartModal").classList.add("open");
+  $("chartBody").innerHTML='<div class="chart-host" id="chartHost"></div><div class="chart-tooltip" id="chartTooltip"></div>';
+  $("chartModal").classList.add("open");
+
+  const host=$("chartHost");
+  const chart=LightweightCharts.createChart(host,{
+    width:host.clientWidth,height:host.clientHeight,
+    layout:{background:{type:LightweightCharts.ColorType.Solid,color:theme.bg},textColor:theme.textColor,fontFamily:"IBM Plex Mono, monospace",fontSize:11},
+    grid:{vertLines:{color:theme.gridColor},horzLines:{color:theme.gridColor}},
+    rightPriceScale:{borderColor:theme.gridColor,scaleMargins:{top:.06,bottom:.18}},
+    timeScale:{borderColor:theme.gridColor,timeVisible:false,secondsVisible:false,rightOffset:4,barSpacing:7,minBarSpacing:2},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:theme.textColor,width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:theme.ema11},horzLine:{color:theme.textColor,width:1,style:LightweightCharts.LineStyle.Dashed,labelBackgroundColor:theme.ema11}},
+    handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},
+    handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:true}
+  });
+  LW=chart;
+
+  const candles=d.dates.map((time,i)=>({time,open:Number(d.open[i]),high:Number(d.high[i]),low:Number(d.low[i]),close:Number(d.close[i])})).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
+  const candle=makeSeries(chart,"candlestick",{upColor:theme.up,downColor:theme.down,borderUpColor:theme.up,borderDownColor:theme.down,wickUpColor:theme.up,wickDownColor:theme.down});
+  candle.setData(candles);
+
+  if(row){
+    const entry=Number(row.entry),stop=Number(row.stop);
+    if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:theme.up,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
+    if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:theme.down,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
+  }
+
+  const ema11=makeSeries(chart,"line",{color:theme.ema11,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const ema21=makeSeries(chart,"line",{color:theme.ema21,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const sma50=makeSeries(chart,"line",{color:theme.sma50,lineWidth:1.5,lastValueVisible:false,priceLineVisible:false});
+  ema11.setData(d.dates.map((time,i)=>({time,value:Number(d.ema11[i])})).filter(x=>Number.isFinite(x.value)));
+  ema21.setData(d.dates.map((time,i)=>({time,value:Number(d.ema21[i])})).filter(x=>Number.isFinite(x.value)));
+  sma50.setData(d.dates.map((time,i)=>({time,value:Number(d.sma50[i])})).filter(x=>Number.isFinite(x.value)));
+
+  const volume=makeSeries(chart,"histogram",{priceFormat:{type:"volume"},priceScaleId:"volume",color:"rgba(120,145,170,.45)",lastValueVisible:false,priceLineVisible:false});
+  volume.priceScale().applyOptions({scaleMargins:{top:.82,bottom:0}});
+  volume.setData(d.dates.map((time,i)=>({time,value:Number(d.volume[i]),color:Number(d.close[i])>=Number(d.open[i])?theme.up:theme.down})).filter(x=>Number.isFinite(x.value)));
+
+  const tooltip=$("chartTooltip");
+  const byTime=new Map(d.dates.map((time,i)=>[time,i]));
+  chart.subscribeCrosshairMove(param=>{
+    if(!param.time || !param.point || !host.contains(param.sourceEvent?.target)) { tooltip.style.display="none"; return; }
+    const i=byTime.get(param.time); if(i==null) return;
+    const o=Number(d.open[i]),h=Number(d.high[i]),l=Number(d.low[i]),cl=Number(d.close[i]),v=Number(d.volume[i]);
+    const fmt=x=>Number.isFinite(x)?x.toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
+    const chg=Number.isFinite(o)&&o!==0?((cl-o)/o*100):NaN;
+    tooltip.innerHTML='<div class="tt-date">'+esc(d.dates[i])+'</div><div class="tt-grid"><span>O</span><b>'+fmt(o)+'</b><span>H</span><b>'+fmt(h)+'</b><span>L</span><b>'+fmt(l)+'</b><span>C</span><b>'+fmt(cl)+'</b><span>Chg</span><b class="'+(chg>=0?"up":"dn")+'">'+(chg>=0?"+":"")+fmt(chg)+'%</b><span>Vol</span><b>'+fmt(v)+'</b></div>';
+    const pad=12,tw=205,left=Math.max(pad,Math.min(host.clientWidth-tw-pad,param.point.x+14));
+    tooltip.style.left=left+"px"; tooltip.style.top=Math.max(pad,Math.min(host.clientHeight-100-pad,param.point.y-20))+"px"; tooltip.style.display="block";
+  });
+
+  const resize=()=>{if(LW){LW.applyOptions({width:host.clientWidth,height:host.clientHeight});}};
+  const ro=new ResizeObserver(resize); ro.observe(host);
+  chart.timeScale().fitContent();
+  chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+4});
+  requestAnimationFrame(resize);
 }
+
 function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
@@ -319,6 +397,12 @@ function wire(){
 }
 
 $("chartClose").addEventListener("click",closeChart);
+$("chartReset").addEventListener("click",()=>{if(LW){LW.timeScale().fitContent();LW.timeScale().setVisibleLogicalRange({from:Math.max(0,CHART_ROW?120:0),to:(CHART_ROW&&CHART[CHART_ROW.key]?CHART[CHART_ROW.key].dates.length+4:9999)});}});
+function setChartWindow(days){if(!LW||!CHART_ROW||!CHART[CHART_ROW.key])return;const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-days),to:n+4});}
+$("chart120").addEventListener("click",()=>setChartWindow(120));
+$("chart60").addEventListener("click",()=>setChartWindow(60));
+$("chart30").addEventListener("click",()=>setChartWindow(30));
+
 $("chartModal").addEventListener("click",e=>{if(e.target.id==="chartModal") closeChart()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape" && $("chartModal").classList.contains("open")) closeChart()});
 
