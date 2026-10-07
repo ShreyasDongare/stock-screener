@@ -100,18 +100,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-toolrow button{border:1px solid #304151;background:#141D26;color:#8FA1B2;border-radius:6px;padding:5px 9px;font:500 10px var(--sans);cursor:pointer;white-space:nowrap}
 .chart-toolrow button:hover,.chart-toolrow button.active{background:#20354A;border-color:#4D87C2;color:#fff}
 .chart-toolrow button.danger:hover{border-color:#D95353;color:#fff;background:#392025}
-.chart-drawbar{position:absolute;z-index:8;left:10px;top:10px;display:flex;flex-direction:column;gap:4px;padding:5px;background:rgba(16,24,32,.92);border:1px solid #304151;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.22);backdrop-filter:blur(8px)}
-.chart-drawbar .drawbtn{position:relative;width:34px;height:34px;padding:0;border:1px solid transparent;background:transparent;color:#A7B5C3;border-radius:7px;font:600 15px var(--sans);cursor:pointer}
-.chart-drawbar .drawbtn:hover,.chart-drawbar .drawbtn.active{background:#20354A;border-color:#4D87C2;color:#fff}
-.chart-drawbar .drawsep{height:1px;background:#304151;margin:2px 3px}
-.chart-drawbar .drawbtn::after{content:attr(data-tip);position:absolute;left:42px;top:50%;transform:translateY(-50%);display:none;padding:5px 8px;border:1px solid #344352;border-radius:6px;background:#0B1117;color:#E6EDF3;font:500 10px var(--sans);white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.25);pointer-events:none}
-.chart-drawbar .drawbtn:hover::after{display:block}
 .chart-host.drawing{cursor:crosshair}
-.draw-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
-.draw-capture{position:absolute;inset:0;z-index:4;display:none;cursor:crosshair}
-.chart-host.drawing .draw-capture{display:block}
-.chart-host.drawing .chart-tooltip{display:none!important}
-.draw-label{font:500 10px var(--mono);fill:#DDE6EF}
 .chart-ohlc{display:none!important}
 .chart-ohlc .tt-date{color:#E8EEF5;font-weight:600;margin-bottom:3px}
 .chart-ohlc .tt-grid{display:grid;grid-template-columns:auto auto;gap:1px 10px}
@@ -306,217 +295,6 @@ function options(values,current,label){
 let LW = null;
 let CHART = null, CHART_ROW = null;
 let CHART_SERIES = {};
-let DRAW_TOOL = "select";
-let DRAW_PENDING = null;
-let DRAW_KEY = null;
-let DRAW_DATA = [];
-
-function chartTheme(){
-  const dark=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim().startsWith("#") &&
-    matchMedia("(prefers-color-scheme: dark)").matches;
-  const root=document.documentElement, explicit=root.dataset.theme;
-  const isDark=explicit==="dark" || (!explicit && matchMedia("(prefers-color-scheme: dark)").matches);
-  return {
-    textColor:isDark?"#B7C3CF":"#5D6B78",
-    gridColor:isDark?"rgba(140,155,170,.10)":"rgba(70,90,110,.10)",
-    bg:isDark?"#171E26":"#FFFFFF",
-    up:isDark?"#3FBE8C":"#17794F",
-    down:isDark?"#E56C6C":"#B83232",
-    ema11:isDark?"#80B2E6":"#2A5A8E",
-    ema21:isDark?"#3FBE8C":"#17794F",
-    sma50:isDark?"#9AA7B5":"#68788A"
-  };
-}
-
-function closeChart(){
-  $("chartModal").classList.remove("open");
-  if(LW){ try{LW.remove();}catch(_){} LW=null; }
-  CHART_ROW=null;
-  $("chartBody").innerHTML="";
-}
-
-function makeSeries(chart, type, options){
-  if(type==="candlestick") return chart.addSeries(LightweightCharts.CandlestickSeries,options);
-  if(type==="histogram") return chart.addSeries(LightweightCharts.HistogramSeries,options);
-  return chart.addSeries(LightweightCharts.LineSeries,options);
-}
-
-function chartRows(){
-  if(!D) return [];
-  const all=[];
-  Object.keys(SCANS).forEach(tab=>sourceRows(tab).forEach(r=>all.push({...r,watchSetup:r.setup||SCANS[tab].t})));
-  const seen=new Set();
-  return all.filter(r=>r.key && !seen.has(r.key) && CHART?.[r.key] && seen.add(r.key));
-}
-const TAG_COLORS=["","red","orange","yellow","green","blue","purple"];
-function getTags(){try{return JSON.parse(localStorage.getItem("scn-tags")||"{}")}catch(_){return {}}}
-function saveTags(tags){try{localStorage.setItem("scn-tags",JSON.stringify(tags))}catch(_){}}
-function cycleTag(key){
-  const tags=getTags(), i=Math.max(0,TAG_COLORS.indexOf(tags[key]||""));
-  const next=TAG_COLORS[(i+1)%TAG_COLORS.length];
-  if(next) tags[key]=next; else delete tags[key];
-  saveTags(tags);
-  renderChartWatchlist(CHART_ROW?.key||key);
-}
-let CHART_WATCH_Q="";
-let CHART_WATCH_SCROLL_TOP=null;
-function renderChartWatchlist(activeKey){
-  const el=$("chartWatchlist"); if(!el) return;
-  // Keep the user's watchlist position when the chart changes. The list is
-  // rebuilt with the new active stock, so restore first, then smoothly reveal
-  // the active item only when it is actually outside the visible area.
-  const previousScrollTop=CHART_WATCH_SCROLL_TOP!=null ? CHART_WATCH_SCROLL_TOP : el.scrollTop;
-  CHART_WATCH_SCROLL_TOP=null;
-  const all=chartRows(), tags=getTags(), q=CHART_WATCH_Q.trim().toUpperCase();
-  const items=all.filter(r=>!q || String(r.symbol||"").toUpperCase().includes(q));
-  el.innerHTML='<div class="chart-watch-head">'+
-    '<div class="chart-watch-title">Scanned Stocks</div>'+
-    '<input class="chart-watch-search" id="chartWatchSearch" type="search" value="'+esc(CHART_WATCH_Q)+'" placeholder="Search from '+all.length+' stocks" aria-label="Search stocks">'+
-    '<div class="chart-watch-help">↑ ↓ switch · Right-click stock = colour tag</div>'+
-    '</div>'+
-    '<div class="chart-watch-items">'+
-    (items.length ? items.map(r=>{
-      const tag=tags[r.key]||"";
-      return '<button class="chart-watch-item '+(r.key===activeKey?'active ':'')+(tag?'tag-'+tag:'')+'" data-watch-key="'+esc(r.key)+'">'+
-        '<span>'+esc(r.symbol)+'</span><span class="wsetup">'+esc(r.watchSetup||"")+'</span>'+
-        '<span class="chart-tag-dot '+tag+'" data-tag-key="'+esc(r.key)+'" title="Colour tag"></span></button>';
-    }).join("") : '<div class="chart-watch-help" style="padding-top:12px">No stocks found</div>')+
-    '</div>';
-  const search=$("chartWatchSearch");
-  if(search){
-    search.addEventListener("input",e=>{
-      CHART_WATCH_Q=e.target.value;
-      renderChartWatchlist(activeKey);
-      const s=$("chartWatchSearch");
-      s?.focus();
-      s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);
-    });
-  }
-
-  // Restore without animation so the old position does not visibly jump.
-  el.scrollTo({top:Math.max(0,previousScrollTop),left:0,behavior:"instant"});
-
-  const activeItem=el.querySelector(".chart-watch-item.active");
-  if(activeItem){
-    const header=el.querySelector(".chart-watch-head");
-    const headerHeight=header?.getBoundingClientRect().height||0;
-    const visibleTop=el.scrollTop+headerHeight+4;
-    const visibleBottom=el.scrollTop+el.clientHeight-4;
-    const itemTop=activeItem.offsetTop;
-    const itemBottom=itemTop+activeItem.offsetHeight;
-    let target=null;
-
-    if(itemTop<visibleTop){
-      target=itemTop-headerHeight-4;
-    }else if(itemBottom>visibleBottom){
-      target=itemBottom-el.clientHeight+4;
-    }
-
-    if(target!=null){
-      const maxScroll=Math.max(0,el.scrollHeight-el.clientHeight);
-      el.scrollTo({
-        top:Math.max(0,Math.min(target,maxScroll)),
-        left:0,
-        behavior:"smooth"
-      });
-    }
-  }
-}
-
-function drawStorageKey(){ return "scn-drawings-"+String(DRAW_KEY||""); }
-function loadDrawings(){
-  try{
-    const x=JSON.parse(localStorage.getItem(drawStorageKey())||"[]");
-    return Array.isArray(x)?x:[];
-  }catch(_){return []}
-}
-function saveDrawings(){
-  try{localStorage.setItem(drawStorageKey(),JSON.stringify(DRAW_DATA))}catch(_){}
-}
-function setDrawTool(tool){
-  DRAW_TOOL=tool;
-  DRAW_PENDING=null;
-  document.querySelectorAll(".chart-tool").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));
-  const host=$("chartHost");
-  if(host) host.classList.toggle("drawing",tool!=="select");
-}
-function drawingPoint(x,y){
-  if(!LW || !CHART_ROW || !CHART[CHART_ROW.key] || !CHART_SERIES.candle) return null;
-  const d=CHART[CHART_ROW.key], ts=LW.timeScale();
-  const logical=ts.coordinateToLogical(x);
-  if(logical==null || !Number.isFinite(Number(logical))) return null;
-  const idx=Math.max(0,Math.min(d.dates.length-1,Math.round(Number(logical))));
-  const time=d.dates[idx];
-  const price=CHART_SERIES.candle.coordinateToPrice(y);
-  if(price==null || !Number.isFinite(Number(price))) return null;
-  return {time,price:Number(price),index:idx};
-}
-function renderDrawings(){
-  const svg=$("drawLayer"), host=$("chartHost");
-  if(!svg || !host || !LW || !CHART_SERIES.candle) return;
-  const ts=LW.timeScale(), candle=CHART_SERIES.candle, w=host.clientWidth, h=host.clientHeight;
-  const escXml=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-  const xy=p=>{
-    const x=ts.timeToCoordinate(p.time), y=candle.priceToCoordinate(p.price);
-    return x==null||y==null?null:{x:Number(x),y:Number(y)};
-  };
-  const out=[];
-  for(const d of DRAW_DATA){
-    const a=xy(d.a), b=d.b?xy(d.b):null;
-    if(!a || (d.b && !b)) continue;
-    if(d.type==="hline"){
-      out.push('<line x1="0" y1="'+a.y.toFixed(1)+'" x2="'+w+'" y2="'+a.y.toFixed(1)+'" stroke="#E7B84B" stroke-width="1.3" stroke-dasharray="6 4" opacity=".9"/>');
-      out.push('<text x="'+Math.max(6,w-88)+'" y="'+Math.max(14,a.y-5)+'" class="draw-label">₹'+Number(d.a.price).toLocaleString("en-IN",{maximumFractionDigits:2})+'</text>');
-    }else if(d.type==="trend"){
-      out.push('<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="#58A6E6" stroke-width="1.6" stroke-linecap="round"/>');
-    }else if(d.type==="ray"){
-      const dx=b.x-a.x, dy=b.y-a.y, endX=dx>=0?w:0, endY=dx===0?a.y:a.y+dy*((endX-a.x)/dx);
-      out.push('<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="#58A6E6" stroke-width="1.6" stroke-linecap="round"/>');
-    }else if(d.type==="vline"){
-      out.push('<line x1="'+a.x.toFixed(1)+'" y1="0" x2="'+a.x.toFixed(1)+'" y2="'+h+'" stroke="#9AA8B6" stroke-width="1.2" stroke-dasharray="5 4" opacity=".8"/>');
-    }else if(d.type==="fib"){
-      const levels=[0,.236,.382,.5,.618,.786,1], lo=d.a.price, hi=d.b.price;
-      levels.forEach(l=>{const price=lo+(hi-lo)*l,y=candle.priceToCoordinate(price);if(y==null)return;out.push('<line x1="'+Math.min(a.x,b.x).toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+Math.max(a.x,b.x).toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#B17DE6" stroke-width="1" opacity=".72"/>');out.push('<text x="'+(Math.max(a.x,b.x)+6).toFixed(1)+'" y="'+Math.max(12,y-3).toFixed(1)+'" class="draw-label">'+(l*100).toFixed(1)+'%</text>');});
-    }else if(d.type==="rect"){
-      const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), rw=Math.abs(b.x-a.x), rh=Math.abs(b.y-a.y);
-      out.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+rw.toFixed(1)+'" height="'+rh.toFixed(1)+'" fill="rgba(88,166,230,.08)" stroke="#58A6E6" stroke-width="1.4" stroke-dasharray="5 4" rx="3"/>');
-    }else if(d.type==="measure"){
-      const dx=b.x-a.x, dy=b.y-a.y, pct=(b.price/d.a.price-1)*100, days=Math.abs(b.index-d.a.index);
-      out.push('<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="#45C98D" stroke-width="1.6" stroke-dasharray="5 3"/>');
-      out.push('<circle cx="'+a.x.toFixed(1)+'" cy="'+a.y.toFixed(1)+'" r="3" fill="#45C98D"/><circle cx="'+b.x.toFixed(1)+'" cy="'+b.y.toFixed(1)+'" r="3" fill="#45C98D"/>');
-      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
-      out.push('<rect x="'+(mx-52).toFixed(1)+'" y="'+(my-18).toFixed(1)+'" width="104" height="17" rx="4" fill="#111A22" stroke="#344352"/>');
-      out.push('<text x="'+mx.toFixed(1)+'" y="'+(my-6).toFixed(1)+'" text-anchor="middle" class="draw-label">'+(pct>=0?"+":"")+pct.toFixed(2)+'% · '+days+' bars</text>');
-    }
-  }
-  svg.setAttribute("viewBox","0 0 "+w+" "+h);
-  svg.innerHTML=out.join("");
-}
-function finishDrawing(p){
-  if(DRAW_TOOL==="hline" || DRAW_TOOL==="vline"){
-    DRAW_DATA.push({type:DRAW_TOOL,a:p}); saveDrawings(); renderDrawings(); return;
-  }
-  if(!DRAW_PENDING){ DRAW_PENDING=p; return; }
-  DRAW_DATA.push({type:DRAW_TOOL,a:DRAW_PENDING,b:p});
-  DRAW_PENDING=null; saveDrawings(); renderDrawings();
-}
-function clearDrawings(){ DRAW_DATA=[]; DRAW_PENDING=null; saveDrawings(); renderDrawings(); }
-document.addEventListener("keydown",e=>{
-  if(!$("chartModal")?.classList.contains("open")) return;
-  if(e.key==="Escape"){ DRAW_PENDING=null; setDrawTool("select"); renderDrawings(); }
-});
-function bindDrawingCapture(){
-  const host=$("chartHost"); if(!host || host.dataset.drawBound) return;
-  host.dataset.drawBound="1";
-  host.addEventListener("pointerdown",e=>{
-    if(DRAW_TOOL==="select") return;
-    const r=host.getBoundingClientRect();
-    const p=drawingPoint(e.clientX-r.left,e.clientY-r.top);
-    if(!p) return;
-    e.preventDefault(); e.stopPropagation();
-    finishDrawing(p);
-  },true);
-}
 function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
   const host=$("chartHost");
   chart.subscribeCrosshairMove(p=>{
@@ -546,10 +324,6 @@ function openChart(key,row){
     ema11:"rgba(42,120,184,.62)", ema21:"rgba(176,122,0,.62)", sma50:"rgba(123,79,163,.52)", volume:"#8A9AAA"
   };
   CHART_ROW=row||null;
-  DRAW_KEY=key;
-  DRAW_DATA=loadDrawings();
-  DRAW_PENDING=null;
-  DRAW_TOOL="select";
   const last=n-1, close=Number(d.close[last]), prev=n>1?Number(d.close[last-1]):NaN;
   const dayPct=Number.isFinite(prev)&&prev!==0?(close/prev-1)*100:NaN;
   const fmt=x=>Number.isFinite(x)?x.toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
@@ -568,7 +342,7 @@ function openChart(key,row){
   // replacement would always return 0 and make the list jump to the top.
   const oldWatchlist=$("chartWatchlist");
   CHART_WATCH_SCROLL_TOP=oldWatchlist ? oldWatchlist.scrollTop : null;
-  $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-drawbar" aria-label="Drawing tools"><button class="drawbtn chart-tool active" data-tool="select" data-tip="Cursor">↖</button><button class="drawbtn chart-tool" data-tool="trend" data-tip="Trend line">╱</button><button class="drawbtn chart-tool" data-tool="ray" data-tip="Ray">↗</button><button class="drawbtn chart-tool" data-tool="hline" data-tip="Horizontal line">━</button><button class="drawbtn chart-tool" data-tool="vline" data-tip="Vertical line">┃</button><button class="drawbtn chart-tool" data-tool="rect" data-tip="Rectangle / zone">▱</button><button class="drawbtn chart-tool" data-tool="fib" data-tip="Fibonacci retracement">F</button><button class="drawbtn chart-tool" data-tool="measure" data-tip="Measure">↕</button><div class="drawsep"></div><button class="drawbtn" id="clearDrawings" data-tip="Clear drawings">⌫</button></div><svg class="draw-layer" id="drawLayer" aria-hidden="true"></svg><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
+  $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
   $("chartModal").classList.add("open");
   renderChartWatchlist(key);
   const host=$("chartHost");
@@ -610,9 +384,7 @@ function openChart(key,row){
   })).filter(x=>Number.isFinite(x.value)));
 
   CHART_SERIES={candle,ema11,ema21,sma50,volume};
-  bindDrawingCapture();
   bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume);
-  renderDrawings();
 
   // Setup marker on the latest relevant day.
   try{
@@ -667,18 +439,6 @@ function render(){
 
 
 document.addEventListener("click",e=>{
-  const tool=e.target.closest("[data-tool]");
-  if(tool && $("chartModal").classList.contains("open")){ setDrawTool(tool.dataset.tool); return; }
-  if(e.target.id==="clearDrawings" && $("chartModal").classList.contains("open")){ clearDrawings(); return; }
-  const ind=e.target.closest("[data-indicator]");
-  if(ind && $("chartModal").classList.contains("open")){
-    const key=ind.dataset.indicator, s=CHART_SERIES[key];
-    if(!s) return;
-    const visible=!(s.options().visible===false);
-    s.applyOptions({visible:!visible});
-    ind.classList.toggle("active",!visible);
-    return;
-  }
 });
 
 function wire(){
