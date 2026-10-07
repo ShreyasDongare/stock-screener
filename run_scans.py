@@ -171,7 +171,7 @@ def analyse(key, g, review_keys, recent_keys):
         key=key, symbol=row0["symbol"], exch=row0["exch"], name=row0["name"],
         close=num(c[i]), chg=num((c[i] / c[i - 1] - 1) * 100), adr=num(adr, 1),
         value_cr=num(avg_val_cr, 1), ema11=num(ema11[i]), ema21=num(ema21[i]),
-        sma50=num(sma50[i]), spark=[num(x) for x in c[-40:]], note="; ".join(note),
+        sma50=num(sma50[i]), adx=num(adx[i], 1), spark=[num(x) for x in c[-40:]], note="; ".join(note),
         **{f"ret{k}": (num(mom[k], 0) if mom else None) for k in ("1m", "3m", "6m")},
     )
     out = {}
