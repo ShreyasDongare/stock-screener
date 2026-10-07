@@ -773,10 +773,12 @@ def build_chart_data(df, keys):
 
         e11 = (
             ss.ewm(span=11, adjust=False)
+            .mean()
             .to_numpy()
         )
         e21 = (
             ss.ewm(span=21, adjust=False)
+            .mean()
             .to_numpy()
         )
         s50 = (
