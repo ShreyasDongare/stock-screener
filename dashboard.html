@@ -359,13 +359,15 @@ function cycleTag(key){
   renderChartWatchlist(CHART_ROW?.key||key);
 }
 let CHART_WATCH_Q="";
+let CHART_WATCH_SCROLL_TOP=null;
 function renderChartWatchlist(activeKey){
   const el=$("chartWatchlist"); if(!el) return;
   // Preserve the user's exact watchlist scroll position when the chart changes.
   // Rebuilding innerHTML creates new list items; restoring scrollTop prevents the
   // active stock from jumping the list, while a direct scrollTop adjustment below
   // moves only this panel when the active item is genuinely outside the viewport.
-  const previousScrollTop=el.scrollTop;
+  const previousScrollTop=CHART_WATCH_SCROLL_TOP!=null ? CHART_WATCH_SCROLL_TOP : el.scrollTop;
+  CHART_WATCH_SCROLL_TOP=null;
   const all=chartRows(), tags=getTags(), q=CHART_WATCH_Q.trim().toUpperCase();
   const items=all.filter(r=>!q || String(r.symbol||"").toUpperCase().includes(q));
   el.innerHTML=  const search=$("chartWatchSearch");
@@ -534,6 +536,11 @@ function openChart(key,row){
     (Number.isFinite(entry)?'<span style="color:'+ct.up+'">Entry ₹'+fmt(entry)+'</span>':'')+
     (Number.isFinite(stop)?'<span style="color:'+ct.down+'">SL ₹'+fmt(stop)+'</span>':'');
 
+  // Save the existing watchlist position before rebuilding chartBody. This is the
+  // important part: openChart() replaces the DOM, so reading scrollTop after that
+  // replacement would always return 0 and make the list jump to the top.
+  const oldWatchlist=$("chartWatchlist");
+  CHART_WATCH_SCROLL_TOP=oldWatchlist ? oldWatchlist.scrollTop : null;
   $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-drawbar" aria-label="Drawing tools"><button class="drawbtn chart-tool active" data-tool="select" data-tip="Cursor">↖</button><button class="drawbtn chart-tool" data-tool="trend" data-tip="Trend line">╱</button><button class="drawbtn chart-tool" data-tool="ray" data-tip="Ray">↗</button><button class="drawbtn chart-tool" data-tool="hline" data-tip="Horizontal line">━</button><button class="drawbtn chart-tool" data-tool="vline" data-tip="Vertical line">┃</button><button class="drawbtn chart-tool" data-tool="rect" data-tip="Rectangle / zone">▱</button><button class="drawbtn chart-tool" data-tool="fib" data-tip="Fibonacci retracement">F</button><button class="drawbtn chart-tool" data-tool="measure" data-tip="Measure">↕</button><div class="drawsep"></div><button class="drawbtn" id="clearDrawings" data-tip="Clear drawings">⌫</button></div><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
   $("chartModal").classList.add("open");
   renderChartWatchlist(key);
