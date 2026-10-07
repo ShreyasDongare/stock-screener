@@ -100,6 +100,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-toolrow button{border:1px solid #304151;background:#141D26;color:#8FA1B2;border-radius:6px;padding:5px 9px;font:500 10px var(--sans);cursor:pointer;white-space:nowrap}
 .chart-toolrow button:hover,.chart-toolrow button.active{background:#20354A;border-color:#4D87C2;color:#fff}
 .chart-toolrow button.danger:hover{border-color:#D95353;color:#fff;background:#392025}
+.chart-drawbar{position:absolute;z-index:8;left:10px;top:10px;display:flex;flex-direction:column;gap:4px;padding:5px;background:rgba(16,24,32,.92);border:1px solid #304151;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.22);backdrop-filter:blur(8px)}
+.chart-drawbar .drawbtn{position:relative;width:34px;height:34px;padding:0;border:1px solid transparent;background:transparent;color:#A7B5C3;border-radius:7px;font:600 15px var(--sans);cursor:pointer}
+.chart-drawbar .drawbtn:hover,.chart-drawbar .drawbtn.active{background:#20354A;border-color:#4D87C2;color:#fff}
+.chart-drawbar .drawsep{height:1px;background:#304151;margin:2px 3px}
+.chart-drawbar .drawbtn::after{content:attr(data-tip);position:absolute;left:42px;top:50%;transform:translateY(-50%);display:none;padding:5px 8px;border:1px solid #344352;border-radius:6px;background:#0B1117;color:#E6EDF3;font:500 10px var(--sans);white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.25);pointer-events:none}
+.chart-drawbar .drawbtn:hover::after{display:block}
+.chart-host.drawing{cursor:crosshair}
 .draw-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
 .draw-capture{position:absolute;inset:0;z-index:4;display:none;cursor:crosshair}
 .chart-host.drawing .draw-capture{display:block}
@@ -421,7 +428,15 @@ function renderDrawings(){
       out.push('<line x1="0" y1="'+a.y.toFixed(1)+'" x2="'+w+'" y2="'+a.y.toFixed(1)+'" stroke="#E7B84B" stroke-width="1.3" stroke-dasharray="6 4" opacity=".9"/>');
       out.push('<text x="'+Math.max(6,w-88)+'" y="'+Math.max(14,a.y-5)+'" class="draw-label">₹'+Number(d.a.price).toLocaleString("en-IN",{maximumFractionDigits:2})+'</text>');
     }else if(d.type==="trend"){
-      out.push('<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="#58A6E6" stroke-width="1.8" stroke-linecap="round"/>');
+      out.push('<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="#58A6E6" stroke-width="1.6" stroke-linecap="round"/>');
+    }else if(d.type==="ray"){
+      const dx=b.x-a.x, dy=b.y-a.y, endX=dx>=0?w:0, endY=dx===0?a.y:a.y+dy*((endX-a.x)/dx);
+      out.push('<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+endX.toFixed(1)+'" y2="'+endY.toFixed(1)+'" stroke="#58A6E6" stroke-width="1.6" stroke-linecap="round"/>');
+    }else if(d.type==="vline"){
+      out.push('<line x1="'+a.x.toFixed(1)+'" y1="0" x2="'+a.x.toFixed(1)+'" y2="'+h+'" stroke="#9AA8B6" stroke-width="1.2" stroke-dasharray="5 4" opacity=".8"/>');
+    }else if(d.type==="fib"){
+      const levels=[0,.236,.382,.5,.618,.786,1], lo=d.a.price, hi=d.b.price;
+      levels.forEach(l=>{const price=lo+(hi-lo)*l,y=candle.priceToCoordinate(price);if(y==null)return;out.push('<line x1="'+Math.min(a.x,b.x).toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+Math.max(a.x,b.x).toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#B17DE6" stroke-width="1" opacity=".72"/>');out.push('<text x="'+(Math.max(a.x,b.x)+6).toFixed(1)+'" y="'+Math.max(12,y-3).toFixed(1)+'" class="draw-label">'+(l*100).toFixed(1)+'%</text>');});
     }else if(d.type==="rect"){
       const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), rw=Math.abs(b.x-a.x), rh=Math.abs(b.y-a.y);
       out.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+rw.toFixed(1)+'" height="'+rh.toFixed(1)+'" fill="rgba(88,166,230,.08)" stroke="#58A6E6" stroke-width="1.4" stroke-dasharray="5 4" rx="3"/>');
@@ -438,14 +453,18 @@ function renderDrawings(){
   svg.innerHTML=out.join("");
 }
 function finishDrawing(p){
-  if(DRAW_TOOL==="hline"){
-    DRAW_DATA.push({type:"hline",a:p}); saveDrawings(); renderDrawings(); return;
+  if(DRAW_TOOL==="hline" || DRAW_TOOL==="vline"){
+    DRAW_DATA.push({type:DRAW_TOOL,a:p}); saveDrawings(); renderDrawings(); return;
   }
   if(!DRAW_PENDING){ DRAW_PENDING=p; return; }
   DRAW_DATA.push({type:DRAW_TOOL,a:DRAW_PENDING,b:p});
   DRAW_PENDING=null; saveDrawings(); renderDrawings();
 }
 function clearDrawings(){ DRAW_DATA=[]; DRAW_PENDING=null; saveDrawings(); renderDrawings(); }
+document.addEventListener("keydown",e=>{
+  if(!$("chartModal")?.classList.contains("open")) return;
+  if(e.key==="Escape"){ DRAW_PENDING=null; setDrawTool("select"); renderDrawings(); }
+});
 function bindDrawingCapture(){
   const host=$("chartHost"); if(!host || host.dataset.drawBound) return;
   host.dataset.drawBound="1";
@@ -506,7 +525,7 @@ function openChart(key,row){
     (Number.isFinite(entry)?'<span style="color:'+ct.up+'">Entry ₹'+fmt(entry)+'</span>':'')+
     (Number.isFinite(stop)?'<span style="color:'+ct.down+'">SL ₹'+fmt(stop)+'</span>':'');
 
-  $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
+  $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-drawbar" aria-label="Drawing tools"><button class="drawbtn chart-tool active" data-tool="select" data-tip="Cursor">↖</button><button class="drawbtn chart-tool" data-tool="trend" data-tip="Trend line">╱</button><button class="drawbtn chart-tool" data-tool="ray" data-tip="Ray">↗</button><button class="drawbtn chart-tool" data-tool="hline" data-tip="Horizontal line">━</button><button class="drawbtn chart-tool" data-tool="vline" data-tip="Vertical line">┃</button><button class="drawbtn chart-tool" data-tool="rect" data-tip="Rectangle / zone">▱</button><button class="drawbtn chart-tool" data-tool="fib" data-tip="Fibonacci retracement">F</button><button class="drawbtn chart-tool" data-tool="measure" data-tip="Measure">↕</button><div class="drawsep"></div><button class="drawbtn" id="clearDrawings" data-tip="Clear drawings">⌫</button></div><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
   $("chartModal").classList.add("open");
   renderChartWatchlist(key);
   const host=$("chartHost");
