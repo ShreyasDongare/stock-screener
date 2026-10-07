@@ -589,7 +589,10 @@ function openChart(key,row){
   const resize=()=>{if(LW)LW.applyOptions({width:host.clientWidth,height:host.clientHeight});};
   const ro=new ResizeObserver(()=>{resize();renderDrawings();});ro.observe(host);
   chart.timeScale().subscribeVisibleLogicalRangeChange(()=>renderDrawings());
-  chart.timeScale().setVisibleLogicalRange({from:0,to:n+5});
+  // Default view: latest 120 trading days, with 12-candle right breathing room.
+  // Vertical chart margins are controlled by the price scale: 18% top / 12% bottom.
+  chart.applyOptions({rightPriceScale:{scaleMargins:{top:.18,bottom:.12}}});
+  chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+12});
   requestAnimationFrame(resize);
 }
 function render(){
