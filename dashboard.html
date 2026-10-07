@@ -480,11 +480,11 @@ function openChart(key,row){
   const ct=dark ? {
     bg:"#0D131A", text:"#91A2B3", grid:"rgba(125,145,165,.075)", border:"#293542",
     cross:"#71869B", crossLabel:"#33485B", up:"#20A46B", down:"#D95353",
-    ema11:"#58A6E6", ema21:"#E7B84B", sma50:"#B17DE6", volume:"#3E5368"
+    ema11:"rgba(88,166,230,.62)", ema21:"rgba(231,184,75,.62)", sma50:"rgba(177,125,230,.52)", volume:"#3E5368"
   } : {
     bg:"#FFFFFF", text:"#526273", grid:"rgba(82,98,115,.10)", border:"#DCE2E8",
     cross:"#7A8C9D", crossLabel:"#526273", up:"#17794F", down:"#B83232",
-    ema11:"#2A78B8", ema21:"#B07A00", sma50:"#7B4FA3", volume:"#8A9AAA"
+    ema11:"rgba(42,120,184,.62)", ema21:"rgba(176,122,0,.62)", sma50:"rgba(123,79,163,.52)", volume:"#8A9AAA"
   };
   CHART_ROW=row||null;
   DRAW_KEY=key;
@@ -534,9 +534,9 @@ function openChart(key,row){
   if(Number.isFinite(entry)) candle.createPriceLine({price:entry,color:ct.up,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"ENTRY"});
   if(Number.isFinite(stop)) candle.createPriceLine({price:stop,color:ct.down,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"STOP"});
 
-  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
-  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
-  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:2,lastValueVisible:false,priceLineVisible:false});
+  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
   ema11.setData(d.dates.map((time,i)=>({time,value:+d.ema11[i]})).filter(x=>Number.isFinite(x.value)));
   ema21.setData(d.dates.map((time,i)=>({time,value:+d.ema21[i]})).filter(x=>Number.isFinite(x.value)));
   sma50.setData(d.dates.map((time,i)=>({time,value:+d.sma50[i]})).filter(x=>Number.isFinite(x.value) && x.value>0));
