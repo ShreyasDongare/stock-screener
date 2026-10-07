@@ -382,7 +382,7 @@ function openChart(key,row){
 
   const resize=()=>{if(LW)LW.applyOptions({width:host.clientWidth,height:host.clientHeight});};
   const ro=new ResizeObserver(resize);ro.observe(host);
-  chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+5});
+  chart.timeScale().fitContent();
   requestAnimationFrame(resize);
 }
 function render(){
