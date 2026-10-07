@@ -34,6 +34,7 @@ CFG = {
         "min_rs": 70,               # relative strength rank 1-99 among liquid stocks
     },
     "pullback": {"tight_pct": 2.0, "levels": ["EMA11", "EMA21", "SMA50"]},
+    "min_momentum_pct": 30,          # 1M, 3M and 6M returns must all be >= 30%
     "momentum": {                   # close now vs close N trading days ago
         "enabled": False,                       # off: set True to require the returns below
         "match": "any",                         # "any" = one of the three is enough, "all" = every one
@@ -100,6 +101,15 @@ def analyse(key, g, review_keys, recent_keys):
     mom = None
     if n > max(M["days"].values()):
         mom = {k: (c[i] / c[i - d] - 1) * 100 for k, d in M["days"].items()}
+    # Universal momentum filter: remove any stock that gained <30% in even one period.
+    min_mom = CFG["min_momentum_pct"]
+    momentum_floor_ok = (
+        mom is not None
+        and all(mom[k] >= min_mom for k in ("1m", "3m", "6m"))
+    )
+    if not momentum_floor_ok:
+        return info, {}
+
     pick = any if M["match"] == "any" else all
     mom_ok = mom is not None and pick(mom[k] >= M["min_pct"][k] for k in M["min_pct"])
     gate = {nm: (mom_ok if (M["enabled"] and nm in M["apply_to"]) else True)
