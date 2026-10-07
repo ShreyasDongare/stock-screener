@@ -326,9 +326,6 @@ def analyse_m136(
     return {
         **base,
         "breakout": " / ".join(hits),
-        "ret1m": num(pct_from_bars(31), 2),
-        "ret3m": num(pct_from_bars(93), 2),
-        "ret6m": num(pct_from_bars(186), 2),
         "ema60": num(ema60[-1], 2),
         "tr_adr": num(adr, 2),
         "signal": "Close above prior high"
@@ -403,7 +400,6 @@ def analyse_m30(
 
     return {
         **base,
-        "ret3m": num(ret3m, 2),
         "ema75": num(ema75[-1], 2),
         "tr_adr": num(adr, 2),
         "signal": "3M gain > 30%",
