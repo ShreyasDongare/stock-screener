@@ -35,7 +35,6 @@ CFG = {
         "min_rs": 70,               # relative strength rank 1-99 among liquid stocks
     },
     "pullback": {"tight_pct": 2.0, "levels": ["EMA11", "EMA21", "SMA50"]},
-    "min_momentum_pct": 30,          # 1M, 3M and 6M returns must all be >= 30%
     "momentum": {                   # close now vs close N trading days ago
         "enabled": False,                       # off: set True to require the returns below
         "match": "any",                         # "any" = one of the three is enough, "all" = every one
@@ -102,15 +101,6 @@ def analyse(key, g, review_keys, recent_keys):
     mom = None
     if n > max(M["days"].values()):
         mom = {k: (c[i] / c[i - d] - 1) * 100 for k, d in M["days"].items()}
-    # Universal momentum filter: at least one of 1M / 3M / 6M must be >= 30%.
-    min_mom = CFG["min_momentum_pct"]
-    momentum_floor_ok = (
-        mom is not None
-        and any(mom[k] >= min_mom for k in ("1m", "3m", "6m"))
-    )
-    if not momentum_floor_ok:
-        return info, {}
-
     # Universal ADX filter: remove weak/choppy stocks with ADX < 20.
     # Wilder-style 14-period ADX.
     prev_c = np.roll(c, 1)
