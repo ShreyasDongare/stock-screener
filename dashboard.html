@@ -621,11 +621,11 @@ document.addEventListener("click",e=>{
 
 function wire(){
   let chartClickTimer=null;
-  const openDhanChart=(r)=>{
+  const openTradingView=(r)=>{
     if(!r || !r.symbol) return;
-    const suffix=r.exch==="BSE"?".BO":".NS";
-    const dhanSymbol=String(r.symbol)+suffix;
-    const url="https://tv.dhan.co/chart/?symbol="+encodeURIComponent(dhanSymbol);
+    const exchange=r.exch==="BSE"?"BSE":"NSE";
+    const tvSymbol=exchange+":"+String(r.symbol);
+    const url="https://www.tradingview.com/chart/?symbol="+encodeURIComponent(tvSymbol);
     window.open(url,"_blank","noopener,noreferrer");
   };
   document.addEventListener("click",e=>{
@@ -676,12 +676,12 @@ function wire(){
     clearTimeout(chartClickTimer);
     if(chartBtn){
       const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey);
-      openDhanChart(r);
+      openTradingView(r);
       return;
     }
     if(watchBtn){
       const r=chartRows().find(x=>x.key===watchBtn.dataset.watchKey);
-      openDhanChart(r);
+      openTradingView(r);
     }
   });
   document.addEventListener("change",e=>{
