@@ -349,6 +349,7 @@ def analyse_m136(
     ema60 = (
         pd.Series(c)
         .ewm(span=60, adjust=False)
+        .mean()
         .to_numpy()
     )
 
@@ -434,6 +435,7 @@ def analyse_m30(
     ema75 = (
         pd.Series(c)
         .ewm(span=75, adjust=False)
+        .mean()
         .to_numpy()
     )
 
