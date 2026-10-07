@@ -586,7 +586,13 @@ function wire(){
     const watchBtn=e.target.closest("[data-watch-key]");
     const tagBtn=e.target.closest("[data-tag-key]");
     if(tagBtn){ e.stopPropagation(); return; }
-    if(watchBtn){ const key=watchBtn.dataset.watchKey; const r=chartRows().find(x=>x.key===key); openChart(key,r); return; }
+    if(watchBtn){
+      const key=watchBtn.dataset.watchKey;
+      const r=chartRows().find(x=>x.key===key);
+      clearTimeout(chartClickTimer);
+      chartClickTimer=setTimeout(()=>openChart(key,r),220);
+      return;
+    }
     if(chartBtn){
       const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey);
       clearTimeout(chartClickTimer);
@@ -616,11 +622,19 @@ function wire(){
   });
   document.addEventListener("dblclick",e=>{
     const chartBtn=e.target.closest("[data-chart-key]");
-    if(!chartBtn || !D) return;
+    const watchBtn=e.target.closest("[data-watch-key]");
+    if(!D) return;
     e.preventDefault();
     clearTimeout(chartClickTimer);
-    const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey);
-    openDhanChart(r);
+    if(chartBtn){
+      const r=Object.values(D.scans||{}).flat().find(x=>x.key===chartBtn.dataset.chartKey);
+      openDhanChart(r);
+      return;
+    }
+    if(watchBtn){
+      const r=chartRows().find(x=>x.key===watchBtn.dataset.watchKey);
+      openDhanChart(r);
+    }
   });
   document.addEventListener("change",e=>{
     const id=e.target.id;
@@ -690,6 +704,20 @@ document.addEventListener("keydown",e=>{
   const active=CHART_ROW?.key;
   let idx=items.findIndex(x=>x.key===active);
   if(!items.length) return;
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="c"){
+    if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)) return;
+    const current=CHART_ROW;
+    if(!current?.symbol) return;
+    e.preventDefault();
+    navigator.clipboard?.writeText(String(current.symbol)).then(()=>{
+      const meta=$("chartMeta");
+      if(!meta) return;
+      const old=meta.textContent;
+      meta.textContent=String(current.symbol)+" · copied";
+      setTimeout(()=>{if($("chartMeta")?.textContent===String(current.symbol)+" · copied") $("chartMeta").textContent=old;},900);
+    }).catch(()=>{});
+    return;
+  }
   if(e.key==="ArrowDown" || e.key==="ArrowRight"){
     e.preventDefault(); idx=(idx+1+items.length)%items.length;
     const r=items[idx]; openChart(r.key,r); return;
