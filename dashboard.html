@@ -26,13 +26,14 @@ h1{font-size:25px;font-weight:600;margin:0;letter-spacing:-.45px}
 main{max-width:1240px;margin:0 auto;padding:22px 16px 52px}
 .stale{display:none;background:var(--accbg);border-left:4px solid var(--warn);padding:9px 12px;border-radius:4px;margin-bottom:12px}
 .section-kicker{display:flex;justify-content:space-between;align-items:center;margin:0 2px 11px;color:var(--mute);font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.8px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:15px}
-.tab{background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 98%,var(--acc)),var(--panel));border:1px solid var(--line);border-radius:14px;padding:15px 17px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s cubic-bezier(.2,.7,.2,1),border-color .28s ease,background .28s ease}
-.tab:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.08);border-color:color-mix(in srgb,var(--acc) 42%,var(--line))}
-.tab:active{transform:translateY(0)}
+.dashboard-grid{display:grid;grid-template-columns:235px minmax(0,1fr);gap:16px;align-items:start}
+.tabs{display:flex;flex-direction:column;gap:10px;margin:0}
+.tab{width:100%;min-height:92px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 98%,var(--acc)),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 17px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s cubic-bezier(.2,.7,.2,1),border-color .28s ease,background .28s ease}
+.tab:hover{transform:translateX(2px);box-shadow:0 12px 26px rgba(0,0,0,.08);border-color:color-mix(in srgb,var(--acc) 42%,var(--line))}
+.tab:active{transform:translateX(0)}
 .tab b{display:block;font:500 29px/1.1 var(--mono);letter-spacing:-.5px}.tab span{color:var(--mute);font-size:12.5px}
 .tab[aria-selected="true"]{border-color:color-mix(in srgb,var(--acc) 68%,var(--line));background:linear-gradient(180deg,var(--accbg),var(--panel));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 11%,transparent)}
-.tab[aria-selected="true"]::after{content:"";position:absolute;left:18px;right:18px;bottom:0;height:2px;background:var(--acc);border-radius:2px;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:auto;right:0;top:15px;bottom:15px;width:2px;background:var(--acc);border-radius:2px;transform-origin:center;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(15,30,45,.065);overflow:hidden;animation:smoothEnter .38s cubic-bezier(.2,.7,.2,1) both}
 .tools{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 95%,var(--bg))}
 .grp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -62,8 +63,9 @@ tbody tr{transition:background .2s ease,transform .2s ease}tbody tr:hover td{bac
 .empty{padding:34px;text-align:center;color:var(--mute);font-family:var(--sans)}
 .foot{padding:8px 12px;color:var(--mute);font-size:12px;border-top:1px solid var(--line)}
 button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-@media(max-width:1000px){.wrap{overflow-x:auto;scrollbar-width:thin}table{min-width:860px}}
-@media(max-width:620px){.tab b{font-size:20px}.tab span{font-size:11.5px}.tab{padding:11px 12px}.sp{margin-left:0}input[type=search]{width:100%}.section-kicker{font-size:9.5px}}
+@media(max-width:1000px){.dashboard-grid{grid-template-columns:205px minmax(0,1fr);gap:12px}.wrap{overflow-x:auto;scrollbar-width:thin}table{min-width:860px}}
+@media(max-width:720px){.dashboard-grid{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.tab{min-height:78px}.section-kicker{font-size:9.5px}}
+@media(max-width:420px){.tabs{grid-template-columns:1fr}.tab b{font-size:20px}.tab span{font-size:11.5px}.sp{margin-left:0}input[type=search]{width:100%}}
 </style>
 </head>
 <body>
@@ -72,8 +74,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 <main>
 <div class="stale" id="stale"></div>
 <div class="section-kicker"><span>Momentum Intelligence</span><span>Stage 2 · Pullback · Breakout / HTF · EP</span></div>
-<div class="tabs" id="tabs" role="tablist"></div>
-<section class="panel">
+<div class="dashboard-grid">
+  <aside class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></aside>
+  <section class="panel">
  <div class="tools">
   <div class="grp"><button class="chip" data-ex="ALL">All</button><button class="chip" data-ex="NSE">NSE</button><button class="chip" data-ex="BSE">BSE</button></div>
   <input type="search" id="q" placeholder="Search symbol  ( / )" aria-label="Search symbol">
@@ -85,7 +88,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
  <p class="desc" id="desc"></p>
  <div class="wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
  <div class="foot" id="foot"></div>
-</section>
+  </section>
+</div>
 </main>
 <script>
 const SCANS = {
