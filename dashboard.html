@@ -645,6 +645,49 @@ function ensureChartWatchActiveVisible(){
   else if(bottom > viewBottom) scroll.scrollTop=Math.max(0,bottom-scroll.clientHeight+8);
 }
 
+function renderChartWatchlistFallback(activeKey){
+  const el=$("chartWatchlist"); if(!el) return;
+  const tags=getTags();
+  let items=[];
+  if(CHART_WATCH_MODE==="colours"){
+    const seen=new Set();
+    Object.keys(SCANS).forEach(tab=>{
+      sourceRows(tab).forEach(r=>{
+        if(!r?.symbol) return;
+        const key=chartRowKey(r);
+        const color=tags[key];
+        if(color&&!seen.has(key)){seen.add(key);items.push({...r,__watchColor:color});}
+      });
+    });
+  }else{
+    const seen=new Set();
+    sourceRows(S.tab).forEach(r=>{
+      if(!r?.symbol) return;
+      const key=chartRowKey(r);
+      if(!seen.has(key)){seen.add(key);items.push(r);}
+    });
+  }
+  items.sort((a,b)=>String(a.symbol||"").localeCompare(String(b.symbol||"")));
+  CHART_WATCH_ITEMS=items;
+  CHART_WATCH_ACTIVE_KEY=activeKey||"";
+  const rows=items.map(r=>chartWatchRowHTML(r,CHART_WATCH_ACTIVE_KEY)).join("");
+  el.innerHTML='<div class="chart-watch-head">'+
+    '<div class="chart-watch-title">'+(CHART_WATCH_MODE==="colours"?"My Colour Watchlist":"Scanned Stocks")+'</div>'+
+    '<input id="chartWatchSearch" class="chart-watch-search" placeholder="Search symbol..." value="'+esc(CHART_WATCH_Q)+'">'+
+    '<div class="chart-watch-columns"><span>Stock</span><span style="text-align:right">Price (₹)</span><span style="text-align:right">Change %</span></div>'+
+    '</div>'+
+    '<div class="chart-watch-scroll" id="chartWatchScroll"><div class="chart-watch-items" id="chartWatchItems">'+rows+'</div></div>'+
+    '<div class="chart-watch-help">Click = EOD chart · Double-click = TradingView</div>';
+  const scroll=$("chartWatchScroll");
+  if(scroll){
+    scroll.scrollTop=Math.max(0,Number(CHART_WATCH_SCROLL_TOP)||0);
+    scroll.addEventListener("scroll",()=>{CHART_WATCH_SCROLL_TOP=scroll.scrollTop},{passive:true});
+  }
+  $("chartWatchSearch")?.addEventListener("input",e=>{
+    CHART_WATCH_Q=e.target.value;
+    renderChartWatchlistFallback(CHART_ROW?chartRowKey(CHART_ROW):activeKey);
+  });
+}
 function renderChartWatchlist(activeKey){
   const el=$("chartWatchlist"); if(!el) return;
   CHART_WATCH_ACTIVE_KEY=activeKey||"";
@@ -1544,7 +1587,12 @@ function openChart(key,row){
   CHART_WATCH_SCROLL_TOP=oldWatchlist ? oldWatchlist.scrollTop : null;
   $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"><div class="chart-cross-ohlc" id="chartCrossOhlc" aria-live="polite"></div></div>';
   $("chartModal").classList.add("open");
-  renderChartWatchlist(key);
+  try{
+    renderChartWatchlist(key);
+  }catch(err){
+    console.error("Watchlist render failed",err);
+    renderChartWatchlistFallback(key);
+  }
   const host=$("chartHost");
 
   const chart=LightweightCharts.createChart(host,{
@@ -1560,17 +1608,15 @@ function openChart(key,row){
   });
   LW=chart;
 
-  // Normalize all chart dates to UTC timestamps. Some chart-data builds contain
-  // date strings in slightly different forms; Lightweight Charts is stricter
-  // when series data is supplied, and one invalid time can leave the chart blank.
-  const chartTime=(value)=>{
+  // Keep chart dates as ISO business-day strings. Lightweight Charts v5 accepts
+  // YYYY-MM-DD directly and this avoids unnecessary timezone/timestamp conversion.
+  const chartDate=(value)=>{
     const s=String(value||"").slice(0,10);
-    const ms=Date.parse(s+"T00:00:00Z");
-    return Number.isFinite(ms) ? Math.floor(ms/1000) : null;
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
   };
   const candles=d.dates.map((time,i)=>({
-    time:chartTime(time),open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]
-  })).filter(x=>Number.isFinite(x.time)&&[x.open,x.high,x.low,x.close].every(Number.isFinite));
+    time:chartDate(time),open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]
+  })).filter(x=>x.time&&[x.open,x.high,x.low,x.close].every(Number.isFinite));
   const candle=chart.addSeries(LightweightCharts.CandlestickSeries,{
     upColor:ct.up,downColor:ct.down,borderUpColor:ct.up,borderDownColor:ct.down,wickUpColor:ct.up,wickDownColor:ct.down,
     priceLineVisible:false,lastValueVisible:true
@@ -1580,9 +1626,9 @@ function openChart(key,row){
   const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
   const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
   const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
-  ema11.setData(d.dates.map((time,i)=>({time:chartTime(time),value:+d.ema11[i]})).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value)));
-  ema21.setData(d.dates.map((time,i)=>({time:chartTime(time),value:+d.ema21[i]})).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value)));
-  sma50.setData(d.dates.map((time,i)=>({time:chartTime(time),value:+d.sma50[i]})).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value) && x.value>0));
+  ema11.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema11[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
+  ema21.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema21[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
+  sma50.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.sma50[i]})).filter(x=>x.time&&Number.isFinite(x.value) && x.value>0));
 
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
     priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
@@ -1590,8 +1636,8 @@ function openChart(key,row){
   });
   volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
   volume.setData(d.dates.map((time,i)=>({
-    time:chartTime(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
-  })).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value)));
+    time:chartDate(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
+  })).filter(x=>x.time&&Number.isFinite(x.value)));
 
   CHART_SERIES={candle,ema11,ema21,sma50,volume};
   bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume);
@@ -1601,8 +1647,8 @@ function openChart(key,row){
     const markerSeries=candle;
     const markers=[];
     if(row?.signal || SCANS[S.tab]){
-      const markerTime=chartTime(d.dates[last]);
-      if(Number.isFinite(markerTime)) markers.push({time:markerTime,position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.signal||SCANS[S.tab].t});
+      const markerTime=chartDate(d.dates[last]);
+      if(markerTime) markers.push({time:markerTime,position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.signal||SCANS[S.tab].t});
     }
     if(markers.length) markerSeries.setMarkers(markers);
   }catch(_){}
