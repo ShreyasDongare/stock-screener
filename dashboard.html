@@ -40,7 +40,7 @@ main{width:calc(100% - 40px);max-width:none;height:calc(100vh - 74px);margin:0 a
 .tab[aria-selected="true"]{border-color:color-mix(in srgb,var(--acc) 68%,var(--line));background:linear-gradient(180deg,var(--accbg),var(--panel));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 11%,transparent)}
 .watchlist-open{width:100%;margin-top:8px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.watchlist-open:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
 .watchlist-modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.watchlist-modal.open{display:flex}.watchlist-box{width:min(900px,94vw);height:min(760px,88vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 28px 100px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}.watchlist-head{display:flex;align-items:center;gap:10px;padding:15px 17px;border-bottom:1px solid var(--line)}.watchlist-title{font:600 16px var(--sans)}.watchlist-count{color:var(--mute);font:10px var(--mono)}.watchlist-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.watchlist-close:hover{color:var(--ink);border-color:var(--acc)}.watchlist-body{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:12px}.watchlist-section{border:1px solid var(--line);border-radius:12px;overflow:hidden}.watchlist-section-head{display:flex;align-items:center;gap:8px;padding:9px 11px;background:color-mix(in srgb,var(--panel) 92%,var(--bg));border-bottom:1px solid var(--line);font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.45px}.watchlist-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}.watchlist-dot.red{background:#D95353}.watchlist-dot.orange{background:#E6973D}.watchlist-dot.yellow{background:#E7B84B}.watchlist-dot.green{background:#45C98D}.watchlist-dot.blue{background:#58A6E6}.watchlist-dot.purple{background:#B17DE6}.watchlist-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;padding:10px}.watchlist-stock{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);cursor:pointer;text-align:left}.watchlist-stock:hover{border-color:var(--acc);background:var(--hover);transform:translateY(-1px)}.watchlist-stock-name{font:600 11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.watchlist-stock-name.red{color:#D95353}.watchlist-stock-name.orange{color:#E6973D}.watchlist-stock-name.yellow{color:#B58A16}.watchlist-stock-name.green{color:#45A97B}.watchlist-stock-name.blue{color:#58A6E6}.watchlist-stock-name.purple{color:#B17DE6}.watchlist-stock-exch{font:600 8px var(--mono);padding:2px 4px;border-radius:3px}.watchlist-stock-exch.nse{color:#2A78B8;background:rgba(42,120,184,.10)}.watchlist-stock-exch.bse{color:#D95353;background:rgba(217,83,83,.10)}.watchlist-empty{padding:28px;text-align:center;color:var(--mute);font:12px var(--sans)}.copy-all{width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.copy-all:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
-.tab[aria-selected="true"]::after{content:"";position:absolute;left:auto;right:0;top:10px;bottom:10px;width:2px;background:var(--acc);border-radius:2px;transform-origin:center;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:auto;right:0;top:10px;bottom:10px;width:2px;background:var(--acc);border-radius:2px;transform-origin:center;transition:transform .3s cubic-bezier(.2,.7,.2,1)}.tab-info{position:absolute;right:8px;top:8px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--panel) 92%,var(--bg));color:var(--mute);font:600 11px/1 var(--sans);cursor:pointer;z-index:3;transition:color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease}.tab-info:hover{color:var(--acc);border-color:var(--acc);background:var(--accbg);transform:scale(1.06)}.formula-popover{position:fixed;z-index:120;display:none;width:min(390px,calc(100vw - 28px));max-height:min(430px,calc(100vh - 28px));overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.28);padding:13px}.formula-popover.open{display:block;animation:smoothEnter .18s ease both}.formula-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.formula-title{font:600 13px var(--sans)}.formula-close{margin-left:auto;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--mute);cursor:pointer}.formula-close:hover{color:var(--ink);border-color:var(--acc)}.formula-label{margin:7px 0 5px;color:var(--mute);font:600 9px var(--mono);text-transform:uppercase;letter-spacing:.65px}.formula-body{font:11px/1.55 var(--mono);color:var(--ink);white-space:normal}.formula-line{padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:color-mix(in srgb,var(--panel) 94%,var(--bg));margin-bottom:5px}.formula-note{color:var(--mute);font:10px/1.45 var(--sans);margin-top:8px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(15,30,45,.065);overflow:hidden;animation:smoothEnter .38s cubic-bezier(.2,.7,.2,1) both;display:flex;flex-direction:column;min-height:0}
 .tools{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 95%,var(--bg))}
 .grp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -175,7 +175,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-ohlc b{color:#E8EEF5;font-weight:500}
 .chart-statsbar{display:flex;align-items:center;gap:7px;margin-left:auto;color:#8191A1;font:10px var(--mono);white-space:nowrap}
 .chart-stat-pill{padding:3px 7px;border:1px solid #293542;border-radius:5px;background:#111A22}
-@media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:none}}
+@media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:none}}.formula-popover{width:min(360px,calc(100vw - 20px));max-height:55vh}.tab-info{right:7px;top:7px;width:21px;height:21px}
 
 @media(max-width:720px){.chart-modal{padding:6px}.chart-box{width:100%;height:94vh;border-radius:12px}.chart-head{padding:9px 11px}.chart-meta{font-size:10px}.chart-controls .hint{display:none}.chart-legend{padding:6px 10px;gap:9px}}
 :root[data-theme="light"] .chart-modal{background:rgba(30,45,60,.28)}
@@ -259,6 +259,12 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
   </section>
 </div>
 </main>
+<div class="formula-popover" id="formulaPopover" role="dialog" aria-modal="false" aria-label="Scan formula">
+  <div class="formula-head"><div class="formula-title" id="formulaTitle">Scan Formula</div><button class="formula-close" id="formulaClose" type="button" aria-label="Close">✕</button></div>
+  <div class="formula-label">Formula</div>
+  <div class="formula-body" id="formulaBody"></div>
+  <div class="formula-note" id="formulaNote"></div>
+</div>
 <div class="watchlist-modal" id="watchlistModal" role="dialog" aria-modal="true" aria-label="Colour watchlist">
   <div class="watchlist-box">
     <div class="watchlist-head"><div class="watchlist-title">My Colour Watchlist</div><div class="watchlist-count" id="watchlistCount"></div><button class="watchlist-close" id="watchlistClose" aria-label="Close watchlist">✕</button></div>
@@ -791,11 +797,34 @@ function closeColourWatchlist(){
   $("watchlistModal")?.classList.remove("open");
 }
 
+function closeFormulaPopover(){ $("formulaPopover")?.classList.remove("open"); }
+function showFormulaPopover(tab,anchor){
+  const pop=$("formulaPopover");
+  if(!pop) return;
+  const title=SCANS[tab]?.t || tab;
+  const def=D?.config?.definitions?.[tab] || SCANS[tab]?.d || "Formula not available.";
+  $("formulaTitle").textContent=title;
+  const parts=String(def).split(/\s+AND\s+/i).map(x=>x.trim()).filter(Boolean);
+  $("formulaBody").innerHTML=parts.map(x=>'<div class="formula-line">'+esc(x)+'</div>').join("");
+  const commonTabs=new Set(["m136","m30","htf","high52w"]);
+  $("formulaNote").textContent=commonTabs.has(tab)
+    ? "This scan also uses the common filters shown in the dashboard description."
+    : "Independent scan: common momentum/ADX filters are not applied.";
+  pop.classList.add("open");
+  const r=anchor?.getBoundingClientRect?.();
+  const w=pop.offsetWidth, h=pop.offsetHeight, pad=10;
+  let left=(r?.right ?? window.innerWidth-pad)+10;
+  let top=(r?.top ?? pad);
+  if(left+w>window.innerWidth-pad) left=Math.max(pad,(r?.left ?? 0)-w-10);
+  if(top+h>window.innerHeight-pad) top=Math.max(pad,window.innerHeight-h-pad);
+  pop.style.left=left+"px";
+  pop.style.top=top+"px";
+}
 function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
   Object.keys(SCANS).forEach(k=>{});
-  $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<div class="tab" role="tab" tabindex="0" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span><span class="tab-copy" data-copy-tab="${k}" role="button" tabindex="0" aria-label="Copy ${count} stocks from ${SCANS[k].t}" title="Copy stocks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"></path></svg><span class="tab-copy-label">Copy</span></span></div>`}).join("");
+  $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<div class="tab" role="tab" tabindex="0" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span><span class="tab-copy" data-copy-tab="${k}" role="button" tabindex="0" aria-label="Copy ${count} stocks from ${SCANS[k].t}" title="Copy stocks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"></path></svg><span class="tab-copy-label">Copy</span></span><span class="tab-info" data-info-tab="${k}" role="button" tabindex="0" aria-label="Show ${SCANS[k].t} formula" title="Show formula">i</span></div>`}).join("");
   document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ex===S.ex));
   const filterHTML = "";  $("filters").innerHTML=filterHTML;
   $("q").value=S.q||"";
@@ -859,6 +888,12 @@ function wire(){
       }).catch(()=>{});
       return;
     }
+    const info=e.target.closest("[data-info-tab]");
+    if(info){
+      e.stopPropagation();
+      showFormulaPopover(info.dataset.infoTab,info);
+      return;
+    }
     const t=e.target.closest("[data-tab]"), x=e.target.closest("[data-ex]"), s=e.target.closest("[data-sort]"), l=e.target.closest("[data-lv]");
     if(t){S.tab=t.dataset.tab;S.st="";[S.key,S.dir]=SCANS[S.tab].sort;render();return}
     if(x){S.ex=x.dataset.ex;render();return}
@@ -882,6 +917,13 @@ function wire(){
     }
   });
   document.addEventListener("keydown",e=>{
+    const info=e.target.closest?.("[data-info-tab]");
+    if(info && (e.key==="Enter" || e.key===" ")){
+      e.preventDefault();
+      e.stopPropagation();
+      showFormulaPopover(info.dataset.infoTab,info);
+      return;
+    }
     const copyTab=e.target.closest?.("[data-copy-tab]");
     if(copyTab && (e.key==="Enter" || e.key===" ")){
       e.preventDefault();
@@ -935,7 +977,7 @@ $("chart120").addEventListener("click",()=>setChartWindow(120));
 $("chart60").addEventListener("click",()=>setChartWindow(60));
 $("chart30").addEventListener("click",()=>setChartWindow(30));
 
-$("watchlistModal")?.addEventListener("click",e=>{if(e.target.id==="watchlistModal") closeColourWatchlist()});
+$("watchlistModal")?.addEventListener("click",e=>{if(e.target.id==="watchlistModal") closeColourWatchlist()});\n$("formulaClose")?.addEventListener("click",closeFormulaPopover);\ndocument.addEventListener("click",e=>{if(!e.target.closest(".formula-popover") && !e.target.closest("[data-info-tab]")) closeFormulaPopover();});\nwindow.addEventListener("resize",closeFormulaPopover);
 $("chartModal").addEventListener("click",e=>{if(e.target.id==="chartModal") closeChart()});
 function closeTagPalette(){document.querySelector(".chart-tag-palette")?.remove();}
 function openTagPalette(key,x,y){
