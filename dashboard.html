@@ -1372,8 +1372,11 @@ function renderChartWatchlist(activeKey){
   CHART_WATCH_TAGS=getTags();
 
   if(CHART_WATCH_MODE==="colours"){
-    // Preserve each colour group's current open/closed state before rebuilding.
-    // This prevents removing/re-tagging one stock from reopening the other groups.
+    // Preserve both group open/closed state and the user's scroll position.
+    // openChart() replaces the watchlist DOM when another stock is selected;
+    // without restoring scrollTop, the colour watchlist jumps back to the top.
+    const oldScroll=$("chartWatchScroll");
+    const previousScrollTop=oldScroll ? oldScroll.scrollTop : 0;
     const openState={};
     el.querySelectorAll("wa-details[data-colour-group]").forEach(d=>{
       openState[d.dataset.colourGroup]=d.open;
@@ -1423,6 +1426,18 @@ function renderChartWatchlist(activeKey){
       renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):"");
       requestAnimationFrame(()=>{const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
     });
+
+    // Restore scroll after the new colour-watchlist DOM has been painted.
+    const scroll=$("chartWatchScroll");
+    if(scroll){
+      scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+      requestAnimationFrame(()=>{
+        scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+        requestAnimationFrame(()=>{
+          scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+        });
+      });
+    }
     return;
   }
   // Normal scan watchlist keeps the existing virtual-scroller behaviour.
