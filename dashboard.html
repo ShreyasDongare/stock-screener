@@ -1595,8 +1595,11 @@ function openChart(key,row){
   }
   const host=$("chartHost");
 
+  // The modal starts hidden (display:none). Create the chart only after the
+  // modal is open and let Lightweight Charts observe the host size. This avoids
+  // the zero-size canvas that can occur when a flex child is measured too early.
   const chart=LightweightCharts.createChart(host,{
-    width:host.clientWidth,height:host.clientHeight,
+    autoSize:true,
     layout:{background:{type:LightweightCharts.ColorType.Solid,color:ct.bg},textColor:ct.text,fontFamily:"IBM Plex Mono, monospace",fontSize:11},
     grid:{vertLines:{color:ct.grid},horzLines:{color:ct.grid}},
     rightPriceScale:{borderColor:ct.border,scaleMargins:{top:.06,bottom:.24},minimumWidth:74},
@@ -1650,18 +1653,33 @@ function openChart(key,row){
       const markerTime=chartDate(d.dates[last]);
       if(markerTime) markers.push({time:markerTime,position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.signal||SCANS[S.tab].t});
     }
-    if(markers.length) markerSeries.setMarkers(markers);
+    if(markers.length && typeof LightweightCharts.createSeriesMarkers==="function"){
+      LightweightCharts.createSeriesMarkers(markerSeries,markers);
+    }
   }catch(_){}
 
 
 
-  const resize=()=>{if(LW)LW.applyOptions({width:host.clientWidth,height:host.clientHeight});};
-  const ro=new ResizeObserver(()=>{resize();});ro.observe(host);
+  const resize=()=>{
+    if(!LW) return;
+    const w=Math.max(1,host.clientWidth);
+    const h=Math.max(1,host.clientHeight);
+    try{LW.resize(w,h,true);}catch(_){try{LW.applyOptions({width:w,height:h});}catch(__){}}
+  };
+  const ro=new ResizeObserver(()=>{resize();});
+  ro.observe(host);
   // Default view: latest 120 trading days, with 12-candle right breathing room.
-  // Vertical chart margins are controlled by the price scale: 18% top / 12% bottom.
   chart.applyOptions({rightPriceScale:{scaleMargins:{top:.18,bottom:.12}}});
-  chart.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+12});
-  requestAnimationFrame(resize);
+  requestAnimationFrame(()=>{
+    resize();
+    try{
+      const from=Math.max(0,n-120);
+      chart.timeScale().setVisibleLogicalRange({from,to:n+12});
+    }catch(_){
+      try{chart.timeScale().fitContent();}catch(__){}
+    }
+    requestAnimationFrame(resize);
+  });
 }
 const WATCHLIST_COLORS=[["red","Red"],["orange","Orange"],["yellow","Yellow"],["green","Green"],["blue","Blue"],["purple","Purple"]];
 
