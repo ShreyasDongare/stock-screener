@@ -1333,16 +1333,12 @@ function renderMarketBreadth(){
   const pairCells=(up,down)=>{
     const u=Number(up), d=Number(down);
     if(!Number.isFinite(u) || !Number.isFinite(d) || u===d){
-      return [
-        '<td class="breadth-neutral">'+(up==null?"—":f2(up))+'</td>',
-        '<td class="breadth-neutral">'+(down==null?"—":f2(down))+'</td>'
-      ];
+      return '<td class="breadth-neutral">'+(up==null?"—":f2(up))+'</td>'+
+             '<td class="breadth-neutral">'+(down==null?"—":f2(down))+'</td>';
     }
     const cls=u>d?"breadth-positive":"breadth-negative";
-    return [
-      '<td class="'+cls+'">'+f2(up)+'</td>',
-      '<td class="'+cls+'">'+f2(down)+'</td>'
-    ];
+    return '<td class="'+cls+'">'+f2(up)+'</td>'+
+           '<td class="'+cls+'">'+f2(down)+'</td>';
   };
   const fiftyUpCell=v=>{
     if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
@@ -1359,12 +1355,12 @@ function renderMarketBreadth(){
 
   body.innerHTML=data.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
-      ...pairCells(r.up4,r.down4),
+      pairCells(r.up4,r.down4)+
       plainCell(r.ratio5)+plainCell(r.ratio10)+
-      ...pairCells(r.up25_q,r.down25_q),
-      ...pairCells(r.up25_m,r.down25_m),
+      pairCells(r.up25_q,r.down25_q)+
+      pairCells(r.up25_m,r.down25_m)+
       fiftyUpCell(r.up50_m)+fiftyDownCell(r.down50_m)+
-      ...pairCells(r.up13_34,r.down13_34),
+      pairCells(r.up13_34,r.down13_34)+
       plainCell(r.universe)+
       '</tr>';
   }).join("") || '<tr><td colspan="14" class="empty">No market breadth data available.</td></tr>';
