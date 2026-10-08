@@ -88,11 +88,10 @@ CFG = {
     "ep": {
         "name": "Episodic Pivot",
         "enabled": True,
-        "lookback_days": 3,
+        "lookback_days": 1,
         "min_gap_pct": 4.0,
         "max_gap_pct": 40.0,
         "min_vol_ratio": 3.0,
-        "min_close_pos": 0.60,
         "max_prior_3m_pct": 40.0,
         "prior_days": 63,
     },
@@ -748,24 +747,16 @@ def analyse_one_month(
 
 
 def analyse_ep(
-    key,
-    g,
-    c,
-    h,
-    l,
-    v,
-    tr,
-    base,
+    key, g, c, h, l, v, tr, base,
 ):
-    """
-    Episodic Pivot based on the earlier scanner logic.
+    """Fresh Episodic Pivot shortlist using only today's session.
 
-    Checks today and the previous two sessions for:
+    Conditions:
       - gap-up open of 4% to 40% versus previous close
-      - volume >= 3x prior 20-session average
+      - today's volume >= 3x the previous 20-session average
       - prior 3-month gain <= 40%
 
-    This is a loose shortlist filter; news and chart context are checked manually.
+    No close-position filter and no multi-day lookback.
     """
     cfg = CFG["ep"]
 
@@ -773,66 +764,46 @@ def analyse_ep(
         return None
 
     n = len(g)
-    lookback = int(cfg["lookback_days"])
-
-    if n < max(64, lookback + 1):
+    if n < 64:
         return None
 
+    k = n - 1
     opens = g["open"].to_numpy(float)
+    avg_v = float(pd.Series(v[k - 20:k]).mean())
+    prev_close = c[k - 1]
 
-    for k in range(n - 1, max(-1, n - lookback - 1), -1):
-        if k < 64:
-            break
+    if not np.isfinite(avg_v) or avg_v <= 0:
+        return None
+    if not np.isfinite(prev_close) or prev_close == 0:
+        return None
 
-        avg_v = float(pd.Series(v[k - 20:k]).mean())
-        prev_close = c[k - 1]
+    gap = (opens[k] / prev_close - 1) * 100
+    if not (np.isfinite(gap) and cfg["min_gap_pct"] <= gap <= cfg["max_gap_pct"]):
+        return None
 
-        if not np.isfinite(avg_v) or avg_v <= 0:
-            continue
+    vol_ratio = v[k] / avg_v
+    old_idx = k - int(cfg["prior_days"])
+    if old_idx < 0 or not np.isfinite(c[old_idx]) or c[old_idx] == 0:
+        return None
 
-        if not np.isfinite(prev_close) or prev_close == 0:
-            continue
+    prior_3m = (c[k - 1] / c[old_idx] - 1) * 100
+    if not (
+        np.isfinite(vol_ratio)
+        and vol_ratio >= cfg["min_vol_ratio"]
+        and np.isfinite(prior_3m)
+        and prior_3m <= cfg["max_prior_3m_pct"]
+    ):
+        return None
 
-        gap = (opens[k] / prev_close - 1) * 100
-
-        if not (
-            np.isfinite(gap)
-            and cfg["min_gap_pct"] <= gap <= cfg["max_gap_pct"]
-        ):
-            continue
-
-        vol_ratio = v[k] / avg_v
-
-        old_idx = k - int(cfg["prior_days"])
-        if old_idx < 0 or not np.isfinite(c[old_idx]) or c[old_idx] == 0:
-            continue
-
-        prior_3m = (c[k - 1] / c[old_idx] - 1) * 100
-
-        if not (
-            np.isfinite(vol_ratio)
-            and vol_ratio >= cfg["min_vol_ratio"]
-            and np.isfinite(prior_3m)
-            and prior_3m <= cfg["max_prior_3m_pct"]
-        ):
-            continue
-
-        days_ago = (n - 1) - k
-
-        return {
-            **base,
-            "state": "Today" if days_ago == 0 else f"{days_ago}d ago",
-            "gap": num(gap, 1),
-            "vol_ratio": num(vol_ratio, 1),
-            "prior_3m": num(prior_3m, 0),
-            "days_ago": int(days_ago),
-            "signal": (
-                "Gap-up on heavy volume: EP shortlist"
-            ),
-        }
-
-    return None
-
+    return {
+        **base,
+        "state": "Today",
+        "gap": num(gap, 1),
+        "vol_ratio": num(vol_ratio, 1),
+        "prior_3m": num(prior_3m, 0),
+        "days_ago": 0,
+        "signal": "Fresh gap-up on heavy volume: EP shortlist",
+    }
 
 def analyse_high52w(
     key,
@@ -1276,7 +1247,6 @@ def main():
 
     hits["ep"].sort(
         key=lambda r: (
-            int(r.get("days_ago", 999) or 999),
             -float(r.get("vol_ratio", 0) or 0),
         )
     )
@@ -1348,11 +1318,9 @@ def main():
                 "Close <= previous 252-day max High"
             ),
             "ep": (
-                "Check today and previous 2 sessions for an Open vs previous close "
-                "gap of 8%-40% AND volume >= 3x prior 20-session average AND "
-                "close in upper 40% of the day's range AND prior 3-month gain <= 40% "
-                "AND latest close >= EP-day open. Entry = highest high from EP day "
-                "through today; stop = EP-day low."
+                "Check today's Open vs previous close for a 4%-40% gap AND "
+                "today's volume >= 3x the previous 20-session average AND "
+                "prior 3-month gain <= 40%."
             ),
             "volume": (
                 "NSE only AND Close >= ₹30 AND daily change >= 3% AND "
