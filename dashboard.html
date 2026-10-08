@@ -39,7 +39,7 @@ main{width:calc(100% - 40px);max-width:none;height:calc(100vh - 74px);margin:0 a
 .tab b{display:block;font:500 22px/1.05 var(--mono);letter-spacing:-.4px}.tab span{color:var(--mute);font-size:11.5px}
 .tab[aria-selected="true"]{border-color:color-mix(in srgb,var(--acc) 68%,var(--line));background:linear-gradient(180deg,var(--accbg),var(--panel));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 11%,transparent)}
 .watchlist-open{width:100%;margin-top:8px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.watchlist-open:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
-.watchlist-modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.watchlist-modal.open{display:flex}.watchlist-box{width:min(900px,94vw);height:min(760px,88vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 28px 100px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}.watchlist-head{display:flex;align-items:center;gap:10px;padding:15px 17px;border-bottom:1px solid var(--line)}.watchlist-title{font:600 16px var(--sans)}.watchlist-count{color:var(--mute);font:10px var(--mono)}.watchlist-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.watchlist-close:hover{color:var(--ink);border-color:var(--acc)}.watchlist-body{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:12px}.watchlist-section{border:1px solid var(--line);border-radius:12px;overflow:hidden}.watchlist-section-head{display:flex;align-items:center;gap:8px;padding:9px 11px;background:color-mix(in srgb,var(--panel) 92%,var(--bg));border-bottom:1px solid var(--line);font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.45px}.watchlist-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}.watchlist-dot.red{background:#D95353}.watchlist-dot.orange{background:#E6973D}.watchlist-dot.yellow{background:#E7B84B}.watchlist-dot.green{background:#45C98D}.watchlist-dot.blue{background:#58A6E6}.watchlist-dot.purple{background:#B17DE6}.watchlist-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;padding:10px}.watchlist-stock{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);cursor:pointer;text-align:left}.watchlist-stock:hover{border-color:var(--acc);background:var(--hover);transform:translateY(-1px)}.watchlist-stock-name{font:600 11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.watchlist-stock-name.red{color:#D95353}.watchlist-stock-name.orange{color:#E6973D}.watchlist-stock-name.yellow{color:#B58A16}.watchlist-stock-name.green{color:#45A97B}.watchlist-stock-name.blue{color:#58A6E6}.watchlist-stock-name.purple{color:#B17DE6}.watchlist-stock-exch{font:600 8px var(--mono);padding:2px 4px;border-radius:3px}.watchlist-stock-exch.nse{color:#2A78B8;background:rgba(42,120,184,.10)}.watchlist-stock-exch.bse{color:#D95353;background:rgba(217,83,83,.10)}.watchlist-empty{padding:28px;text-align:center;color:var(--mute);font:12px var(--sans)}.copy-all{width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.copy-all:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
+.watchlist-modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.watchlist-modal.open{display:flex}.watchlist-box{width:min(900px,94vw);height:min(760px,88vh);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 28px 100px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}.watchlist-head{display:flex;align-items:center;gap:10px;padding:15px 17px;border-bottom:1px solid var(--line)}.watchlist-title{font:600 16px var(--sans)}.watchlist-count{color:var(--mute);font:10px var(--mono)}.watchlist-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.watchlist-close:hover{color:var(--ink);border-color:var(--acc)}.watchlist-body{padding:15px;overflow:auto;display:flex;flex-direction:column;gap:12px}.watchlist-section{border:1px solid var(--line);border-radius:12px;overflow:hidden}.watchlist-section-head{display:flex;align-items:center;gap:8px;padding:9px 11px;background:color-mix(in srgb,var(--panel) 92%,var(--bg));border-bottom:1px solid var(--line);font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.45px}.watchlist-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}.watchlist-dot.red{background:#D95353}.watchlist-dot.orange{background:#E6973D}.watchlist-dot.yellow{background:#E7B84B}.watchlist-dot.green{background:#45C98D}.watchlist-dot.blue{background:#58A6E6}.watchlist-dot.purple{background:#B17DE6}.watchlist-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;padding:10px}.watchlist-stock{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);cursor:pointer;text-align:left}.watchlist-stock:hover{border-color:var(--acc);background:var(--hover);transform:translateY(-1px)}.watchlist-stock-main{min-width:0;display:flex;flex-direction:column;gap:3px}.watchlist-stock-name{font:600 11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.watchlist-stock-scans{color:var(--mute);font:9px/1.25 var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.watchlist-stock-name.red{color:#D95353}.watchlist-stock-name.orange{color:#E6973D}.watchlist-stock-name.yellow{color:#B58A16}.watchlist-stock-name.green{color:#45A97B}.watchlist-stock-name.blue{color:#58A6E6}.watchlist-stock-name.purple{color:#B17DE6}.watchlist-stock-exch{font:600 8px var(--mono);padding:2px 4px;border-radius:3px}.watchlist-stock-exch.nse{color:#2A78B8;background:rgba(42,120,184,.10)}.watchlist-stock-exch.bse{color:#D95353;background:rgba(217,83,83,.10)}.watchlist-empty{padding:28px;text-align:center;color:var(--mute);font:12px var(--sans)}.copy-all{width:100%;margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.2s}.copy-all:hover{border-color:var(--acc);background:var(--accbg);transform:translateY(-1px)}
 .tab[aria-selected="true"]::after{content:"";position:absolute;left:auto;right:0;top:10px;bottom:10px;width:2px;background:var(--acc);border-radius:2px;transform-origin:center;transition:transform .3s cubic-bezier(.2,.7,.2,1)}.tab-info{position:absolute;right:9px;top:36px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--panel) 92%,var(--bg));color:var(--mute);font:600 11px/1 var(--sans);cursor:pointer;z-index:3;transition:color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease}.tab-info:hover{color:var(--acc);border-color:var(--acc);background:var(--accbg);transform:scale(1.06)}.formula-popover{position:fixed;z-index:120;display:none;width:min(390px,calc(100vw - 28px));max-height:min(430px,calc(100vh - 28px));overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.28);padding:13px}.formula-popover.open{display:block;animation:smoothEnter .18s ease both}.formula-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.formula-title{font:600 13px var(--sans)}.formula-close{margin-left:auto;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--mute);cursor:pointer}.formula-close:hover{color:var(--ink);border-color:var(--acc)}.formula-label{margin:7px 0 5px;color:var(--mute);font:600 9px var(--mono);text-transform:uppercase;letter-spacing:.65px}.formula-body{font:11px/1.55 var(--mono);color:var(--ink);white-space:normal}.formula-line{padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:color-mix(in srgb,var(--panel) 94%,var(--bg));margin-bottom:5px}.formula-note{color:var(--mute);font:10px/1.45 var(--sans);margin-top:8px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(15,30,45,.065);overflow:hidden;animation:smoothEnter .38s cubic-bezier(.2,.7,.2,1) both;display:flex;flex-direction:column;min-height:0}
 .tools{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 95%,var(--bg))}
@@ -777,24 +777,48 @@ function renderColourWatchlist(){
   if(!body) return;
   const tags=getTags();
   CHART_WATCH_TAGS=tags;
+
+  // My Watchlist is a global colour watchlist: include tagged stocks from
+  // every scan, not only the currently selected scan.
   const byColor={};
+  const stockMap=new Map();
   WATCHLIST_COLORS.forEach(([color])=>byColor[color]=[]);
-  chartRows().forEach(r=>{
-    const key=chartRowKey(r), color=tags[key];
-    if(byColor[color]) byColor[color].push(r);
+
+  Object.keys(SCANS).forEach(tab=>{
+    sourceRows(tab).forEach(r=>{
+      if(!r || !r.symbol) return;
+      const key=chartRowKey(r), color=tags[key];
+      if(!byColor[color]) return;
+      if(!stockMap.has(key)){
+        stockMap.set(key,{row:r,scans:[]});
+      }
+      const item=stockMap.get(key);
+      const scanName=SCANS[tab]?.t || tab;
+      if(!item.scans.includes(scanName)) item.scans.push(scanName);
+    });
   });
+
+  stockMap.forEach(item=>{
+    const color=tags[chartRowKey(item.row)];
+    if(byColor[color]) byColor[color].push(item);
+  });
+
   const total=Object.values(byColor).reduce((n,a)=>n+a.length,0);
   if(countEl) countEl.textContent=total+" tagged stock"+(total===1?"":"s");
+
   if(!total){
-    body.innerHTML='<div class="watchlist-empty">No coloured stocks yet. Right-click a stock in the chart watchlist and choose a colour.</div>';
+    body.innerHTML='<div class="watchlist-empty">No coloured stocks yet. Right-click a stock in any scan\'s chart watchlist and choose a colour.</div>';
     return;
   }
+
   body.innerHTML=WATCHLIST_COLORS.filter(([color])=>byColor[color].length).map(([color,label])=>{
-    const items=byColor[color].sort((a,b)=>String(a.symbol).localeCompare(String(b.symbol)));
+    const items=byColor[color].sort((a,b)=>String(a.row.symbol).localeCompare(String(b.row.symbol)));
     return '<section class="watchlist-section"><div class="watchlist-section-head"><span class="watchlist-dot '+color+'"></span><span>'+label+'</span><span class="watchlist-count">'+items.length+'</span></div><div class="watchlist-items">'+
-      items.map(r=>{
+      items.map(item=>{
+        const r=item.row;
         const key=chartRowKey(r), ex=String(r.exch||"NSE").toUpperCase(), cls=ex==="BSE"?"bse":"nse";
-        return '<button class="watchlist-stock" data-colour-watch-key="'+esc(key)+'"><span class="watchlist-stock-name '+color+'">'+esc(r.symbol)+'</span><span class="watchlist-stock-exch '+cls+'">'+esc(ex)+'</span></button>';
+        const scans=esc(item.scans.join(" · "));
+        return '<button class="watchlist-stock" data-colour-watch-key="'+esc(key)+'"><span class="watchlist-stock-main"><span class="watchlist-stock-name '+color+'">'+esc(r.symbol)+'</span><span class="watchlist-stock-scans">'+scans+'</span></span><span class="watchlist-stock-exch '+cls+'">'+esc(ex)+'</span></button>';
       }).join("")+
       '</div></section>';
   }).join("");
@@ -870,6 +894,21 @@ function wire(){
     const chartBtn=e.target.closest("[data-chart-key]");
     const watchSort=e.target.closest("[data-watch-sort]");
     if(watchSort){ const key=watchSort.dataset.watchSort; if(CHART_WATCH_SORT===key) CHART_WATCH_SORT_DIR*=-1; else { CHART_WATCH_SORT=key; CHART_WATCH_SORT_DIR=(key==="symbol"?1:-1); } renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):""); return; }
+    const colourWatchBtn=e.target.closest("[data-colour-watch-key]");
+    if(colourWatchBtn){
+      const key=colourWatchBtn.dataset.colourWatchKey;
+      let row=null;
+      for(const tab of Object.keys(SCANS)){
+        row=sourceRows(tab).find(x=>chartRowKey(x)===key);
+        if(row) break;
+      }
+      if(row){
+        closeColourWatchlist();
+        clearTimeout(chartClickTimer);
+        openChart(key,row);
+      }
+      return;
+    }
     const watchBtn=e.target.closest("[data-watch-key]");
     const tagBtn=e.target.closest("[data-tag-key]");
     if(tagBtn){ e.stopPropagation(); return; }
