@@ -319,16 +319,10 @@ const SCANS = {
     sort: ["symbol", 1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["volume","Volume"],["avg_volume","Avg Vol"],["rvol","RVOL"],["spark","40 days"]]
   },
-  ep: {
-    t: "Episodic Pivot",
-    d: "Common filters plus an EP event in the last 3 sessions.",
-    sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["state","EP Day","l"],["gap","Gap %"],["vol_ratio","Vol x"],["prior_3m","Prior 3M %"],["risk","Risk %"],["spark","40 days"]]
-  },
   one_month: {
     t: "1 Month High",
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · New 1-month high.",
-    sort: ["close", -1],
+    sort: ["symbol", 1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["avg_volume","Avg Vol"],["one_month_high","Prior 1M High"],["spark","40 days"]]
   },
   one_month_perf: {
@@ -342,7 +336,13 @@ const SCANS = {
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · Minimum 30% gain over the last 3 months (63 trading sessions).",
     sort: ["symbol", 1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret3m_perf","3M Gain %"],["avg_volume","Avg Vol"],["spark","40 days"]]
-  }
+  },
+  ep: {
+    t: "Episodic Pivot",
+    d: "Common filters plus an EP event in the last 3 sessions.",
+    sort: ["symbol", 1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["state","EP Day","l"],["gap","Gap %"],["vol_ratio","Vol x"],["prior_3m","Prior 3M %"],["risk","Risk %"],["spark","40 days"]]
+  },
 }
 const DEFAULT_STATE = { tab: "m136", ex: "ALL", q: "", key: "symbol", dir: 1 };
 let S = {...DEFAULT_STATE};
@@ -989,6 +989,9 @@ $("chart60").addEventListener("click",()=>setChartWindow(60));
 $("chart30").addEventListener("click",()=>setChartWindow(30));
 
 $("watchlistModal")?.addEventListener("click",e=>{if(e.target.id==="watchlistModal") closeColourWatchlist()});
+$("watchlistOpen")?.addEventListener("click",()=>openColourWatchlist());
+$("watchlistClose")?.addEventListener("click",closeColourWatchlist);
+
 $("formulaClose")?.addEventListener("click",closeFormulaPopover);
 document.addEventListener("click",e=>{if(!e.target.closest(".formula-popover") && !e.target.closest("[data-info-tab]")) closeFormulaPopover();});
 window.addEventListener("resize",closeFormulaPopover);
