@@ -312,7 +312,13 @@ const SCANS = {
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · New 1-month high.",
     sort: ["close", -1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["avg_volume","Avg Vol"],["one_month_high","Prior 1M High"],["spark","40 days"]]
-  },,
+  },
+  one_month_perf: {
+    t: "1-Month Performance",
+    d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · Minimum 30% gain over the last 1 month (21 trading sessions).",
+    sort: ["ret1m_perf", -1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m_perf","1M Gain %"],["avg_volume","Avg Vol"],["spark","40 days"]]
+  },
   three_month: {
     t: "3-Month Performance",
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · Minimum 30% gain over the last 3 months (63 trading sessions).",
@@ -394,6 +400,7 @@ const CELL = {
   rvol:r=>`<td>${f2(r.rvol)}x</td>`,
   one_month_high:r=>`<td>${f2(r.one_month_high)}</td>`,
   ret3m_perf:r=>heat(r.ret3m_perf),
+  ret1m_perf:r=>heat(r.ret1m_perf),
   spark:r=>`<td>${spark(r.spark,Number(r.chg)>=0)}</td>`
 };
 
