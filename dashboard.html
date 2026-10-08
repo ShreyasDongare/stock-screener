@@ -522,6 +522,8 @@ let CHART_WATCH_ACTIVE_KEY="";
 let CHART_WATCH_TAGS={};
 let CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
 let CHART_WATCH_MODE="scan";
+let CHART_WATCH_COLOUR_OPEN={};
+let CHART_WATCH_COLOUR_SCROLL_TOP=0;
 
 function chartRowKey(r){
   return r?.key||((String(r?.exch||"NSE").toUpperCase())+":"+String(r?.symbol||""));
@@ -1372,14 +1374,12 @@ function renderChartWatchlist(activeKey){
   CHART_WATCH_TAGS=getTags();
 
   if(CHART_WATCH_MODE==="colours"){
-    // Preserve both group open/closed state and the user's scroll position.
-    // openChart() replaces the watchlist DOM when another stock is selected;
-    // without restoring scrollTop, the colour watchlist jumps back to the top.
+    // Keep colour-group state outside the DOM. openChart() rebuilds the
+    // chart body, so DOM-only state is lost when another stock is selected.
     const oldScroll=$("chartWatchScroll");
-    const previousScrollTop=oldScroll ? oldScroll.scrollTop : 0;
-    const openState={};
+    if(oldScroll) CHART_WATCH_COLOUR_SCROLL_TOP=oldScroll.scrollTop;
     el.querySelectorAll("wa-details[data-colour-group]").forEach(d=>{
-      openState[d.dataset.colourGroup]=d.open;
+      CHART_WATCH_COLOUR_OPEN[d.dataset.colourGroup]=!!d.open;
     });
 
     const q=CHART_WATCH_Q.trim().toUpperCase();
@@ -1409,7 +1409,7 @@ function renderChartWatchlist(activeKey){
         '<div class="colour-watch-groups">'+
           WATCHLIST_COLORS.filter(([color])=>groups[color].items.length).map(([color,label])=>{
             const items=groups[color].items.sort((a,b)=>String(a.symbol).localeCompare(String(b.symbol)));
-            const isOpen=openState[color]===undefined ? true : openState[color];
+            const isOpen=CHART_WATCH_COLOUR_OPEN[color]===undefined ? true : CHART_WATCH_COLOUR_OPEN[color];
             const openAttr=isOpen ? ' open' : '';
             const summary='<span class="colour-watch-summary '+color+'" slot="summary"><span class="cw-dot"></span><span class="cw-name">'+label+' Tag</span><span class="cw-count">'+items.length+'</span></span>';
             return '<wa-details class="colour-watch-details '+color+'" data-colour-group="'+color+'"'+openAttr+'>'+summary+
@@ -1427,17 +1427,25 @@ function renderChartWatchlist(activeKey){
       requestAnimationFrame(()=>{const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
     });
 
-    // Restore scroll after the new colour-watchlist DOM has been painted.
     const scroll=$("chartWatchScroll");
     if(scroll){
-      scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+      scroll.scrollTop=Math.max(0,Number(CHART_WATCH_COLOUR_SCROLL_TOP)||0);
+      scroll.addEventListener("scroll",()=>{
+        CHART_WATCH_COLOUR_SCROLL_TOP=scroll.scrollTop;
+      },{passive:true});
+      // Web Components can finish applying <wa-details open> one frame later.
       requestAnimationFrame(()=>{
-        scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+        scroll.scrollTop=Math.max(0,Number(CHART_WATCH_COLOUR_SCROLL_TOP)||0);
         requestAnimationFrame(()=>{
-          scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+          scroll.scrollTop=Math.max(0,Number(CHART_WATCH_COLOUR_SCROLL_TOP)||0);
         });
       });
     }
+    el.querySelectorAll("wa-details[data-colour-group]").forEach(d=>{
+      d.addEventListener("toggle",()=>{
+        CHART_WATCH_COLOUR_OPEN[d.dataset.colourGroup]=!!d.open;
+      });
+    });
     return;
   }
   // Normal scan watchlist keeps the existing virtual-scroller behaviour.
