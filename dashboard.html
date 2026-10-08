@@ -30,8 +30,8 @@ main{width:calc(100% - 40px);max-width:none;height:calc(100vh - 86px);margin:0 a
 .section-kicker{display:flex;justify-content:space-between;align-items:center;margin:0 2px 11px;color:var(--mute);font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.8px}
 .dashboard-grid{display:grid;grid-template-columns:225px minmax(0,1fr);gap:16px;align-items:stretch;min-height:0;flex:1;overflow:hidden}
 .tabs{display:flex;flex-direction:column;gap:7px;margin:0;position:static;align-self:stretch;height:auto;min-height:0}
-.tab{width:100%;min-height:68px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 98%,var(--acc)),var(--panel));border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s cubic-bezier(.2,.7,.2,1),border-color .28s ease,background .28s ease}
-.tab:hover{transform:translateX(2px);box-shadow:0 12px 26px rgba(0,0,0,.08);border-color:color-mix(in srgb,var(--acc) 42%,var(--line))}
+.tab{width:100%;min-height:68px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 98%,var(--acc)),var(--panel));border:1px solid var(--line);border-radius:12px;padding:10px 40px 10px 12px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s cubic-bezier(.2,.7,.2,1),border-color .28s ease,background .28s ease}
+.tab-copy{position:absolute;right:9px;top:9px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:6px;color:var(--mute);background:transparent;cursor:pointer;opacity:.82;transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}.tab-copy:hover{background:var(--accbg);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 30%,transparent);transform:scale(1.05)}.tab-copy.copied{color:var(--up);background:color-mix(in srgb,var(--up) 12%,transparent)}.tab-copy svg{width:14px;height:14px;display:block}.tab-copy-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.tab:hover{transform:translateX(2px);box-shadow:0 12px 26px rgba(0,0,0,.08);border-color:color-mix(in srgb,var(--acc) 42%,var(--line))}
 .tab:active{transform:translateX(0)}
 .tab b{display:block;font:500 22px/1.05 var(--mono);letter-spacing:-.4px}.tab span{color:var(--mute);font-size:11.5px}
 .tab[aria-selected="true"]{border-color:color-mix(in srgb,var(--acc) 68%,var(--line));background:linear-gradient(180deg,var(--accbg),var(--panel));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 11%,transparent)}
@@ -789,7 +789,7 @@ function render(){
   if(!D) return;
   const sc=SCANS[S.tab];
   Object.keys(SCANS).forEach(k=>{});
-  $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span></button>`}).join("");
+  $("tabs").innerHTML=Object.keys(SCANS).map(k=>{const count=sourceRows(k).length;return `<div class="tab" role="tab" tabindex="0" data-tab="${k}" aria-selected="${k===S.tab}"><b>${count}</b><span>${SCANS[k].t}</span><span class="tab-copy" data-copy-tab="${k}" role="button" tabindex="0" aria-label="Copy ${count} stocks from ${SCANS[k].t}" title="Copy stocks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"></path></svg><span class="tab-copy-label">Copy</span></span></div>`}).join("");
   document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ex===S.ex));
   const filterHTML = "";  $("filters").innerHTML=filterHTML;
   $("q").value=S.q||"";
@@ -840,6 +840,19 @@ function wire(){
       chartClickTimer=setTimeout(()=>openChart(chartBtn.dataset.chartKey,r),220);
       return;
     }
+    const copyTab=e.target.closest("[data-copy-tab]");
+    if(copyTab){
+      e.stopPropagation();
+      const tab=copyTab.dataset.copyTab;
+      const symbols=[...new Set(sourceRows(tab).map(r=>r?.symbol).filter(Boolean).map(String))];
+      navigator.clipboard?.writeText(symbols.join("\n")).then(()=>{
+        copyTab.classList.add("copied");
+        const oldTitle=copyTab.getAttribute("title");
+        copyTab.setAttribute("title","Copied "+symbols.length+" stocks");
+        setTimeout(()=>{copyTab.classList.remove("copied");copyTab.setAttribute("title",oldTitle||"Copy stocks");},1200);
+      }).catch(()=>{});
+      return;
+    }
     const t=e.target.closest("[data-tab]"), x=e.target.closest("[data-ex]"), s=e.target.closest("[data-sort]"), l=e.target.closest("[data-lv]");
     if(t){S.tab=t.dataset.tab;S.st="";[S.key,S.dir]=SCANS[S.tab].sort;render();return}
     if(x){S.ex=x.dataset.ex;render();return}
@@ -860,6 +873,19 @@ function wire(){
       try{localStorage.setItem("scn-theme",root.dataset.theme)}catch(_){}
       if(LW && CHART_ROW && CHART[CHART_ROW.key]) openChart(CHART_ROW.key,CHART_ROW);
       return;
+    }
+  });
+  document.addEventListener("keydown",e=>{
+    const copyTab=e.target.closest?.("[data-copy-tab]");
+    if(copyTab && (e.key==="Enter" || e.key===" ")){
+      e.preventDefault();
+      copyTab.click();
+      return;
+    }
+    const tab=e.target.closest?.(".tab[data-tab]");
+    if(tab && !copyTab && (e.key==="Enter" || e.key===" ")){
+      e.preventDefault();
+      tab.click();
     }
   });
   document.addEventListener("dblclick",e=>{
