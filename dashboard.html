@@ -542,7 +542,13 @@ function chartWatchItems(){
     return Number(r.chg);
   };
   const dir=CHART_WATCH_SORT_DIR;
+  const colourOrder=Object.fromEntries(WATCHLIST_COLORS.map(([color],i)=>[color,i]));
   items.sort((a,b)=>{
+    // My Watchlist is always grouped by colour first.
+    if(CHART_WATCH_MODE==="colours"){
+      const ca=colourOrder[a.__watchColor]??99, cb=colourOrder[b.__watchColor]??99;
+      if(ca!==cb) return ca-cb;
+    }
     const av=sortValue(a,CHART_WATCH_SORT), bv=sortValue(b,CHART_WATCH_SORT);
     if(typeof av==="string" || typeof bv==="string") return dir*String(av).localeCompare(String(bv));
     const an=Number(av), bn=Number(bv);
