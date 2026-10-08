@@ -87,7 +87,7 @@ CFG = {
     },
     "ep": {
         "name": "Episodic Pivot",
-        "enabled": true,
+        "enabled": True,
         "lookback_days": 3,
         "min_gap_pct": 8.0,
         "max_gap_pct": 40.0,
