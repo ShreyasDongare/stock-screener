@@ -1453,7 +1453,15 @@ function renderChartWatchlist(activeKey){
   if(scroll){
     scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
     updateChartWatchVirtual(true);
-    requestAnimationFrame(()=>{ensureChartWatchActiveVisible();updateChartWatchVirtual(true);});
+    requestAnimationFrame(()=>{
+      updateChartWatchVirtual(true);
+      requestAnimationFrame(()=>{
+        if(scroll && previousScrollTop !== null){
+          scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
+          updateChartWatchVirtual(true);
+        }
+      });
+    });
     scroll.addEventListener("scroll",scheduleChartWatchVirtual,{passive:true});
   }
   const search=$("chartWatchSearch");
