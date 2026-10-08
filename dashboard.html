@@ -488,8 +488,8 @@ const CHART_WATCH_ROW_HEIGHT=44;
 const CHART_WATCH_BUFFER=12;
 let CHART_WATCH_Q="";
 let CHART_WATCH_SCROLL_TOP=null;
-let CHART_WATCH_SORT="chg";
-let CHART_WATCH_SORT_DIR=-1;
+let CHART_WATCH_SORT="symbol";
+let CHART_WATCH_SORT_DIR=1;
 let CHART_WATCH_ITEMS=[];
 let CHART_WATCH_ACTIVE_KEY="";
 let CHART_WATCH_TAGS={};
@@ -499,7 +499,9 @@ function chartRowKey(r){
   return r?.key||((String(r?.exch||"NSE").toUpperCase())+":"+String(r?.symbol||""));
 }
 function chartRows(){
-  const all=Object.values(D?.scans||{}).flat().filter(r=>r&&r.symbol);
+  // The chart watchlist follows the scan that is currently selected
+  // in the main dashboard, rather than merging stocks from every scan.
+  const all=sourceRows(S.tab).filter(r=>r&&r.symbol);
   const seen=new Set();
   return all.filter(r=>{
     const k=chartRowKey(r);
@@ -895,7 +897,7 @@ function wire(){
       return;
     }
     const t=e.target.closest("[data-tab]"), x=e.target.closest("[data-ex]"), s=e.target.closest("[data-sort]"), l=e.target.closest("[data-lv]");
-    if(t){S.tab=t.dataset.tab;S.st="";[S.key,S.dir]=SCANS[S.tab].sort;render();return}
+    if(t){S.tab=t.dataset.tab;S.st="";[S.key,S.dir]=SCANS[S.tab].sort;CHART_WATCH_Q="";CHART_WATCH_SORT="symbol";CHART_WATCH_SORT_DIR=1;render();return}
     if(x){S.ex=x.dataset.ex;render();return}
     if(l){S.lv[l.dataset.lv]=!S.lv[l.dataset.lv];render();return}
     if(s){const k=s.dataset.sort;S.dir=S.key===k?-S.dir:1;S.key=k;render();return}
