@@ -1367,16 +1367,76 @@ function renderChartWatchlist(activeKey){
   const el=$("chartWatchlist"); if(!el) return;
   CHART_WATCH_ACTIVE_KEY=activeKey||"";
   CHART_WATCH_TAGS=getTags();
+
+  if(CHART_WATCH_MODE==="colours"){
+    const q=CHART_WATCH_Q.trim().toUpperCase();
+    const groups={};
+    WATCHLIST_COLORS.forEach(([color,label])=>groups[color]={label,items:[]});
+
+    const seen=new Set();
+    Object.keys(SCANS).forEach(tab=>{
+      sourceRows(tab).forEach(r=>{
+        if(!r||!r.symbol) return;
+        const key=chartRowKey(r), color=CHART_WATCH_TAGS[key];
+        if(!color || seen.has(key)) return;
+        if(!groups[color]) return;
+        seen.add(key);
+        if(!q || String(r.symbol).toUpperCase().includes(q)){
+          groups[color].items.push({...r,__watchColor:color});
+        }
+      });
+    });
+
+    el.innerHTML=
+      '<div class="chart-watch-head">'+
+        '<div class="chart-watch-title">My Colour Watchlist</div>'+
+        '<input id="chartWatchSearch" class="chart-watch-search" placeholder="Search symbol..." value="'+esc(CHART_WATCH_Q)+'">'+
+        '<div class="chart-watch-columns"><span>Stock</span><span style="text-align:right">Price (₹)</span><span style="text-align:right">Change %</span></div>'+
+      '</div>'+
+      '<div class="chart-watch-scroll colour-scroll" id="chartWatchScroll">'+
+        '<div class="colour-watch-groups">'+
+          WATCHLIST_COLORS.filter(([color])=>groups[color].items.length).map(([color,label])=>{
+            const items=groups[color].items.sort((a,b)=>String(a.symbol).localeCompare(String(b.symbol)));
+            return '<section class="colour-watch-group '+color+'" data-colour-group="'+color+'">'+
+              '<button type="button" class="colour-watch-group-head" data-colour-toggle="'+color+'">'+
+                '<span class="cw-dot"></span><span class="cw-name">'+label+' Tag</span><span class="cw-count">'+items.length+'</span><span class="cw-arrow">⌃</span>'+
+              '</button>'+
+              '<div class="colour-watch-group-items">'+items.map(r=>chartWatchRowHTML(r,CHART_WATCH_ACTIVE_KEY)).join("")+'</div>'+
+            '</section>';
+          }).join("")+
+        '</div>'+
+      '</div>'+
+      '<div class="chart-watch-help">Click = EOD chart · Double-click = TradingView</div>';
+
+    const search=$("chartWatchSearch");
+    search?.addEventListener("input",e=>{
+      CHART_WATCH_Q=e.target.value;
+      renderChartWatchlist(CHART_WATCH_ACTIVE_KEY);
+      requestAnimationFrame(()=>{const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
+    });
+
+    el.querySelectorAll("[data-colour-toggle]").forEach(btn=>{
+      btn.addEventListener("click",e=>{
+        e.preventDefault();
+        const group=btn.closest("[data-colour-group]");
+        group?.classList.toggle("collapsed");
+        const arrow=btn.querySelector(".cw-arrow");
+        if(arrow) arrow.textContent=group?.classList.contains("collapsed")?"⌄":"⌃";
+      });
+    });
+    return;
+  }
+
+  // Normal scan watchlist keeps the existing virtual-scroller behaviour.
   CHART_WATCH_ITEMS=chartWatchItems();
   CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
-
   const previousScrollTop=CHART_WATCH_SCROLL_TOP;
   CHART_WATCH_SCROLL_TOP=null;
-
   const sortMark=(key)=>CHART_WATCH_SORT===key?(CHART_WATCH_SORT_DIR>0?" ▲":" ▼"):"";
+
   el.innerHTML=
     '<div class="chart-watch-head">'+
-      '<div class="chart-watch-title">'+(CHART_WATCH_MODE==="colours"?"My Colour Watchlist":"Scanned Stocks")+'</div>'+
+      '<div class="chart-watch-title">Scanned Stocks</div>'+
       '<input id="chartWatchSearch" class="chart-watch-search" placeholder="Search symbol..." value="'+esc(CHART_WATCH_Q)+'">'+
       '<div class="chart-watch-columns">'+
         '<button type="button" data-watch-sort="symbol" class="'+(CHART_WATCH_SORT==="symbol"?"active":"")+'">Stock'+sortMark("symbol")+'</button>'+
@@ -1385,41 +1445,25 @@ function renderChartWatchlist(activeKey){
       '</div>'+
     '</div>'+
     '<div class="chart-watch-scroll" id="chartWatchScroll">'+
-      '<div class="chart-watch-spacer" id="chartWatchSpacer">'+
-        '<div class="chart-watch-items" id="chartWatchItems"></div>'+
-      '</div>'+
+      '<div class="chart-watch-spacer" id="chartWatchSpacer"><div class="chart-watch-items" id="chartWatchItems"></div></div>'+
     '</div>'+
     '<div class="chart-watch-help">Click = EOD chart · Double-click = TradingView</div>';
 
   updateChartWatchVirtual(true);
-
-  // Some browsers report a zero-height flex child for one frame while the
-  // chart modal is opening. Recalculate after layout so rows cannot remain
-  // invisible.
   requestAnimationFrame(()=>updateChartWatchVirtual(true));
-
   const scroll=$("chartWatchScroll");
   if(scroll){
     scroll.scrollTop=Math.max(0,Number(previousScrollTop)||0);
     updateChartWatchVirtual(true);
-    requestAnimationFrame(()=>{
-      ensureChartWatchActiveVisible();
-      updateChartWatchVirtual(true);
-    });
+    requestAnimationFrame(()=>{ensureChartWatchActiveVisible();updateChartWatchVirtual(true);});
     scroll.addEventListener("scroll",scheduleChartWatchVirtual,{passive:true});
   }
-
   const search=$("chartWatchSearch");
-  if(search) search.addEventListener("input",e=>{
+  search?.addEventListener("input",e=>{
     CHART_WATCH_Q=e.target.value;
-    const keepActive=CHART_WATCH_ACTIVE_KEY;
-    CHART_WATCH_SCROLL_TOP=0;
-    renderChartWatchlist(keepActive);
-    const s=$("chartWatchSearch"); s?.focus();
-    s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);
+    renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):"");
   });
 }
-
 function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
   const host=$("chartHost");
   chart.subscribeCrosshairMove(p=>{
