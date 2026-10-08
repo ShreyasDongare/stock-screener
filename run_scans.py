@@ -650,13 +650,6 @@ def analyse_stock(
 
     n = len(g)
 
-    # Common filters now apply to every scan:
-    # - at least +30% over one of the 1M/3M/6M trading-day windows
-    # - ADX(14) >= 20
-    # These filters are applied before the individual scan logic.
-    if n <= max(CFG["common"]["return_windows"]):
-        return {}
-
     c = g["close"].to_numpy(float)
     h = g["high"].to_numpy(float)
     l = g["low"].to_numpy(float)
@@ -668,23 +661,32 @@ def analyse_stock(
     v = np.asarray(v)
 
     if not (
-        np.isfinite(c[-1])
+        len(g)
+        and np.isfinite(c[-1])
         and np.isfinite(h[-1])
         and np.isfinite(l[-1])
         and np.isfinite(v[-1])
     ):
         return {}
 
-    tr = true_range(
-        h,
-        l,
-        c,
-    )
+    tr = true_range(h, l, c)
     adx = adx_wilder(h, l, c, 14)
+
+    # Volume scan is evaluated before the common momentum filters.
+    base = base_row(
+        key, g, c, h, l, v, tr, adx, review_keys, recent_keys
+    )
+    out = {}
+    r = analyse_volume(key, g, c, h, l, v, tr, base)
+    if r:
+        out["volume"] = r
+
+    if n <= max(CFG["common"]["return_windows"]):
+        return out
 
     latest_adx = adx[-1]
     if not np.isfinite(latest_adx) or latest_adx < CFG["common"]["min_adx"]:
-        return {}
+        return out
 
     returns = []
     for days in CFG["common"]["return_windows"]:
@@ -748,21 +750,6 @@ def analyse_stock(
         ):
             return {}
 
-    base = base_row(
-        key,
-        g,
-        c,
-        h,
-        l,
-        v,
-        tr,
-        adx,
-        review_keys,
-        recent_keys,
-    )
-
-    out = {}
-
     r = analyse_m136(
         key,
         g,
@@ -814,20 +801,6 @@ def analyse_stock(
     )
     if r:
         out["high52w"] = r
-
-    # This scan is intentionally independent of the common ADX/30% gate.
-    r = analyse_volume(
-        key,
-        g,
-        c,
-        h,
-        l,
-        v,
-        tr,
-        base,
-    )
-    if r:
-        out["volume"] = r
 
     return out
 
