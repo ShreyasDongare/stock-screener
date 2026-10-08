@@ -1381,6 +1381,8 @@ def main():
         ),
     }
 
+    market_breadth = build_market_breadth(df)
+
     out = {
         "asof": last_date.strftime("%Y-%m-%d"),
         "generated": datetime.now().isoformat(
@@ -1389,6 +1391,7 @@ def main():
         "config": config_out,
         "stats": stats,
         "scans": hits,
+        "market_breadth": market_breadth,
     }
 
     DATA.mkdir(
