@@ -319,6 +319,12 @@ const SCANS = {
     sort: ["rvol", -1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["volume","Volume"],["avg_volume","Avg Vol"],["rvol","RVOL"],["spark","40 days"]]
   },
+  ep: {
+    t: "Episodic Pivot",
+    d: "Common filters plus an EP event in the last 3 sessions.",
+    sort: ["days_ago", 1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["state","EP Day","l"],["gap","Gap %"],["vol_ratio","Vol x"],["prior_3m","Prior 3M %"],["risk","Risk %"],["spark","40 days"]]
+  },
   one_month: {
     t: "1 Month High",
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · New 1-month high.",
@@ -411,6 +417,9 @@ const CELL = {
   avg_volume:r=>`<td>${f2(r.avg_volume)}</td>`,
   rvol:r=>`<td>${f2(r.rvol)}x</td>`,
   one_month_high:r=>`<td>${f2(r.one_month_high)}</td>`,
+  gap:r=>heat(r.gap),
+  prior_3m:r=>heat(r.prior_3m),
+  days_ago:r=>`<td>${f2(r.days_ago)}</td>`,
   ret3m_perf:r=>heat(r.ret3m_perf),
   ret1m_perf:r=>heat(r.ret1m_perf),
   spark:r=>`<td>${spark(r.spark,Number(r.chg)>=0)}</td>`
