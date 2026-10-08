@@ -236,7 +236,7 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 <div style="display:flex;align-items:center;gap:12px"><div class="status"><i></i>LIVE DATA ENGINE</div><button class="ic" id="theme" title="Switch light / dark" aria-label="Switch light or dark theme">◐</button></div></div></header>
 <main>
 <div class="stale" id="stale"></div>
-<div class="section-kicker"><span>Momentum Intelligence</span><span>1M / 3M / 6M · 3M 30% · HTF · 52Week High · Volume</span></div>
+<div class="section-kicker"><span>Momentum Intelligence</span><span>1M / 3M / 6M · 3M 30% · HTF · 52Week High · Volume · 1M High</span></div>
 <div class="dashboard-grid">
   <aside><div class="tabs" id="tabs" role="tablist" aria-label="Scanner types"></div><button class="copy-all" id="copyAll">Copy All Stocks</button><button class="watchlist-open" id="watchlistOpen">🎨 My Watchlist</button></aside>
   <section class="panel">
@@ -306,6 +306,12 @@ const SCANS = {
     d: "NSE only · Price ≥ ₹30 · Change ≥ 3% · 20-day average volume ≥ 200,000 shares · RVOL > 3x.",
     sort: ["rvol", -1],
     cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["volume","Volume"],["avg_volume","Avg Vol"],["rvol","RVOL"],["spark","40 days"]]
+  },
+  one_month: {
+    t: "1 Month High",
+    d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · New 1-month high.",
+    sort: ["close", -1],
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["avg_volume","Avg Vol"],["one_month_high","Prior 1M High"],["spark","40 days"]]
   }
 }
 const DEFAULT_STATE = { tab: "m136", ex: "ALL", q: "", key: "close", dir: -1 };
@@ -380,6 +386,7 @@ const CELL = {
   value_cr:r=>`<td>${f2(r.value_cr)}</td>`,
   avg_volume:r=>`<td>${f2(r.avg_volume)}</td>`,
   rvol:r=>`<td>${f2(r.rvol)}x</td>`,
+  one_month_high:r=>`<td>${f2(r.one_month_high)}</td>`,
   spark:r=>`<td>${spark(r.spark,Number(r.chg)>=0)}</td>`
 };
 
