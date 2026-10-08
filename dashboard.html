@@ -192,9 +192,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-ohlc .tt-date{color:#E8EEF5;font-weight:600;margin-bottom:3px}
 .chart-ohlc .tt-grid{display:grid;grid-template-columns:auto auto;gap:1px 10px}
 .chart-ohlc b{color:#E8EEF5;font-weight:500}
-.chart-statsbar{display:flex;align-items:center;gap:7px;margin-left:auto;color:#8191A1;font:10px var(--mono);white-space:nowrap}
-.chart-stat-pill{padding:3px 7px;border:1px solid #293542;border-radius:5px;background:#111A22}
-@media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:flex;gap:3px;margin-left:auto;max-width:52vw;overflow:hidden;font-size:8px}.chart-stat-pill{padding:2px 4px}}.formula-popover{width:min(360px,calc(100vw - 20px));max-height:55vh}.tab-copy{right:7px;top:6px}.tab-info{right:7px;top:33px;width:21px;height:21px}
+.chart-statsbar{display:flex;align-items:center;gap:10px;margin-left:auto;color:#8191A1;font:11px var(--mono);white-space:nowrap}
+.chart-stat-pill{padding:0;border:0;border-radius:0;background:transparent}
+.chart-stat-pill b{font-weight:500;color:#DDE6EF}
+.chart-stat-pill.positive,.chart-stat-pill.positive b{color:#26A69A}
+.chart-stat-pill.negative,.chart-stat-pill.negative b{color:#EF5350}
+@media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:flex;gap:7px;margin-left:auto;max-width:58vw;overflow:hidden;font-size:9px}.chart-stat-pill{padding:0;border:0;background:transparent}}.formula-popover{width:min(360px,calc(100vw - 20px));max-height:55vh}.tab-copy{right:7px;top:6px}.tab-info{right:7px;top:33px;width:21px;height:21px}
 
 @media(max-width:720px){.chart-modal{padding:6px}.chart-box{width:100%;height:94vh;border-radius:12px}.chart-head{padding:9px 11px}.chart-meta{font-size:10px}.chart-controls .hint{display:none}.chart-legend{padding:6px 10px;gap:9px}}
 :root[data-theme="light"] .chart-modal{background:rgba(30,45,60,.28)}
@@ -773,7 +776,7 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
   };
   const pctHTML=(label,pct,muted=false)=>{
     const color=Number.isFinite(pct) ? (pct>=0 ? "var(--up)" : "var(--dn)") : "var(--mute)";
-    return '<span class="chart-stat-pill" style="color:'+color+'">'+label+' <b>'+ (Number.isFinite(pct)?((pct>=0?"+":"")+fmt(pct)+"%"):"—") +'</b></span>';
+    return '<span class="chart-stat-pill '+(Number.isFinite(pct)?(pct>=0?"positive":"negative"):"")+'">'+label+' <b>'+ (Number.isFinite(pct)?((pct>=0?"+":"")+fmt(pct)+"%"):"—") +'</b></span>';
   };
   const render=({cd,index,crosshair=false}={})=>{
     if(!stats) return;
