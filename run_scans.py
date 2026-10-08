@@ -700,7 +700,7 @@ def analyse_stock(
         np.isfinite(r) and r >= CFG["common"]["min_return_pct"]
         for r in returns
     ):
-        return {}
+        return out
 
     # Tradability filter:
     # First require a minimum 20-session average traded value so the
@@ -723,7 +723,7 @@ def analyse_stock(
             not np.isfinite(avg_value)
             or avg_value < tcfg["min_avg_value_rupees"]
         ):
-            return {}
+            return out
 
         # Detect persistent locked/UC behaviour after the basic liquidity
         # gate. This does not reject a liquid stock merely for having a few
@@ -748,7 +748,7 @@ def analyse_stock(
             near_uc_days >= tcfg["min_near_uc_days"]
             and open_close_days >= tcfg["min_open_close_days"]
         ):
-            return {}
+            return out
 
     r = analyse_m136(
         key,
