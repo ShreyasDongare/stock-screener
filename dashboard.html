@@ -197,7 +197,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .chart-stat-pill b{font-weight:500;color:#DDE6EF}
 .chart-stat-pill.positive,.chart-stat-pill.positive b{color:#26A69A}
 .chart-stat-pill.negative,.chart-stat-pill.negative b{color:#EF5350}
-@media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:flex;gap:7px;margin-left:auto;max-width:58vw;overflow:hidden;font-size:9px}.chart-stat-pill{padding:0;border:0;background:transparent}}.formula-popover{width:min(360px,calc(100vw - 20px));max-height:55vh}.tab-copy{right:7px;top:6px}.tab-info{right:7px;top:33px;width:21px;height:21px}
+.chart-stat-gap{width:34px;flex:0 0 34px}
+@media(max-width:720px){.chart-toolrow{padding:6px 8px}.chart-toolrow button{padding:5px 8px}.chart-statsbar{display:flex;gap:7px;margin-left:auto;max-width:58vw;overflow:hidden;font-size:9px}.chart-stat-pill{padding:0;border:0;background:transparent}.chart-stat-gap{width:18px;flex:0 0 18px}}.formula-popover{width:min(360px,calc(100vw - 20px));max-height:55vh}.tab-copy{right:7px;top:6px}.tab-info{right:7px;top:33px;width:21px;height:21px}
 
 @media(max-width:720px){.chart-modal{padding:6px}.chart-box{width:100%;height:94vh;border-radius:12px}.chart-head{padding:9px 11px}.chart-meta{font-size:10px}.chart-controls .hint{display:none}.chart-legend{padding:6px 10px;gap:9px}}
 :root[data-theme="light"] .chart-modal{background:rgba(30,45,60,.28)}
@@ -776,7 +777,7 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
   };
   const pctHTML=(label,pct,muted=false)=>{
     const color=Number.isFinite(pct) ? (pct>=0 ? "var(--up)" : "var(--dn)") : "var(--mute)";
-    return '<span class="chart-stat-pill '+(Number.isFinite(pct)?(pct>=0?"positive":"negative"):"")+'">'+label+' <b>'+ (Number.isFinite(pct)?((pct>=0?"+":"")+fmt(pct)+"%"):"—") +'</b></span>';
+    return '<span class="chart-stat-pill '+(Number.isFinite(pct)?(pct>=0?"positive":"negative"):"")+'">'+label+' <b>'+ (Number.isFinite(pct)?("("+((pct>=0?"+":"")+fmt(pct)+"%)"):"(—)") +'</b></span>';
   };
   const render=({cd,index,crosshair=false}={})=>{
     if(!stats) return;
@@ -790,8 +791,9 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
       '<span class="chart-stat-pill">H <b>'+fmt(cd.high)+'</b></span>'+
       '<span class="chart-stat-pill">L <b>'+fmt(cd.low)+'</b></span>'+
       '<span class="chart-stat-pill">C <b>'+fmt(cd.close)+'</b></span>'+
+      '<span class="chart-stat-gap"></span>'+
       pctHTML("Last",pctForIndex(d.close.length-1))+
-      pctHTML("Cross",crossPct);
+      pctHTML("Current",crossPct);
   };
 
   // Start with the latest candle.
