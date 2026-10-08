@@ -979,7 +979,10 @@ $("chart120").addEventListener("click",()=>setChartWindow(120));
 $("chart60").addEventListener("click",()=>setChartWindow(60));
 $("chart30").addEventListener("click",()=>setChartWindow(30));
 
-$("watchlistModal")?.addEventListener("click",e=>{if(e.target.id==="watchlistModal") closeColourWatchlist()});\n$("formulaClose")?.addEventListener("click",closeFormulaPopover);\ndocument.addEventListener("click",e=>{if(!e.target.closest(".formula-popover") && !e.target.closest("[data-info-tab]")) closeFormulaPopover();});\nwindow.addEventListener("resize",closeFormulaPopover);
+$("watchlistModal")?.addEventListener("click",e=>{if(e.target.id==="watchlistModal") closeColourWatchlist()});
+$("formulaClose")?.addEventListener("click",closeFormulaPopover);
+document.addEventListener("click",e=>{if(!e.target.closest(".formula-popover") && !e.target.closest("[data-info-tab]")) closeFormulaPopover();});
+window.addEventListener("resize",closeFormulaPopover);
 $("chartModal").addEventListener("click",e=>{if(e.target.id==="chartModal") closeChart()});
 function closeTagPalette(){document.querySelector(".chart-tag-palette")?.remove();}
 function openTagPalette(key,x,y){
