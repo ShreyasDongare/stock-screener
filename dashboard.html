@@ -253,13 +253,16 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 }
 @media(max-width:420px){.in,main{width:calc(100% - 14px)}.tabs{gap:7px}.tab{min-height:64px;padding:10px}.tab b{font-size:19px}.tab span{font-size:10px}.chart-watchlist{height:34dvh;min-height:160px}.chart-title{max-width:42vw}.chart-meta{display:none}.watchlist-stock-name{max-width:30vw}}
 @media(max-width:720px) and (orientation:landscape){.chart-watchlist{height:38dvh;min-height:135px;max-height:190px}.chart-head{min-height:46px}}
+
+.market-breadth-open{border:1px solid #3A4856;background:rgba(255,255,255,.05);color:#E8EEF5;border-radius:8px;padding:8px 12px;font:600 11px var(--sans);cursor:pointer;transition:.2s}.market-breadth-open:hover{background:rgba(255,255,255,.11);border-color:#526273;transform:translateY(-1px)}
+.breadth-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.breadth-modal.open{display:flex}.breadth-box{width:min(1500px,96vw);height:min(820px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 28px 100px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden}.breadth-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.breadth-title{font:600 17px var(--sans)}.breadth-sub{color:var(--mute);font:10px var(--mono)}.breadth-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.breadth-close:hover{color:var(--ink);border-color:var(--acc)}.breadth-wrap{flex:1;overflow:auto}.breadth-table{min-width:1120px}.breadth-table th,.breadth-table td{padding:7px 10px}.breadth-table thead th{position:sticky;top:0;z-index:3;background:var(--panel);font-size:10px;text-align:right;white-space:normal;line-height:1.25}.breadth-table thead th:first-child,.breadth-table tbody td:first-child{text-align:left;left:0;z-index:4}.breadth-table tbody td{font-size:11px}.breadth-up{color:var(--up)}.breadth-down{color:var(--dn)}
 </style>
 </head>
 <body>
 <header class="top"><div class="in">
 <div class="top-meta sub" id="meta">Loading market intelligence…</div>
 <div class="brand"><h1>Wolf Momentum Screener</h1><img src="assets/wolf-logo.png?v=1" alt="" class="brand-logo"></div>
-<div class="top-actions"><div class="status"><i></i>LIVE DATA ENGINE</div><button class="ic" id="theme" title="Switch light / dark" aria-label="Switch light or dark theme">◐</button></div>
+<div class="top-actions"><div class="status"><i></i>LIVE DATA ENGINE</div><button class="market-breadth-open" id="marketBreadthOpen" type="button">Market Breadth</button><button class="ic" id="theme" title="Switch light / dark" aria-label="Switch light or dark theme">◐</button></div>
 </div></header>
 <main>
 <div class="stale" id="stale"></div>
@@ -280,6 +283,15 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
   </section>
 </div>
 </main>
+
+<div class="breadth-modal" id="breadthModal" role="dialog" aria-modal="true" aria-label="Market Breadth">
+  <div class="breadth-box">
+    <div class="breadth-head"><div class="breadth-title">Market Breadth</div><div class="breadth-sub" id="breadthSub">Daily market breadth history</div><button class="breadth-close" id="breadthClose" type="button">✕</button></div>
+    <div class="breadth-wrap"><table class="breadth-table"><thead><tr>
+      <th>Date</th><th>Up 4.5%+<br>today</th><th>Down 4.5%+<br>today</th><th>Up 20%+<br>in 5D</th><th>Down 20%+<br>in 5D</th><th>Above<br>20DMA</th><th>Below<br>20DMA</th><th>Above<br>50DMA</th><th>Below<br>50DMA</th><th>Above<br>200DMA</th><th>Below<br>200DMA</th>
+    </tr></thead><tbody id="breadthBody"></tbody></table></div>
+  </div>
+</div>
 <div class="formula-popover" id="formulaPopover" role="dialog" aria-modal="false" aria-label="Scan formula">
   <div class="formula-head"><div class="formula-title" id="formulaTitle">Scan Formula</div><button class="formula-close" id="formulaClose" type="button" aria-label="Close">✕</button></div>
   <div class="formula-label">Formula</div>
@@ -1025,6 +1037,9 @@ document.addEventListener("click",e=>{
 });
 
 function wire(){
+  $("marketBreadthOpen")?.addEventListener("click",openMarketBreadth);
+  $("breadthClose")?.addEventListener("click",closeMarketBreadth);
+  $("breadthModal")?.addEventListener("click",e=>{if(e.target.id==="breadthModal") closeMarketBreadth();});
   const openTradingView=(r)=>{
     if(!r || !r.symbol) return;
     const exchange=r.exch==="BSE"?"BSE":"NSE";
@@ -1294,6 +1309,17 @@ document.addEventListener("keydown",e=>{
   if(e.key.toLowerCase()==="f"){e.preventDefault();try{LW?.timeScale().fitContent();}catch(_){}}
 });
 
+
+function renderMarketBreadth(){
+  const body=$("breadthBody"), sub=$("breadthSub"); if(!body) return;
+  const data=Array.isArray(D?.market_breadth)?D.market_breadth:[];
+  sub.textContent=data.length?data.length+" trading days":"No breadth data available";
+  body.innerHTML=data.slice().reverse().map(r=>
+    '<tr><td class="l">'+esc(r.date)+'</td>'+[["up45",1],["down45",-1],["up20_5d",1],["down20_5d",-1],["above20",1],["below20",-1],["above50",1],["below50",-1],["above200",1],["below200",-1]].map(([k,s])=>'<td class="'+(s>0?"breadth-up":"breadth-down")+'">'+f2(r[k])+'</td>').join("")+'</tr>'
+  ).join("") || '<tr><td colspan="11" class="empty">No market breadth data available.</td></tr>';
+}
+function openMarketBreadth(){ renderMarketBreadth(); $("breadthModal")?.classList.add("open"); }
+function closeMarketBreadth(){ $("breadthModal")?.classList.remove("open"); }
 async function load(){
   try{
     const resp=await fetch("data/results.json?"+Date.now(),{cache:"no-store"});
