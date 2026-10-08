@@ -94,7 +94,7 @@ CFG = {
         "min_rvol": 3.0,
     },
     "one_month": {
-        "name": "1 Month Scan",
+        "name": "1 Month High",
         "min_price": 30.0,
         "avg_volume_days": 20,
         "min_avg_volume": 200_000.0,
@@ -106,6 +106,14 @@ CFG = {
         "avg_volume_days": 20,
         "min_avg_volume": 200_000.0,
         "lookback_days": 63,
+        "min_return_pct": 30.0,
+    },
+    "one_month_perf": {
+        "name": "1 Month Performance",
+        "min_price": 30.0,
+        "avg_volume_days": 20,
+        "min_avg_volume": 200_000.0,
+        "lookback_days": 21,
         "min_return_pct": 30.0,
     },
 }
@@ -649,6 +657,28 @@ def analyse_three_month(
     }
 
 
+def analyse_one_month_perf(
+    key, g, c, h, l, v, tr, base,
+):
+    """NSE-only 1-month performance scan: price >= 30, 20-day average
+    volume >= 200,000 shares, and gain >= 30% over 21 trading sessions."""
+    n=len(g)
+    cfg=CFG["one_month_perf"]
+    if n <= cfg["lookback_days"] or str(g.iloc[-1]["exch"]).upper() != "NSE":
+        return None
+    close=c[-1]
+    old_close=c[-1-cfg["lookback_days"]]
+    avg_volume=pd.Series(v).rolling(cfg["avg_volume_days"]).mean().iloc[-1]
+    ret1m_perf=((close/old_close)-1)*100 if np.isfinite(old_close) and old_close != 0 else np.nan
+    if not (np.isfinite(close) and close >= cfg["min_price"] and
+            np.isfinite(avg_volume) and avg_volume >= cfg["min_avg_volume"] and
+            np.isfinite(ret1m_perf) and ret1m_perf >= cfg["min_return_pct"]):
+        return None
+    return {**base, "ret1m_perf": num(ret1m_perf,2),
+            "avg_volume": num(avg_volume,0),
+            "signal": "1-month gain >= 30%"}
+
+
 def analyse_one_month(
     key,
     g,
@@ -814,6 +844,18 @@ def analyse_stock(
     if r:
         out["volume"] = r
 
+    r = analyse_three_month(key, g, c, h, l, v, tr, base)
+    if r:
+        out["three_month"] = r
+
+    r = analyse_one_month(key, g, c, h, l, v, tr, base)
+    if r:
+        out["one_month"] = r
+
+    r = analyse_one_month_perf(key, g, c, h, l, v, tr, base)
+    if r:
+        out["one_month_perf"] = r
+
     if n <= max(CFG["common"]["return_windows"]):
         return out
 
@@ -882,32 +924,6 @@ def analyse_stock(
             and open_close_days >= tcfg["min_open_close_days"]
         ):
             return out
-
-    r = analyse_three_month(
-        key,
-        g,
-        c,
-        h,
-        l,
-        v,
-        tr,
-        base,
-    )
-    if r:
-        out["three_month"] = r
-
-    r = analyse_one_month(
-        key,
-        g,
-        c,
-        h,
-        l,
-        v,
-        tr,
-        base,
-    )
-    if r:
-        out["one_month"] = r
 
     r = analyse_m136(
         key,
@@ -1094,6 +1110,7 @@ def main():
         "volume": [],
         "one_month": [],
         "three_month": [],
+        "one_month_perf": [],
     }
 
     total = 0
@@ -1163,6 +1180,12 @@ def main():
         )
     )
 
+    hits["one_month_perf"].sort(
+        key=lambda r: (
+            -float(r.get("ret1m_perf", 0) or 0)
+        )
+    )
+
     passed_keys = {
         r["key"]
         for rows in hits.values()
@@ -1217,6 +1240,10 @@ def main():
             "three_month": (
                 "NSE only AND Close >= ₹30 AND 20-day average volume >= 200,000 "
                 "shares AND 3-month price gain >= 30% over 63 trading sessions"
+            ),
+            "one_month_perf": (
+                "NSE only AND Close >= ₹30 AND 20-day average volume >= 200,000 "
+                "shares AND 1-month price gain >= 30% over 21 trading sessions"
             ),
         },
     }
