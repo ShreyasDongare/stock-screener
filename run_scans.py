@@ -127,6 +127,17 @@ CFG = {
         "min_return_pct": 30.0,
     },
 }
+
+BREADTH_CFG = {
+    "min_avg_value_rupees": 10_000_000.0,
+    "min_daily_value_rupees": 10_000_000.0,
+    "strong_day_pct": 0.117,
+    "ratio_green": 2.0,
+    "ratio_red": 0.5,
+    "t2108_oversold": 20.0,
+    "t2108_overbought": 80.0,
+    "fifty_extreme": 20,
+}
 # ------------------------------------------------------------
 
 
@@ -1063,47 +1074,168 @@ def analyse_stock(
 
 
 def build_market_breadth(df):
-    """Build Stockbee-style daily market breadth for NSE stocks."""
-    work = df[df["exch"].astype(str).str.upper().eq("NSE")].sort_values(["key", "date"]).copy()
+    """Build an India-adapted Stockbee Market Monitor.
+
+    Formulas follow Stockbee's documented Market Monitor:
+      - daily +/-4% with high-volume confirmation
+      - +/-25% quarter from the 65-session low/high
+      - +/-25% and +/-50% month from the close 20 sessions ago
+      - +/-13% in 34 sessions from the 34-session low/high
+      - 5D/10D ratios from rolling qualifying +/-4% counts
+      - T2108 = percentage above the 40-session SMA
+
+    India adaptation:
+      - NSE cash stocks only
+      - >= Rs 1 Cr average 20-session traded value for the eligible universe
+      - daily +/-4% also requires today's traded value >= Rs 1 Cr
+        and today's volume > yesterday's volume
+      - strong daily colouring is scaled to 11.7% of the Indian universe
+        instead of copying the US 300-stock absolute cutoff.
+    """
+    cfg = BREADTH_CFG
+
+    work = (
+        df[df["exch"].astype(str).str.upper().eq("NSE")]
+        .sort_values(["key", "date"])
+        .copy()
+    )
+    if work.empty:
+        return []
+
     g = work.groupby("key", group_keys=False)
 
     work["prev_close"] = g["close"].shift(1)
-    work["close_5d"] = g["close"].shift(5)
-    work["close_21d"] = g["close"].shift(21)
-    work["close_34d"] = g["close"].shift(34)
-    work["close_63d"] = g["close"].shift(63)
+    work["prev_volume"] = g["volume"].shift(1)
+    work["daily_value"] = work["close"] * work["volume"]
 
-    work["chg_pct"] = (work["close"] / work["prev_close"] - 1) * 100
-    work["chg_5d_pct"] = (work["close"] / work["close_5d"] - 1) * 100
-    work["chg_21d_pct"] = (work["close"] / work["close_21d"] - 1) * 100
-    work["chg_34d_pct"] = (work["close"] / work["close_34d"] - 1) * 100
-    work["chg_63d_pct"] = (work["close"] / work["close_63d"] - 1) * 100
+    work["avg_value_20"] = (
+        work["daily_value"]
+        .groupby(work["key"])
+        .transform(lambda s: s.rolling(20, min_periods=20).mean())
+    )
+    work["chg_pct"] = (
+        work["close"] / work["prev_close"].replace(0, np.nan) - 1
+    ) * 100
+
+    # Stockbee's MINC65/MAXC65 and MINC34/MAXC34 windows include today.
+    work["min65"] = g["close"].transform(
+        lambda s: s.rolling(65, min_periods=65).min()
+    )
+    work["max65"] = g["close"].transform(
+        lambda s: s.rolling(65, min_periods=65).max()
+    )
+    work["min34"] = g["close"].transform(
+        lambda s: s.rolling(34, min_periods=34).min()
+    )
+    work["max34"] = g["close"].transform(
+        lambda s: s.rolling(34, min_periods=34).max()
+    )
+    work["close20"] = g["close"].shift(20)
+    work["sma40"] = g["close"].transform(
+        lambda s: s.rolling(40, min_periods=40).mean()
+    )
+
+    work["eligible"] = (
+        work["avg_value_20"].ge(cfg["min_avg_value_rupees"])
+        & work["close"].notna()
+        & work["volume"].notna()
+    )
+
+    work["up4_signal"] = (
+        work["chg_pct"].ge(4.0)
+        & work["daily_value"].ge(cfg["min_daily_value_rupees"])
+        & work["volume"].gt(work["prev_volume"])
+    )
+    work["down4_signal"] = (
+        work["chg_pct"].le(-4.0)
+        & work["daily_value"].ge(cfg["min_daily_value_rupees"])
+        & work["volume"].gt(work["prev_volume"])
+    )
+
+    month_base = (
+        work["eligible"]
+        & work["close20"].ge(5.0)
+        & work["close20"].notna()
+    )
+    month_ret = (
+        work["close"] / work["close20"].replace(0, np.nan) - 1
+    ) * 100
+
+    month_up25 = month_base & month_ret.ge(25.0)
+    month_down25 = month_base & month_ret.le(-25.0)
+    month_up50 = month_base & month_ret.ge(50.0)
+    month_down50 = month_base & month_ret.le(-50.0)
+
+    q_base = (
+        work["eligible"]
+        & work["min65"].notna()
+        & work["max65"].notna()
+    )
+    q_up25 = q_base & (
+        100
+        * ((work["close"] + 0.01) - (work["min65"] + 0.01))
+        / (work["min65"] + 0.01)
+        >= 25.0
+    )
+    q_down25 = q_base & (
+        100
+        * ((work["close"] + 0.01) - (work["max65"] + 0.01))
+        / (work["max65"] + 0.01)
+        <= -25.0
+    )
+
+    fast_base = (
+        work["eligible"]
+        & work["min34"].notna()
+        & work["max34"].notna()
+    )
+    fast_up13 = fast_base & (
+        100
+        * ((work["close"] + 0.01) - (work["min34"] + 0.01))
+        / (work["min34"] + 0.01)
+        >= 13.0
+    )
+    fast_down13 = fast_base & (
+        100
+        * ((work["close"] + 0.01) - (work["max34"] + 0.01))
+        / (work["max34"] + 0.01)
+        <= -13.0
+    )
 
     rows = []
     for date, x in work.groupby("date", sort=True):
-        up4 = int((x["chg_pct"] >= 4.0).fillna(False).sum())
-        down4 = int((x["chg_pct"] <= -4.0).fillna(False).sum())
+        eligible = x["eligible"].fillna(False)
+        universe = int(eligible.sum())
 
         rows.append({
             "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
-            "universe": int(len(x)),
-            "up4": up4,
-            "down4": down4,
+            "universe": universe,
+            "up4": int(x["up4_signal"].fillna(False).sum()),
+            "down4": int(x["down4_signal"].fillna(False).sum()),
             "ratio5": None,
             "ratio10": None,
-            "up25_q": int((x["chg_63d_pct"] >= 25.0).fillna(False).sum()),
-            "down25_q": int((x["chg_63d_pct"] <= -25.0).fillna(False).sum()),
-            "up25_m": int((x["chg_21d_pct"] >= 25.0).fillna(False).sum()),
-            "down25_m": int((x["chg_21d_pct"] <= -25.0).fillna(False).sum()),
-            "up50_m": int((x["chg_21d_pct"] >= 50.0).fillna(False).sum()),
-            "down50_m": int((x["chg_21d_pct"] <= -50.0).fillna(False).sum()),
-            "up13_34": int((x["chg_34d_pct"] >= 13.0).fillna(False).sum()),
-            "down13_34": int((x["chg_34d_pct"] <= -13.0).fillna(False).sum()),
+            "up25_q": int(q_up25.loc[x.index].fillna(False).sum()),
+            "down25_q": int(q_down25.loc[x.index].fillna(False).sum()),
+            "up25_m": int(month_up25.loc[x.index].fillna(False).sum()),
+            "down25_m": int(month_down25.loc[x.index].fillna(False).sum()),
+            "up50_m": int(month_up50.loc[x.index].fillna(False).sum()),
+            "down50_m": int(month_down50.loc[x.index].fillna(False).sum()),
+            "up13_34": int(fast_up13.loc[x.index].fillna(False).sum()),
+            "down13_34": int(fast_down13.loc[x.index].fillna(False).sum()),
+            "t2108": round(
+                100.0 * int(
+                    (
+                        eligible
+                        & x["sma40"].notna()
+                        & x["close"].gt(x["sma40"])
+                    ).sum()
+                ) / universe,
+                1,
+            ) if universe else None,
         })
 
-    # Stockbee 5-day and 10-day ratios = rolling up-4% stocks /
-    # rolling down-4% stocks. Keep the daily history so the dashboard
-    # can show the same breadth-ratio concept.
+    # Stockbee 5D/10D ratios = rolling sums of the qualifying daily +/-4%
+    # signals, not five-day or ten-day price returns.
     for i, row in enumerate(rows):
         lo5 = max(0, i - 4)
         lo10 = max(0, i - 9)
@@ -1344,6 +1476,7 @@ def main():
     # has one machine-readable definition of the applied rules.
     config_out = {
         **CFG,
+        "breadth": BREADTH_CFG,
         "definitions": {
             "m136": (
                 "SMA(True Range(1),20) / Close * 100 >= 3 AND "
