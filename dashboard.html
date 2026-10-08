@@ -775,9 +775,10 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
     const cur=Number(d.close[i]), prev=Number(d.close[i-1]);
     return Number.isFinite(cur)&&Number.isFinite(prev)&&prev!==0 ? (cur/prev-1)*100 : NaN;
   };
-  const pctHTML=(label,pct,muted=false)=>{
-    const color=Number.isFinite(pct) ? (pct>=0 ? "var(--up)" : "var(--dn)") : "var(--mute)";
-    return '<span class="chart-stat-pill '+(Number.isFinite(pct)?(pct>=0?"positive":"negative"):"")+'">'+label+' <b>'+ (Number.isFinite(pct)?("("+((pct>=0?"+":"")+fmt(pct)+"%)"):"(—)") +'</b></span>';
+  const pctHTML=(label,pct)=>{
+    const cls=Number.isFinite(pct) ? (pct>=0 ? "positive" : "negative") : "";
+    const value=Number.isFinite(pct) ? ((pct>=0?"+":"")+fmt(pct)+"%") : "—";
+    return '<span class="chart-stat-pill '+cls+'">'+label+' <b>('+value+')</b></span>';
   };
   const render=({cd,index,crosshair=false}={})=>{
     if(!stats) return;
