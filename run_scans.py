@@ -89,7 +89,7 @@ CFG = {
         "name": "Episodic Pivot",
         "enabled": True,
         "lookback_days": 3,
-        "min_gap_pct": 8.0,
+        "min_gap_pct": 4.0,
         "max_gap_pct": 40.0,
         "min_vol_ratio": 3.0,
         "min_close_pos": 0.60,
@@ -761,14 +761,11 @@ def analyse_ep(
     Episodic Pivot based on the earlier scanner logic.
 
     Checks today and the previous two sessions for:
-      - gap-up open of 8% to 40% versus previous close
+      - gap-up open of 4% to 40% versus previous close
       - volume >= 3x prior 20-session average
-      - close in the upper 40% of the day's range
       - prior 3-month gain <= 40%
-      - latest close >= the EP-day open
 
-    Entry = highest high from EP day through today.
-    Stop  = EP-day low.
+    This is a loose shortlist filter; news and chart context are checked manually.
     """
     cfg = CFG["ep"]
 
@@ -806,13 +803,6 @@ def analyse_ep(
 
         vol_ratio = v[k] / avg_v
 
-        day_range = h[k] - l[k]
-        close_pos = (
-            (c[k] - l[k]) / day_range
-            if np.isfinite(day_range) and day_range > 0
-            else 1.0
-        )
-
         old_idx = k - int(cfg["prior_days"])
         if old_idx < 0 or not np.isfinite(c[old_idx]) or c[old_idx] == 0:
             continue
@@ -822,35 +812,22 @@ def analyse_ep(
         if not (
             np.isfinite(vol_ratio)
             and vol_ratio >= cfg["min_vol_ratio"]
-            and np.isfinite(close_pos)
-            and close_pos >= cfg["min_close_pos"]
             and np.isfinite(prior_3m)
             and prior_3m <= cfg["max_prior_3m_pct"]
-            and c[-1] >= opens[k]
         ):
-            continue
-
-        entry = float(np.max(h[k:n]))
-        stop = float(l[k])
-
-        if entry <= stop:
             continue
 
         days_ago = (n - 1) - k
 
         return {
             **base,
-            "entry": num(entry, 2),
-            "stop": num(stop, 2),
-            "risk": num((entry - stop) / entry * 100, 1),
             "state": "Today" if days_ago == 0 else f"{days_ago}d ago",
             "gap": num(gap, 1),
             "vol_ratio": num(vol_ratio, 1),
             "prior_3m": num(prior_3m, 0),
             "days_ago": int(days_ago),
             "signal": (
-                "Gap-up on heavy volume: buy above EP-day high, "
-                "stop at EP-day low"
+                "Gap-up on heavy volume: EP shortlist"
             ),
         }
 
