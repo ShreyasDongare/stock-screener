@@ -1330,11 +1330,19 @@ function renderMarketBreadth(){
   // 50% month is the exception: it is threshold-based, not pair-based.
   // Up 50% >= 20 => red; Down 50% >= 20 => green, > 30 => red.
   // Ratios and universe remain neutral.
-  const pairCell=(value,other)=>{
-    if(value==null || other==null) return '<td class="breadth-neutral">'+(value==null?"—":f2(value))+'</td>';
-    const v=Number(value), o=Number(other);
-    if(!Number.isFinite(v) || !Number.isFinite(o) || v===o) return '<td class="breadth-neutral">'+f2(value)+'</td>';
-    return '<td class="'+(v>o?"breadth-positive":"breadth-negative")+'">'+f2(value)+'</td>';
+  const pairCells=(up,down)=>{
+    const u=Number(up), d=Number(down);
+    if(!Number.isFinite(u) || !Number.isFinite(d) || u===d){
+      return [
+        '<td class="breadth-neutral">'+(up==null?"—":f2(up))+'</td>',
+        '<td class="breadth-neutral">'+(down==null?"—":f2(down))+'</td>'
+      ];
+    }
+    const cls=u>d?"breadth-positive":"breadth-negative";
+    return [
+      '<td class="'+cls+'">'+f2(up)+'</td>',
+      '<td class="'+cls+'">'+f2(down)+'</td>'
+    ];
   };
   const fiftyUpCell=v=>{
     if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
@@ -1351,12 +1359,12 @@ function renderMarketBreadth(){
 
   body.innerHTML=data.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
-      pairCell(r.up4,r.down4)+pairCell(r.down4,r.up4)+
+      ...pairCells(r.up4,r.down4),
       plainCell(r.ratio5)+plainCell(r.ratio10)+
-      pairCell(r.up25_q,r.down25_q)+pairCell(r.down25_q,r.up25_q)+
-      pairCell(r.up25_m,r.down25_m)+pairCell(r.down25_m,r.up25_m)+
+      ...pairCells(r.up25_q,r.down25_q),
+      ...pairCells(r.up25_m,r.down25_m),
       fiftyUpCell(r.up50_m)+fiftyDownCell(r.down50_m)+
-      pairCell(r.up13_34,r.down13_34)+pairCell(r.down13_34,r.up13_34)+
+      ...pairCells(r.up13_34,r.down13_34),
       plainCell(r.universe)+
       '</tr>';
   }).join("") || '<tr><td colspan="14" class="empty">No market breadth data available.</td></tr>';
