@@ -1560,7 +1560,17 @@ function openChart(key,row){
   });
   LW=chart;
 
-  const candles=d.dates.map((time,i)=>({time,open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]})).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
+  // Normalize all chart dates to UTC timestamps. Some chart-data builds contain
+  // date strings in slightly different forms; Lightweight Charts is stricter
+  // when series data is supplied, and one invalid time can leave the chart blank.
+  const chartTime=(value)=>{
+    const s=String(value||"").slice(0,10);
+    const ms=Date.parse(s+"T00:00:00Z");
+    return Number.isFinite(ms) ? Math.floor(ms/1000) : null;
+  };
+  const candles=d.dates.map((time,i)=>({
+    time:chartTime(time),open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]
+  })).filter(x=>Number.isFinite(x.time)&&[x.open,x.high,x.low,x.close].every(Number.isFinite));
   const candle=chart.addSeries(LightweightCharts.CandlestickSeries,{
     upColor:ct.up,downColor:ct.down,borderUpColor:ct.up,borderDownColor:ct.down,wickUpColor:ct.up,wickDownColor:ct.down,
     priceLineVisible:false,lastValueVisible:true
@@ -1570,9 +1580,9 @@ function openChart(key,row){
   const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
   const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
   const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
-  ema11.setData(d.dates.map((time,i)=>({time,value:+d.ema11[i]})).filter(x=>Number.isFinite(x.value)));
-  ema21.setData(d.dates.map((time,i)=>({time,value:+d.ema21[i]})).filter(x=>Number.isFinite(x.value)));
-  sma50.setData(d.dates.map((time,i)=>({time,value:+d.sma50[i]})).filter(x=>Number.isFinite(x.value) && x.value>0));
+  ema11.setData(d.dates.map((time,i)=>({time:chartTime(time),value:+d.ema11[i]})).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value)));
+  ema21.setData(d.dates.map((time,i)=>({time:chartTime(time),value:+d.ema21[i]})).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value)));
+  sma50.setData(d.dates.map((time,i)=>({time:chartTime(time),value:+d.sma50[i]})).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value) && x.value>0));
 
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
     priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
@@ -1580,8 +1590,8 @@ function openChart(key,row){
   });
   volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
   volume.setData(d.dates.map((time,i)=>({
-    time,value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
-  })).filter(x=>Number.isFinite(x.value)));
+    time:chartTime(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
+  })).filter(x=>Number.isFinite(x.time)&&Number.isFinite(x.value)));
 
   CHART_SERIES={candle,ema11,ema21,sma50,volume};
   bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume);
@@ -1591,7 +1601,8 @@ function openChart(key,row){
     const markerSeries=candle;
     const markers=[];
     if(row?.signal || SCANS[S.tab]){
-      markers.push({time:d.dates[last],position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.signal||SCANS[S.tab].t});
+      const markerTime=chartTime(d.dates[last]);
+      if(Number.isFinite(markerTime)) markers.push({time:markerTime,position:"belowBar",color:ct.up,shape:"arrowUp",text:row?.signal||SCANS[S.tab].t});
     }
     if(markers.length) markerSeries.setMarkers(markers);
   }catch(_){}
