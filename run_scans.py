@@ -1063,36 +1063,59 @@ def analyse_stock(
 
 
 def build_market_breadth(df):
-    """Build daily market-breadth history from the full price database."""
+    """Build Stockbee-style daily market breadth for NSE stocks."""
     work = df[df["exch"].astype(str).str.upper().eq("NSE")].sort_values(["key", "date"]).copy()
     g = work.groupby("key", group_keys=False)
+
     work["prev_close"] = g["close"].shift(1)
     work["close_5d"] = g["close"].shift(5)
+    work["close_21d"] = g["close"].shift(21)
+    work["close_34d"] = g["close"].shift(34)
+    work["close_63d"] = g["close"].shift(63)
+
     work["chg_pct"] = (work["close"] / work["prev_close"] - 1) * 100
     work["chg_5d_pct"] = (work["close"] / work["close_5d"] - 1) * 100
-    work["sma20"] = g["close"].transform(lambda s: s.rolling(20, min_periods=20).mean())
-    work["sma50"] = g["close"].transform(lambda s: s.rolling(50, min_periods=50).mean())
-    work["sma200"] = g["close"].transform(lambda s: s.rolling(200, min_periods=200).mean())
-
-    def count(series):
-        return int(series.fillna(False).sum())
+    work["chg_21d_pct"] = (work["close"] / work["close_21d"] - 1) * 100
+    work["chg_34d_pct"] = (work["close"] / work["close_34d"] - 1) * 100
+    work["chg_63d_pct"] = (work["close"] / work["close_63d"] - 1) * 100
 
     rows = []
     for date, x in work.groupby("date", sort=True):
+        up4 = int((x["chg_pct"] >= 4.0).fillna(False).sum())
+        down4 = int((x["chg_pct"] <= -4.0).fillna(False).sum())
+
         rows.append({
             "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
-            "up45": count(x["chg_pct"] >= 4.5),
-            "down45": count(x["chg_pct"] <= -4.5),
-            "up20_5d": count(x["chg_5d_pct"] >= 20),
-            "down20_5d": count(x["chg_5d_pct"] <= -20),
-            "above20": count(x["close"] > x["sma20"]),
-            "below20": count(x["close"] < x["sma20"]),
-            "above50": count(x["close"] > x["sma50"]),
-            "below50": count(x["close"] < x["sma50"]),
-            "above200": count(x["close"] > x["sma200"]),
-            "below200": count(x["close"] < x["sma200"]),
+            "universe": int(len(x)),
+            "up4": up4,
+            "down4": down4,
+            "ratio5": None,
+            "ratio10": None,
+            "up25_q": int((x["chg_63d_pct"] >= 25.0).fillna(False).sum()),
+            "down25_q": int((x["chg_63d_pct"] <= -25.0).fillna(False).sum()),
+            "up25_m": int((x["chg_21d_pct"] >= 25.0).fillna(False).sum()),
+            "down25_m": int((x["chg_21d_pct"] <= -25.0).fillna(False).sum()),
+            "up50_m": int((x["chg_21d_pct"] >= 50.0).fillna(False).sum()),
+            "down50_m": int((x["chg_21d_pct"] <= -50.0).fillna(False).sum()),
+            "up13_34": int((x["chg_34d_pct"] >= 13.0).fillna(False).sum()),
+            "down13_34": int((x["chg_34d_pct"] <= -13.0).fillna(False).sum()),
         })
+
+    # Stockbee 5-day and 10-day ratios = rolling up-4% stocks /
+    # rolling down-4% stocks. Keep the daily history so the dashboard
+    # can show the same breadth-ratio concept.
+    for i, row in enumerate(rows):
+        lo5 = max(0, i - 4)
+        lo10 = max(0, i - 9)
+        up5 = sum(r["up4"] for r in rows[lo5:i + 1])
+        dn5 = sum(r["down4"] for r in rows[lo5:i + 1])
+        up10 = sum(r["up4"] for r in rows[lo10:i + 1])
+        dn10 = sum(r["down4"] for r in rows[lo10:i + 1])
+        row["ratio5"] = round(up5 / dn5, 2) if dn5 else None
+        row["ratio10"] = round(up10 / dn10, 2) if dn10 else None
+
     return rows
+
 def build_chart_data(df, keys):
     """
     Keep the dashboard chart payload compact.
