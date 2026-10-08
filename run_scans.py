@@ -1064,7 +1064,7 @@ def analyse_stock(
 
 def build_market_breadth(df):
     """Build daily market-breadth history from the full price database."""
-    work = df.sort_values(["key", "date"]).copy()
+    work = df[df["exch"].astype(str).str.upper().eq("NSE")].sort_values(["key", "date"]).copy()
     g = work.groupby("key", group_keys=False)
     work["prev_close"] = g["close"].shift(1)
     work["close_5d"] = g["close"].shift(5)
