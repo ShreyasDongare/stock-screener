@@ -303,28 +303,28 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 <script>
 const SCANS = {
   m136: {
-    t: "1M / 3M / 6M",
-    d: "Common filter: ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then breakout above the prior 31, 93 or 186 trading-day closing high with ADR and EMA60.",
+    t: "Momentum Scan",
+    d: "ADX >= 20 and breakout above a prior 31, 93 or 186 trading-day closing high with ADR and EMA60.",
     sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["breakout","Breakout","l"],["ema60","EMA60"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["breakout","Breakout","l"],["ema60","EMA60"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
   },
   m30: {
     t: "3M 30% Scan",
-    d: "ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then 3-month return above 30%, above EMA75, ADR at least 3%, and traded value above ₹1 Cr.",
+    d: "3-month return above 30%, above EMA75, ADR at least 3%, and traded value above ₹1 Cr.",
     sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["ema75","EMA75"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ema75","EMA75"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
   },
   htf: {
     t: "HTF Scan",
-    d: "ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then 60-day gain above 50%, within 15% of the prior 252-day high, controlled volume and price above ₹50.",
+    d: "60-day gain above 50%, within 15% of the prior 252-day high, controlled volume and price above ₹50.",
     sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["gain60","60D %"],["off_high","Off 252W high %"],["vol_ratio","Vol x"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["gain60","60D %"],["off_high","Off 252W high %"],["vol_ratio","Vol x"],["tr_adr","ADR %"],["adx","ADX"],["spark","40 days"]]
   },
   high52w: {
     t: "52Week High",
-    d: "ADX >= 20 and at least one of the 1M / 3M / 6M returns is >= 30%. Then within 10% of the prior 252-day high, but not above it, with ADR and ₹1 Cr traded-value.",
+    d: "Within 10% of the prior 252-day high, but not above it, with ADR and ₹1 Cr traded-value.",
     sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m","1M %"],["ret3m","3M %"],["ret6m","6M %"],["off_high","Off 52W high %"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["off_high","Off 52W high %"],["tr_adr","ADR %"],["adx","ADX"],["value_cr","Value (Cr)"],["spark","40 days"]]
   },
   volume: {
     t: "Volume Scan",
@@ -342,13 +342,13 @@ const SCANS = {
     t: "1-Month Performance",
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · Minimum 30% gain over the last 1 month (21 trading sessions).",
     sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret1m_perf","1M Gain %"],["avg_volume","Avg Vol"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["avg_volume","Avg Vol"],["spark","40 days"]]
   },
   three_month: {
     t: "3-Month Performance",
     d: "NSE only · Price ≥ ₹30 · 20-day average volume ≥ 200,000 shares · Minimum 30% gain over the last 3 months (63 trading sessions).",
     sort: ["symbol", 1],
-    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["ret3m_perf","3M Gain %"],["avg_volume","Avg Vol"],["spark","40 days"]]
+    cols: [["symbol","Symbol","l"],["exch","Exch","l"],["close","Close"],["chg","Chg %"],["avg_volume","Avg Vol"],["spark","40 days"]]
   },
   ep: {
     t: "Episodic Pivot",
