@@ -1062,6 +1062,37 @@ def analyse_stock(
     return out
 
 
+def build_market_breadth(df):
+    """Build daily market-breadth history from the full price database."""
+    work = df.sort_values(["key", "date"]).copy()
+    g = work.groupby("key", group_keys=False)
+    work["prev_close"] = g["close"].shift(1)
+    work["close_5d"] = g["close"].shift(5)
+    work["chg_pct"] = (work["close"] / work["prev_close"] - 1) * 100
+    work["chg_5d_pct"] = (work["close"] / work["close_5d"] - 1) * 100
+    work["sma20"] = g["close"].transform(lambda s: s.rolling(20, min_periods=20).mean())
+    work["sma50"] = g["close"].transform(lambda s: s.rolling(50, min_periods=50).mean())
+    work["sma200"] = g["close"].transform(lambda s: s.rolling(200, min_periods=200).mean())
+
+    def count(series):
+        return int(series.fillna(False).sum())
+
+    rows = []
+    for date, x in work.groupby("date", sort=True):
+        rows.append({
+            "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
+            "up45": count(x["chg_pct"] >= 4.5),
+            "down45": count(x["chg_pct"] <= -4.5),
+            "up20_5d": count(x["chg_5d_pct"] >= 20),
+            "down20_5d": count(x["chg_5d_pct"] <= -20),
+            "above20": count(x["close"] > x["sma20"]),
+            "below20": count(x["close"] < x["sma20"]),
+            "above50": count(x["close"] > x["sma50"]),
+            "below50": count(x["close"] < x["sma50"]),
+            "above200": count(x["close"] > x["sma200"]),
+            "below200": count(x["close"] < x["sma200"]),
+        })
+    return rows
 def build_chart_data(df, keys):
     """
     Keep the dashboard chart payload compact.
