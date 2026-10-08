@@ -287,9 +287,18 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 <div class="breadth-modal" id="breadthModal" role="dialog" aria-modal="true" aria-label="Market Breadth">
   <div class="breadth-box">
     <div class="breadth-head"><div class="breadth-title">Market Breadth</div><div class="breadth-sub" id="breadthSub">Daily market breadth history</div><button class="breadth-close" id="breadthClose" type="button">✕</button></div>
-    <div class="breadth-wrap"><table class="breadth-table"><thead><tr>
-      <th>Date</th><th>Up 4.5%+<br>today</th><th>Down 4.5%+<br>today</th><th>Up 20%+<br>in 5D</th><th>Down 20%+<br>in 5D</th><th>Above<br>20DMA</th><th>Below<br>20DMA</th><th>Above<br>50DMA</th><th>Below<br>50DMA</th><th>Above<br>200DMA</th><th>Below<br>200DMA</th>
-    </tr></thead><tbody id="breadthBody"></tbody></table></div>
+    <div class="breadth-wrap"><table class="breadth-table"><thead>
+      <tr>
+        <th rowspan="2">Date</th>
+        <th colspan="6" class="breadth-group primary">Primary Breadth Indicators</th>
+        <th colspan="6" class="breadth-group secondary">Secondary Breadth Indicators</th>
+        <th rowspan="2">NSE<br>Universe</th>
+      </tr>
+      <tr>
+        <th>Up 4%+<br>today</th><th>Down 4%+<br>today</th><th>5 Day<br>Ratio</th><th>10 Day<br>Ratio</th><th>Up 25%+<br>in Quarter</th><th>Down 25%+<br>in Quarter</th>
+        <th>Up 25%+<br>in Month</th><th>Down 25%+<br>in Month</th><th>Up 50%+<br>in Month</th><th>Down 50%+<br>in Month</th><th>Up 13%+<br>in 34 Days</th><th>Down 13%+<br>in 34 Days</th>
+      </tr>
+    </thead><tbody id="breadthBody"></tbody></table></div>
   </div>
 </div>
 <div class="formula-popover" id="formulaPopover" role="dialog" aria-modal="false" aria-label="Scan formula">
@@ -1313,10 +1322,20 @@ document.addEventListener("keydown",e=>{
 function renderMarketBreadth(){
   const body=$("breadthBody"), sub=$("breadthSub"); if(!body) return;
   const data=Array.isArray(D?.market_breadth)?D.market_breadth:[];
-  sub.textContent=data.length?data.length+" trading days":"No breadth data available";
-  body.innerHTML=data.slice().reverse().map(r=>
-    '<tr><td class="l">'+esc(r.date)+'</td>'+[["up45",1],["down45",-1],["up20_5d",1],["down20_5d",-1],["above20",1],["below20",-1],["above50",1],["below50",-1],["above200",1],["below200",-1]].map(([k,s])=>'<td class="'+(s>0?"breadth-up":"breadth-down")+'">'+f2(r[k])+'</td>').join("")+'</tr>'
-  ).join("") || '<tr><td colspan="11" class="empty">No market breadth data available.</td></tr>';
+  sub.textContent=data.length?data.length+" NSE trading days":"No breadth data available";
+  const cell=(v,cls="")=>'<td class="'+cls+'">'+(v==null?"—":f2(v))+'</td>';
+  body.innerHTML=data.slice().reverse().map(r=>{
+    const ratioClass=v=>v==null?"":(Number(v)>=1?"breadth-up":"breadth-down");
+    return '<tr><td class="l">'+esc(r.date)+'</td>'+
+      cell(r.up4,"breadth-up")+cell(r.down4,"breadth-down")+
+      cell(r.ratio5,ratioClass(r.ratio5))+cell(r.ratio10,ratioClass(r.ratio10))+
+      cell(r.up25_q,"breadth-up")+cell(r.down25_q,"breadth-down")+
+      cell(r.up25_m,"breadth-up")+cell(r.down25_m,"breadth-down")+
+      cell(r.up50_m,"breadth-up")+cell(r.down50_m,"breadth-down")+
+      cell(r.up13_34,"breadth-up")+cell(r.down13_34,"breadth-down")+
+      cell(r.universe)+
+      '</tr>';
+  }).join("") || '<tr><td colspan="14" class="empty">No market breadth data available.</td></tr>';
 }
 function openMarketBreadth(){ renderMarketBreadth(); $("breadthModal")?.classList.add("open"); }
 function closeMarketBreadth(){ $("breadthModal")?.classList.remove("open"); }
