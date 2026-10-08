@@ -140,7 +140,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .colour-watch-group.red .cw-dot{background:#D95353}.colour-watch-group.orange .cw-dot{background:#E6973D}.colour-watch-group.yellow .cw-dot{background:#E7B84B}.colour-watch-group.green .cw-dot{background:#45C98D}.colour-watch-group.blue .cw-dot{background:#58A6E6}.colour-watch-group.purple .cw-dot{background:#B17DE6}
 .colour-watch-group-items{padding:2px 0 4px}
 .colour-watch-group.collapsed .colour-watch-group-items{display:none}
-.colour-watch-details{display:block;margin:0 0 5px;border:1px solid #2A3947;border-radius:7px;overflow:hidden;--spacing:0}
+.colour-watch-details{display:block;margin:0 0 5px;border:1px solid #2A3947;border-radius:7px;overflow:hidden;--spacing:0;--show-duration:220ms;--hide-duration:180ms}
 .colour-watch-details::part(details){border:0;background:transparent}
 .colour-watch-details::part(header){min-height:34px;padding:0 8px;background:#141D26;color:#B9C6D3}
 .colour-watch-details::part(summary){font:600 9px var(--mono);text-transform:uppercase;letter-spacing:.6px}
@@ -1372,6 +1372,13 @@ function renderChartWatchlist(activeKey){
   CHART_WATCH_TAGS=getTags();
 
   if(CHART_WATCH_MODE==="colours"){
+    // Preserve each colour group's current open/closed state before rebuilding.
+    // This prevents removing/re-tagging one stock from reopening the other groups.
+    const openState={};
+    el.querySelectorAll("wa-details[data-colour-group]").forEach(d=>{
+      openState[d.dataset.colourGroup]=d.open;
+    });
+
     const q=CHART_WATCH_Q.trim().toUpperCase();
     const groups={};
     WATCHLIST_COLORS.forEach(([color,label])=>groups[color]={label,items:[]});
@@ -1399,8 +1406,10 @@ function renderChartWatchlist(activeKey){
         '<div class="colour-watch-groups">'+
           WATCHLIST_COLORS.filter(([color])=>groups[color].items.length).map(([color,label])=>{
             const items=groups[color].items.sort((a,b)=>String(a.symbol).localeCompare(String(b.symbol)));
+            const isOpen=openState[color]===undefined ? true : openState[color];
+            const openAttr=isOpen ? ' open' : '';
             const summary='<span class="colour-watch-summary '+color+'" slot="summary"><span class="cw-dot"></span><span class="cw-name">'+label+' Tag</span><span class="cw-count">'+items.length+'</span></span>';
-            return '<wa-details class="colour-watch-details '+color+'" open>'+summary+
+            return '<wa-details class="colour-watch-details '+color+'" data-colour-group="'+color+'"'+openAttr+'>'+summary+
               items.map(r=>chartWatchRowHTML(r,CHART_WATCH_ACTIVE_KEY)).join("")+
               '</wa-details>';
           }).join("")+
@@ -1411,7 +1420,7 @@ function renderChartWatchlist(activeKey){
     const search=$("chartWatchSearch");
     search?.addEventListener("input",e=>{
       CHART_WATCH_Q=e.target.value;
-      renderChartWatchlist(CHART_WATCH_ACTIVE_KEY);
+      renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):"");
       requestAnimationFrame(()=>{const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
     });
     return;
