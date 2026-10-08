@@ -292,7 +292,8 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
         <th rowspan="2">Date</th>
         <th colspan="6" class="breadth-group primary">Primary Breadth Indicators</th>
         <th colspan="6" class="breadth-group secondary">Secondary Breadth Indicators</th>
-        <th rowspan="2">NSE<br>Universe</th>
+        <th rowspan="2">T2108<br>% &gt; SMA40</th>
+        <th rowspan="2">Eligible NSE<br>Universe</th>
       </tr>
       <tr>
         <th>Up 4%+<br>today</th><th>Down 4%+<br>today</th><th>5 Day<br>Ratio</th><th>10 Day<br>Ratio</th><th>Up 25%+<br>in Quarter</th><th>Down 25%+<br>in Quarter</th>
@@ -1324,21 +1325,34 @@ function renderMarketBreadth(){
   const data=Array.isArray(D?.market_breadth)?D.market_breadth:[];
   sub.textContent=data.length?data.length+" NSE trading days":"No breadth data available";
 
-  // Stockbee-style Market Monitor colouring:
-  // Pair metrics: both cells share the colour of the stronger side.
-  // Up > Down => both green; Down > Up => both red.
-  // 50% month is the exception: it is threshold-based, not pair-based.
-  // Up 50% >= 20 => red; Down 50% >= 20 => green, > 30 => red.
-  // Ratios and universe remain neutral.
-  const pairCells=(up,down)=>{
+  // Stockbee-style colour rules:
+  // Pair indicators share one colour: stronger side wins.
+  // Daily +/-4% additionally gets a stronger shade when the count reaches
+  // the configured percentage of the Indian eligible universe.
+  // 5D/10D ratios: >=2 green, <=0.5 red.
+  // T2108: <20 oversold green, >80 overbought red.
+  // 50% month: Up >=20 is bearish/red; Down >=20 is bullish/green.
+  const B=D?.config?.breadth||{};
+  const strongPct=Number(B.strong_day_pct)||0.117;
+  const pairCells=(up,down,universe=null,strong=false)=>{
     const u=Number(up), d=Number(down);
     if(!Number.isFinite(u) || !Number.isFinite(d) || u===d){
       return '<td class="breadth-neutral">'+(up==null?"—":f2(up))+'</td>'+
              '<td class="breadth-neutral">'+(down==null?"—":f2(down))+'</td>';
     }
     const cls=u>d?"breadth-positive":"breadth-negative";
-    return '<td class="'+cls+'">'+f2(up)+'</td>'+
-           '<td class="'+cls+'">'+f2(down)+'</td>';
+    const strongCls=strong && Number.isFinite(Number(universe)) &&
+      Math.max(u,d)>=Number(universe)*strongPct
+      ? (cls==="breadth-positive"?" breadth-positive-strong":" breadth-negative-strong")
+      : "";
+    return '<td class="'+cls+strongCls+'">'+f2(up)+'</td>'+
+           '<td class="'+cls+strongCls+'">'+f2(down)+'</td>';
+  };
+  const ratioCell=v=>{
+    if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
+    const n=Number(v);
+    const cls=n>=2?"breadth-positive":n<=0.5?"breadth-negative":"breadth-neutral";
+    return '<td class="'+cls+'">'+f2(v)+'</td>';
   };
   const fiftyUpCell=v=>{
     if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
@@ -1348,22 +1362,28 @@ function renderMarketBreadth(){
   const fiftyDownCell=v=>{
     if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
     const n=Number(v);
-    const cls=n>30?"breadth-negative":n>=20?"breadth-positive":"breadth-neutral";
+    return '<td class="'+(n>=20?"breadth-positive":"breadth-neutral")+'">'+f2(v)+'</td>';
+  };
+  const t2108Cell=v=>{
+    if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
+    const n=Number(v);
+    const cls=n<20?"breadth-positive":n>80?"breadth-negative":"breadth-neutral";
     return '<td class="'+cls+'">'+f2(v)+'</td>';
   };
   const plainCell=v=>'<td class="breadth-neutral">'+(v==null?"—":f2(v))+'</td>';
 
   body.innerHTML=data.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
-      pairCells(r.up4,r.down4)+
-      plainCell(r.ratio5)+plainCell(r.ratio10)+
+      pairCells(r.up4,r.down4,r.universe,true)+
+      ratioCell(r.ratio5)+ratioCell(r.ratio10)+
       pairCells(r.up25_q,r.down25_q)+
       pairCells(r.up25_m,r.down25_m)+
       fiftyUpCell(r.up50_m)+fiftyDownCell(r.down50_m)+
       pairCells(r.up13_34,r.down13_34)+
+      t2108Cell(r.t2108)+
       plainCell(r.universe)+
       '</tr>';
-  }).join("") || '<tr><td colspan="14" class="empty">No market breadth data available.</td></tr>';
+  }).join("") || '<tr><td colspan="15" class="empty">No market breadth data available.</td></tr>';
 }
 function openMarketBreadth(){ renderMarketBreadth(); $("breadthModal")?.classList.add("open"); }
 function closeMarketBreadth(){ $("breadthModal")?.classList.remove("open"); }
