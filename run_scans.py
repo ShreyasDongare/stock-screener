@@ -7,6 +7,7 @@ Scans
 2. 3M 30% Scan
 3. HTF Scan
 4. 52Week High Scan
+5. Volume Scan (NSE only)
 
 Input:
     data/prices.csv.gz
@@ -83,6 +84,14 @@ CFG = {
         "adr_min_pct": 3.0,
         "high_lookback_days": 252,
         "max_high_distance_pct": 10.0,
+    },
+    "volume": {
+        "name": "Volume Scan",
+        "min_price": 30.0,
+        "min_change_pct": 3.0,
+        "avg_volume_days": 20,
+        "min_avg_volume": 200_000.0,
+        "min_rvol": 3.0,
     },
 }
 # ------------------------------------------------------------
@@ -504,6 +513,66 @@ def analyse_htf(
     }
 
 
+def analyse_volume(
+    key,
+    g,
+    c,
+    h,
+    l,
+    v,
+    tr,
+    base,
+):
+    """
+    NSE-only volume momentum scan:
+
+      Close >= 30
+      AND daily change >= 3%
+      AND 20-day average volume >= 200,000 shares
+      AND current volume / 20-day average volume > 3x
+    """
+    n = len(g)
+    if n < CFG["volume"]["avg_volume_days"]:
+        return None
+
+    if str(g.iloc[-1]["exch"]).upper() != "NSE":
+        return None
+
+    close = c[-1]
+    prev_close = c[-2] if n >= 2 else np.nan
+    chg = (close / prev_close - 1) * 100 if prev_close else np.nan
+
+    avg_volume = (
+        pd.Series(v)
+        .rolling(CFG["volume"]["avg_volume_days"])
+        .mean()
+        .iloc[-1]
+    )
+
+    if not (
+        np.isfinite(close)
+        and close >= CFG["volume"]["min_price"]
+        and np.isfinite(chg)
+        and chg >= CFG["volume"]["min_change_pct"]
+        and np.isfinite(avg_volume)
+        and avg_volume >= CFG["volume"]["min_avg_volume"]
+        and np.isfinite(v[-1])
+        and avg_volume > 0
+    ):
+        return None
+
+    rvol = v[-1] / avg_volume
+    if not np.isfinite(rvol) or rvol <= CFG["volume"]["min_rvol"]:
+        return None
+
+    return {
+        **base,
+        "avg_volume": num(avg_volume, 0),
+        "rvol": num(rvol, 2),
+        "signal": "Volume surge > 3x average",
+    }
+
+
 def analyse_high52w(
     key,
     g,
@@ -746,6 +815,20 @@ def analyse_stock(
     if r:
         out["high52w"] = r
 
+    # This scan is intentionally independent of the common ADX/30% gate.
+    r = analyse_volume(
+        key,
+        g,
+        c,
+        h,
+        l,
+        v,
+        tr,
+        base,
+    )
+    if r:
+        out["volume"] = r
+
     return out
 
 
@@ -876,6 +959,7 @@ def main():
         "m30": [],
         "htf": [],
         "high52w": [],
+        "volume": [],
     }
 
     total = 0
@@ -927,6 +1011,12 @@ def main():
         )
     )
 
+    hits["volume"].sort(
+        key=lambda r: (
+            -float(r.get("rvol", 0) or 0)
+        )
+    )
+
     passed_keys = {
         r["key"]
         for rows in hits.values()
@@ -968,6 +1058,11 @@ def main():
                 "SMA(True Range(1),20) / Close * 100 >= 3 AND "
                 "Close >= previous 252-day max High * 0.90 AND "
                 "Close <= previous 252-day max High"
+            ),
+            "volume": (
+                "NSE only AND Close >= ₹30 AND daily change >= 3% AND "
+                "20-day average volume >= 200,000 shares AND "
+                "current volume / 20-day average volume > 3x"
             ),
         },
     }
