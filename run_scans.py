@@ -100,6 +100,14 @@ CFG = {
         "min_avg_volume": 200_000.0,
         "lookback_days": 21,
     },
+    "three_month": {
+        "name": "3 Month Performance",
+        "min_price": 30.0,
+        "avg_volume_days": 20,
+        "min_avg_volume": 200_000.0,
+        "lookback_days": 63,
+        "min_return_pct": 30.0,
+    },
 }
 # ------------------------------------------------------------
 
@@ -580,6 +588,67 @@ def analyse_volume(
     }
 
 
+def analyse_three_month(
+    key,
+    g,
+    c,
+    h,
+    l,
+    v,
+    tr,
+    base,
+):
+    """
+    NSE-only 3-month performance scan:
+
+      Close >= 30
+      AND 20-day average volume >= 200,000 shares
+      AND 3-month price gain >= 30%.
+
+    Performance uses 63 trading sessions.
+    """
+    n = len(g)
+    cfg = CFG["three_month"]
+
+    if n <= cfg["lookback_days"]:
+        return None
+
+    if str(g.iloc[-1]["exch"]).upper() != "NSE":
+        return None
+
+    close = c[-1]
+    old_close = c[-1 - cfg["lookback_days"]]
+    avg_volume = (
+        pd.Series(v)
+        .rolling(cfg["avg_volume_days"])
+        .mean()
+        .iloc[-1]
+    )
+
+    ret3m = (
+        (close / old_close - 1) * 100
+        if np.isfinite(old_close) and old_close != 0
+        else np.nan
+    )
+
+    if not (
+        np.isfinite(close)
+        and close >= cfg["min_price"]
+        and np.isfinite(avg_volume)
+        and avg_volume >= cfg["min_avg_volume"]
+        and np.isfinite(ret3m)
+        and ret3m >= cfg["min_return_pct"]
+    ):
+        return None
+
+    return {
+        **base,
+        "ret3m_perf": num(ret3m, 2),
+        "avg_volume": num(avg_volume, 0),
+        "signal": "3-month gain >= 30%",
+    }
+
+
 def analyse_one_month(
     key,
     g,
@@ -814,6 +883,19 @@ def analyse_stock(
         ):
             return out
 
+    r = analyse_three_month(
+        key,
+        g,
+        c,
+        h,
+        l,
+        v,
+        tr,
+        base,
+    )
+    if r:
+        out["three_month"] = r
+
     r = analyse_one_month(
         key,
         g,
@@ -1011,6 +1093,7 @@ def main():
         "high52w": [],
         "volume": [],
         "one_month": [],
+        "three_month": [],
     }
 
     total = 0
@@ -1074,6 +1157,12 @@ def main():
         )
     )
 
+    hits["three_month"].sort(
+        key=lambda r: (
+            -float(r.get("ret3m_perf", 0) or 0)
+        )
+    )
+
     passed_keys = {
         r["key"]
         for rows in hits.values()
@@ -1124,6 +1213,10 @@ def main():
             "one_month": (
                 "NSE only AND Close >= ₹30 AND 20-day average volume >= 200,000 "
                 "shares AND Close > previous 21-trading-day closing high"
+            ),
+            "three_month": (
+                "NSE only AND Close >= ₹30 AND 20-day average volume >= 200,000 "
+                "shares AND 3-month price gain >= 30% over 63 trading sessions"
             ),
         },
     }
