@@ -93,6 +93,13 @@ CFG = {
         "min_avg_volume": 200_000.0,
         "min_rvol": 3.0,
     },
+    "one_month": {
+        "name": "1 Month Scan",
+        "min_price": 30.0,
+        "avg_volume_days": 20,
+        "min_avg_volume": 200_000.0,
+        "lookback_days": 21,
+    },
 }
 # ------------------------------------------------------------
 
@@ -573,6 +580,63 @@ def analyse_volume(
     }
 
 
+def analyse_one_month(
+    key,
+    g,
+    c,
+    h,
+    l,
+    v,
+    tr,
+    base,
+):
+    """
+    NSE-only 1-month scan:
+
+      Close >= 30
+      AND 20-day average volume >= 200,000 shares
+      AND current close is a new 1-month high.
+
+    The 1-month high uses the previous 21 trading sessions and excludes
+    today's close, so "new high" means today's close is above that prior
+    21-session closing high.
+    """
+    n = len(g)
+    cfg = CFG["one_month"]
+
+    if n <= cfg["lookback_days"]:
+        return None
+
+    if str(g.iloc[-1]["exch"]).upper() != "NSE":
+        return None
+
+    close = c[-1]
+    avg_volume = (
+        pd.Series(v)
+        .rolling(cfg["avg_volume_days"])
+        .mean()
+        .iloc[-1]
+    )
+    prior_1m_high = np.max(c[-1 - cfg["lookback_days"]:-1])
+
+    if not (
+        np.isfinite(close)
+        and close >= cfg["min_price"]
+        and np.isfinite(avg_volume)
+        and avg_volume >= cfg["min_avg_volume"]
+        and np.isfinite(prior_1m_high)
+        and close > prior_1m_high
+    ):
+        return None
+
+    return {
+        **base,
+        "avg_volume": num(avg_volume, 0),
+        "one_month_high": num(prior_1m_high, 2),
+        "signal": "New 1-month high",
+    }
+
+
 def analyse_high52w(
     key,
     g,
@@ -749,6 +813,19 @@ def analyse_stock(
             and open_close_days >= tcfg["min_open_close_days"]
         ):
             return out
+
+    r = analyse_one_month(
+        key,
+        g,
+        c,
+        h,
+        l,
+        v,
+        tr,
+        base,
+    )
+    if r:
+        out["one_month"] = r
 
     r = analyse_m136(
         key,
@@ -933,6 +1010,7 @@ def main():
         "htf": [],
         "high52w": [],
         "volume": [],
+        "one_month": [],
     }
 
     total = 0
@@ -990,6 +1068,12 @@ def main():
         )
     )
 
+    hits["one_month"].sort(
+        key=lambda r: (
+            -float(r.get("close", 0) or 0)
+        )
+    )
+
     passed_keys = {
         r["key"]
         for rows in hits.values()
@@ -1036,6 +1120,10 @@ def main():
                 "NSE only AND Close >= ₹30 AND daily change >= 3% AND "
                 "20-day average volume >= 200,000 shares AND "
                 "current volume / 20-day average volume > 3x"
+            ),
+            "one_month": (
+                "NSE only AND Close >= ₹30 AND 20-day average volume >= 200,000 "
+                "shares AND Close > previous 21-trading-day closing high"
             ),
         },
     }
