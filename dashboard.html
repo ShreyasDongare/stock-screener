@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wolf Momentum Screener • Market Intelligence</title>
-<link rel="icon" type="image/png" href="assets/wolf-logo.png?v=1"><link rel="apple-touch-icon" href="assets/wolf-logo.png?v=1"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/wolf-logo.png?v=1"><link rel="apple-touch-icon" href="assets/wolf-logo.png?v=1"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"><script type="module" src="https://ka-f.webawesome.com/[email protected]/components/details/details.js"></script>
 <script defer src="https://unpkg.com/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#EEF1F4;--panel:#fff;--ink:#16212B;--mute:#68788A;--line:#DCE2E8;--hover:#F2F6FA;--up:#17794F;--dn:#B83232;--acc:#2A5A8E;--accbg:#E2ECF6;--warn:#B16A00;--hdr:#15212C;--hdrink:#fff;
@@ -140,6 +140,18 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .colour-watch-group.red .cw-dot{background:#D95353}.colour-watch-group.orange .cw-dot{background:#E6973D}.colour-watch-group.yellow .cw-dot{background:#E7B84B}.colour-watch-group.green .cw-dot{background:#45C98D}.colour-watch-group.blue .cw-dot{background:#58A6E6}.colour-watch-group.purple .cw-dot{background:#B17DE6}
 .colour-watch-group-items{padding:2px 0 4px}
 .colour-watch-group.collapsed .colour-watch-group-items{display:none}
+.colour-watch-details{display:block;margin:0 0 5px;border:1px solid #2A3947;border-radius:7px;overflow:hidden;--spacing:0}
+.colour-watch-details::part(details){border:0;background:transparent}
+.colour-watch-details::part(header){min-height:34px;padding:0 8px;background:#141D26;color:#B9C6D3}
+.colour-watch-details::part(summary){font:600 9px var(--mono);text-transform:uppercase;letter-spacing:.6px}
+.colour-watch-details::part(icon){color:#71879A}
+.colour-watch-details::part(content){padding:2px 0 4px;background:#101820}
+.colour-watch-details.red::part(header){box-shadow:inset 3px 0 0 #D95353}.colour-watch-details.orange::part(header){box-shadow:inset 3px 0 0 #E6973D}.colour-watch-details.yellow::part(header){box-shadow:inset 3px 0 0 #E7B84B}.colour-watch-details.green::part(header){box-shadow:inset 3px 0 0 #45C98D}.colour-watch-details.blue::part(header){box-shadow:inset 3px 0 0 #58A6E6}.colour-watch-details.purple::part(header){box-shadow:inset 3px 0 0 #B17DE6}
+.colour-watch-summary{display:flex;align-items:center;width:100%;gap:7px}
+.colour-watch-summary .cw-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+.colour-watch-summary .cw-name{flex:1}.colour-watch-summary .cw-count{color:#72869A;font-size:8px}
+.colour-watch-summary.red .cw-dot{background:#D95353}.colour-watch-summary.orange .cw-dot{background:#E6973D}.colour-watch-summary.yellow .cw-dot{background:#E7B84B}.colour-watch-summary.green .cw-dot{background:#45C98D}.colour-watch-summary.blue .cw-dot{background:#58A6E6}.colour-watch-summary.purple .cw-dot{background:#B17DE6}
+.colour-watch-details .chart-watch-item{border-radius:5px;margin:0 5px;width:calc(100% - 10px)}
 .chart-watch-help{flex:0 0 auto;color:#607384;font:9px var(--mono);padding:4px 7px 2px;line-height:1.5;background:#101820}
 .chart-tag-palette{position:fixed;z-index:100;display:flex;gap:7px;padding:8px;background:#111A22;border:1px solid #344352;border-radius:9px;box-shadow:0 12px 32px rgba(0,0,0,.45)}
 .chart-tag-choice{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;background:#344352;position:relative}
@@ -681,15 +693,6 @@ function renderChartWatchlist(activeKey){
       renderChartWatchlist(CHART_ROW?chartRowKey(CHART_ROW):"");
     });
 
-    el.querySelectorAll("[data-colour-toggle]").forEach(btn=>{
-      btn.addEventListener("click",e=>{
-        e.preventDefault();
-        const group=btn.closest("[data-colour-group]");
-        group?.classList.toggle("collapsed");
-        const arrow=btn.querySelector(".cw-arrow");
-        if(arrow) arrow.textContent=group?.classList.contains("collapsed")?"⌄":"⌃";
-      });
-    });
     return;
   }
 
@@ -1378,8 +1381,7 @@ function renderChartWatchlist(activeKey){
       sourceRows(tab).forEach(r=>{
         if(!r||!r.symbol) return;
         const key=chartRowKey(r), color=CHART_WATCH_TAGS[key];
-        if(!color || seen.has(key)) return;
-        if(!groups[color]) return;
+        if(!color || seen.has(key) || !groups[color]) return;
         seen.add(key);
         if(!q || String(r.symbol).toUpperCase().includes(q)){
           groups[color].items.push({...r,__watchColor:color});
@@ -1397,12 +1399,10 @@ function renderChartWatchlist(activeKey){
         '<div class="colour-watch-groups">'+
           WATCHLIST_COLORS.filter(([color])=>groups[color].items.length).map(([color,label])=>{
             const items=groups[color].items.sort((a,b)=>String(a.symbol).localeCompare(String(b.symbol)));
-            return '<section class="colour-watch-group '+color+'" data-colour-group="'+color+'">'+
-              '<button type="button" class="colour-watch-group-head" data-colour-toggle="'+color+'">'+
-                '<span class="cw-dot"></span><span class="cw-name">'+label+' Tag</span><span class="cw-count">'+items.length+'</span><span class="cw-arrow">⌃</span>'+
-              '</button>'+
-              '<div class="colour-watch-group-items">'+items.map(r=>chartWatchRowHTML(r,CHART_WATCH_ACTIVE_KEY)).join("")+'</div>'+
-            '</section>';
+            const summary='<span class="colour-watch-summary '+color+'" slot="summary"><span class="cw-dot"></span><span class="cw-name">'+label+' Tag</span><span class="cw-count">'+items.length+'</span></span>';
+            return '<wa-details class="colour-watch-details '+color+'" open>'+summary+
+              items.map(r=>chartWatchRowHTML(r,CHART_WATCH_ACTIVE_KEY)).join("")+
+              '</wa-details>';
           }).join("")+
         '</div>'+
       '</div>'+
@@ -1414,19 +1414,8 @@ function renderChartWatchlist(activeKey){
       renderChartWatchlist(CHART_WATCH_ACTIVE_KEY);
       requestAnimationFrame(()=>{const s=$("chartWatchSearch");s?.focus();s?.setSelectionRange(CHART_WATCH_Q.length,CHART_WATCH_Q.length);});
     });
-
-    el.querySelectorAll("[data-colour-toggle]").forEach(btn=>{
-      btn.addEventListener("click",e=>{
-        e.preventDefault();
-        const group=btn.closest("[data-colour-group]");
-        group?.classList.toggle("collapsed");
-        const arrow=btn.querySelector(".cw-arrow");
-        if(arrow) arrow.textContent=group?.classList.contains("collapsed")?"⌄":"⌃";
-      });
-    });
     return;
   }
-
   // Normal scan watchlist keeps the existing virtual-scroller behaviour.
   CHART_WATCH_ITEMS=chartWatchItems();
   CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
