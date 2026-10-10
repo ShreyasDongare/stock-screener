@@ -1142,7 +1142,29 @@ def build_market_breadth(df):
     work["max34"] = g["close"].transform(
         lambda s: s.rolling(34, min_periods=34).max()
     )
-    work["close20"] = g["close"].shift(20)
+    # Match the Google Sheets calendar-date return formulas:
+    # monthly base = first available close on/after date - 30 calendar days;
+    # quarterly base = last available close on/before EDATE(date, -3 months).
+    work["close_month_base"] = np.nan
+    work["close_quarter_base"] = np.nan
+    for _, idx in work.groupby("key", sort=False).groups.items():
+        dates = pd.to_datetime(work.loc[idx, "date"]).reset_index(drop=True)
+        closes = work.loc[idx, "close"].reset_index(drop=True)
+        current_dates = dates
+        month_targets = current_dates - pd.Timedelta(days=30)
+        month_pos = dates.searchsorted(month_targets, side="left")
+        valid_month = month_pos < len(dates)
+        month_values = np.full(len(dates), np.nan)
+        month_values[valid_month.to_numpy()] = closes.iloc[month_pos[valid_month.to_numpy()]].to_numpy(float)
+        work.loc[idx, "close_month_base"] = month_values
+
+        quarter_targets = current_dates - pd.DateOffset(months=3)
+        quarter_pos = dates.searchsorted(quarter_targets, side="right") - 1
+        valid_quarter = quarter_pos >= 0
+        quarter_values = np.full(len(dates), np.nan)
+        quarter_values[valid_quarter.to_numpy()] = closes.iloc[quarter_pos[valid_quarter.to_numpy()]].to_numpy(float)
+        work.loc[idx, "close_quarter_base"] = quarter_values
+
     work["sma21"] = g["close"].transform(lambda s: s.rolling(21, min_periods=21).mean())
     work["sma50"] = g["close"].transform(lambda s: s.rolling(50, min_periods=50).mean())
     work["sma200"] = g["close"].transform(lambda s: s.rolling(200, min_periods=200).mean())
@@ -1172,29 +1194,17 @@ def build_market_breadth(df):
     work["up3_signal"] = work["chg_pct"].ge(3.0)
     work["down3_signal"] = work["chg_pct"].le(-3.0)
 
-    month_base = work["close20"].notna() & work["close20"].gt(0)
-    month_ret = (
-        work["close"] / work["close20"].replace(0, np.nan) - 1
-    ) * 100
-
+    month_base = work["close_month_base"].notna() & work["close_month_base"].gt(0)
+    month_ret = (work["close"] / work["close_month_base"].replace(0, np.nan) - 1) * 100
     month_up25 = month_base & month_ret.ge(25.0)
     month_down25 = month_base & month_ret.le(-25.0)
     month_up50 = month_base & month_ret.ge(50.0)
     month_down50 = month_base & month_ret.le(-50.0)
 
-    q_base = work["min65"].notna() & work["max65"].notna()
-    q_up25 = q_base & (
-        100
-        * ((work["close"] + 0.01) - (work["min65"] + 0.01))
-        / (work["min65"] + 0.01)
-        >= 25.0
-    )
-    q_down25 = q_base & (
-        100
-        * ((work["close"] + 0.01) - (work["max65"] + 0.01))
-        / (work["max65"] + 0.01)
-        <= -25.0
-    )
+    q_base = work["close_quarter_base"].notna() & work["close_quarter_base"].gt(0)
+    quarter_ret = (work["close"] / work["close_quarter_base"].replace(0, np.nan) - 1) * 100
+    q_up25 = q_base & quarter_ret.ge(25.0)
+    q_down25 = q_base & quarter_ret.le(-25.0)
 
     fast_base = (
         work["eligible"]
@@ -1224,8 +1234,8 @@ def build_market_breadth(df):
             "universe": universe,
             "up3": int(x["up3_signal"].fillna(False).sum()),
             "down3": int(x["down3_signal"].fillna(False).sum()),
-            "up13_m": int((((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).ge(13.0)).sum()),
-            "down13_m": int((((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).le(-13.0)).sum()),
+            "up13_m": int(month_ret.loc[x.index].ge(13.0).fillna(False).sum()),
+            "down13_m": int(month_ret.loc[x.index].le(-13.0).fillna(False).sum()),
             "above21": round(100.0 * int((eligible & x["sma21"].notna() & x["close"].gt(x["sma21"])).sum()) / universe, 1) if universe else None,
             "above50": round(100.0 * int((eligible & x["sma50"].notna() & x["close"].gt(x["sma50"])).sum()) / universe, 1) if universe else None,
             "above200": round(100.0 * int((eligible & x["sma200"].notna() & x["close"].gt(x["sma200"])).sum()) / universe, 1) if universe else None,
