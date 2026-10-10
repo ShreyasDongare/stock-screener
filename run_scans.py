@@ -1155,14 +1155,14 @@ def build_market_breadth(df):
         month_pos = dates.searchsorted(month_targets, side="left")
         valid_month = month_pos < len(dates)
         month_values = np.full(len(dates), np.nan)
-        month_values[valid_month.to_numpy()] = closes.iloc[month_pos[valid_month.to_numpy()]].to_numpy(float)
+        month_values[valid_month] = closes.iloc[month_pos[valid_month]].to_numpy(float)
         work.loc[idx, "close_month_base"] = month_values
 
         quarter_targets = current_dates - pd.DateOffset(months=3)
         quarter_pos = dates.searchsorted(quarter_targets, side="right") - 1
         valid_quarter = quarter_pos >= 0
         quarter_values = np.full(len(dates), np.nan)
-        quarter_values[valid_quarter.to_numpy()] = closes.iloc[quarter_pos[valid_quarter.to_numpy()]].to_numpy(float)
+        quarter_values[valid_quarter] = closes.iloc[quarter_pos[valid_quarter]].to_numpy(float)
         work.loc[idx, "close_quarter_base"] = quarter_values
 
     work["sma21"] = g["close"].transform(lambda s: s.rolling(21, min_periods=21).mean())
