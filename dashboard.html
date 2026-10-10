@@ -1324,7 +1324,8 @@ document.addEventListener("keydown",e=>{
 function renderMarketBreadth(){
   const body=$("breadthBody"), sub=$("breadthSub"); if(!body) return;
   const data=Array.isArray(D?.market_breadth)?D.market_breadth:[];
-  sub.textContent=data.length?data.length+" NSE trading days":"No breadth data available";
+  const stockCount=Number(D?.config?.breadth?.stock_list_count)||0;
+  sub.textContent=data.length?(stockCount.toLocaleString("en-IN")+" stocks in universe • "+data.length+" NSE trading days"):"No breadth data available";
 
   // Stockbee-style colour rules:
   // Pair indicators share one colour: stronger side wins.
