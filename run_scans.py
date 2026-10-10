@@ -1094,8 +1094,20 @@ def build_market_breadth(df):
     """
     cfg = BREADTH_CFG
 
+    symbols_path = DATA / "breadth_symbols.txt"
+    if not symbols_path.exists():
+        raise FileNotFoundError(f"Missing fixed Market Breadth universe: {symbols_path}")
+    breadth_symbols = {
+        line.strip().upper()
+        for line in symbols_path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
     work = (
-        df[df["exch"].astype(str).str.upper().eq("NSE")]
+        df[
+            df["exch"].astype(str).str.upper().eq("NSE")
+            & df["symbol"].astype(str).str.strip().str.upper().isin(breadth_symbols)
+        ]
         .sort_values(["key", "date"])
         .copy()
     )
@@ -1491,7 +1503,13 @@ def main():
     # has one machine-readable definition of the applied rules.
     config_out = {
         **CFG,
-        "breadth": BREADTH_CFG,
+        "breadth": {
+            **BREADTH_CFG,
+            "stock_list_count": sum(
+                1 for line in (DATA / "breadth_symbols.txt").read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ),
+        },
         "definitions": {
             "m136": (
                 "SMA(True Range(1),20) / Close * 100 >= 3 AND "
