@@ -2,6 +2,10 @@ name: Daily Stock Scanner
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "run_scans.py"
+      - ".github/workflows/scanner.yml"
   schedule:
     - cron: "30 12 * * *"  # 6:00 PM IST, every day (handles Sunday Muhurat Trading)
 
