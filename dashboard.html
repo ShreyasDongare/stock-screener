@@ -1375,16 +1375,15 @@ function renderMarketBreadth(){
 
   body.innerHTML=data.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
-      pairCells(r.up4,r.down4,r.universe,true)+
+      pairCells(r.up3,r.down3,r.universe,true)+
       ratioCell(r.ratio5)+ratioCell(r.ratio10)+
       pairCells(r.up25_q,r.down25_q)+
       pairCells(r.up25_m,r.down25_m)+
-      fiftyUpCell(r.up50_m)+fiftyDownCell(r.down50_m)+
-      pairCells(r.up13_34,r.down13_34)+
-      t2108Cell(r.t2108)+
-      plainCell(r.universe)+
+      pairCells(r.up13_m,r.down13_m)+
+      plainCell(r.above21)+plainCell(r.above50)+plainCell(r.above200)+
+      plainCell(r.nifty50)+plainCell(r.daily_return_pct)+
       '</tr>';
-  }).join("") || '<tr><td colspan="15" class="empty">No market breadth data available.</td></tr>';
+  }).join("") || '<tr><td colspan="16" class="empty">No market breadth data available.</td></tr>';
 }
 function openMarketBreadth(){ renderMarketBreadth(); $("breadthModal")?.classList.add("open"); }
 function closeMarketBreadth(){ $("breadthModal")?.classList.remove("open"); }
