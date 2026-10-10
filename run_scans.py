@@ -1155,14 +1155,12 @@ def build_market_breadth(df):
         & work["volume"].gt(work["prev_volume"])
     )
 
-    work["up3_signal"] = work["chg_pct"].ge(3.0) & work["daily_value"].ge(cfg["min_daily_value_rupees"]) & work["volume"].gt(work["prev_volume"])
-    work["down3_signal"] = work["chg_pct"].le(-3.0) & work["daily_value"].ge(cfg["min_daily_value_rupees"]) & work["volume"].gt(work["prev_volume"])
+    # Match the spreadsheet COUNTIFS logic: count every stock crossing the threshold.
+    # Do not add liquidity or relative-volume filters to non-DMA breadth columns.
+    work["up3_signal"] = work["chg_pct"].ge(3.0)
+    work["down3_signal"] = work["chg_pct"].le(-3.0)
 
-    month_base = (
-        work["eligible"]
-        & work["close20"].ge(5.0)
-        & work["close20"].notna()
-    )
+    month_base = work["close20"].notna() & work["close20"].gt(0)
     month_ret = (
         work["close"] / work["close20"].replace(0, np.nan) - 1
     ) * 100
@@ -1172,11 +1170,7 @@ def build_market_breadth(df):
     month_up50 = month_base & month_ret.ge(50.0)
     month_down50 = month_base & month_ret.le(-50.0)
 
-    q_base = (
-        work["eligible"]
-        & work["min65"].notna()
-        & work["max65"].notna()
-    )
+    q_base = work["min65"].notna() & work["max65"].notna()
     q_up25 = q_base & (
         100
         * ((work["close"] + 0.01) - (work["min65"] + 0.01))
@@ -1218,8 +1212,8 @@ def build_market_breadth(df):
             "universe": universe,
             "up3": int(x["up3_signal"].fillna(False).sum()),
             "down3": int(x["down3_signal"].fillna(False).sum()),
-            "up13_m": int((eligible & ((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).ge(13.0)).sum()),
-            "down13_m": int((eligible & ((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).le(-13.0)).sum()),
+            "up13_m": int((((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).ge(13.0)).sum()),
+            "down13_m": int((((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).le(-13.0)).sum()),
             "above21": round(100.0 * int((eligible & x["sma21"].notna() & x["close"].gt(x["sma21"])).sum()) / universe, 1) if universe else None,
             "above50": round(100.0 * int((eligible & x["sma50"].notna() & x["close"].gt(x["sma50"])).sum()) / universe, 1) if universe else None,
             "above200": round(100.0 * int((eligible & x["sma200"].notna() & x["close"].gt(x["sma200"])).sum()) / universe, 1) if universe else None,
@@ -1249,15 +1243,14 @@ def build_market_breadth(df):
             ) if universe else None,
         })
 
-    # Stockbee 5D/10D ratios = rolling sums of the qualifying daily +/-4%
-    # signals, not five-day or ten-day price returns.
+    # 5D/10D ratios use rolling sums of the same +/-3% daily counts as the sheet.
     for i, row in enumerate(rows):
         lo5 = max(0, i - 4)
         lo10 = max(0, i - 9)
-        up5 = sum(r["up4"] for r in rows[lo5:i + 1])
-        dn5 = sum(r["down4"] for r in rows[lo5:i + 1])
-        up10 = sum(r["up4"] for r in rows[lo10:i + 1])
-        dn10 = sum(r["down4"] for r in rows[lo10:i + 1])
+        up5 = sum(r["up3"] for r in rows[lo5:i + 1])
+        dn5 = sum(r["down3"] for r in rows[lo5:i + 1])
+        up10 = sum(r["up3"] for r in rows[lo10:i + 1])
+        dn10 = sum(r["down3"] for r in rows[lo10:i + 1])
         row["ratio5"] = round(up5 / dn5, 2) if dn5 else None
         row["ratio10"] = round(up10 / dn10, 2) if dn10 else None
 
