@@ -1131,6 +1131,9 @@ def build_market_breadth(df):
         lambda s: s.rolling(34, min_periods=34).max()
     )
     work["close20"] = g["close"].shift(20)
+    work["sma21"] = g["close"].transform(lambda s: s.rolling(21, min_periods=21).mean())
+    work["sma50"] = g["close"].transform(lambda s: s.rolling(50, min_periods=50).mean())
+    work["sma200"] = g["close"].transform(lambda s: s.rolling(200, min_periods=200).mean())
     work["sma40"] = g["close"].transform(
         lambda s: s.rolling(40, min_periods=40).mean()
     )
@@ -1151,6 +1154,9 @@ def build_market_breadth(df):
         & work["daily_value"].ge(cfg["min_daily_value_rupees"])
         & work["volume"].gt(work["prev_volume"])
     )
+
+    work["up3_signal"] = work["chg_pct"].ge(3.0) & work["daily_value"].ge(cfg["min_daily_value_rupees"]) & work["volume"].gt(work["prev_volume"])
+    work["down3_signal"] = work["chg_pct"].le(-3.0) & work["daily_value"].ge(cfg["min_daily_value_rupees"]) & work["volume"].gt(work["prev_volume"])
 
     month_base = (
         work["eligible"]
@@ -1210,6 +1216,15 @@ def build_market_breadth(df):
         rows.append({
             "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
             "universe": universe,
+            "up3": int(x["up3_signal"].fillna(False).sum()),
+            "down3": int(x["down3_signal"].fillna(False).sum()),
+            "up13_m": int((eligible & ((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).ge(13.0)).sum()),
+            "down13_m": int((eligible & ((x["close"] / x["close20"].replace(0, np.nan) - 1) * 100).le(-13.0)).sum()),
+            "above21": round(100.0 * int((eligible & x["sma21"].notna() & x["close"].gt(x["sma21"])).sum()) / universe, 1) if universe else None,
+            "above50": round(100.0 * int((eligible & x["sma50"].notna() & x["close"].gt(x["sma50"])).sum()) / universe, 1) if universe else None,
+            "above200": round(100.0 * int((eligible & x["sma200"].notna() & x["close"].gt(x["sma200"])).sum()) / universe, 1) if universe else None,
+            "nifty50": None,
+            "daily_return_pct": None,
             "up4": int(x["up4_signal"].fillna(False).sum()),
             "down4": int(x["down4_signal"].fillna(False).sum()),
             "ratio5": None,
