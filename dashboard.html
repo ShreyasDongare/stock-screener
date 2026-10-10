@@ -255,7 +255,7 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 @media(max-width:720px) and (orientation:landscape){.chart-watchlist{height:38dvh;min-height:135px;max-height:190px}.chart-head{min-height:46px}}
 
 .market-breadth-open{border:1px solid #3A4856;background:rgba(255,255,255,.05);color:#E8EEF5;border-radius:8px;padding:8px 12px;font:600 11px var(--sans);cursor:pointer;transition:.2s}.market-breadth-open:hover{background:rgba(255,255,255,.11);border-color:#526273;transform:translateY(-1px)}
-.breadth-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.breadth-modal.open{display:flex}.breadth-box{width:min(1500px,96vw);height:min(820px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 28px 100px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden}.breadth-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.breadth-title{font:600 17px var(--sans)}.breadth-sub{color:var(--mute);font:10px var(--mono)}.breadth-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.breadth-close:hover{color:var(--ink);border-color:var(--acc)}.breadth-wrap{flex:1;overflow:auto}.breadth-table{min-width:1120px}.breadth-table th,.breadth-table td{padding:7px 10px}.breadth-table thead th{position:sticky;top:0;z-index:3;background:var(--panel);font-size:10px;text-align:right;white-space:normal;line-height:1.25}.breadth-table thead th:first-child,.breadth-table tbody td:first-child{text-align:left;left:0;z-index:4}.breadth-table tbody td{font-size:11px}.breadth-up,.breadth-down{color:#000}.breadth-neutral{background:transparent;color:var(--ink)}.breadth-positive{background:#00ff00;color:#000}.breadth-positive-strong{background:#00ff00;color:#000}.breadth-negative{background:#e06666;color:#000}.breadth-negative-strong{background:#e06666;color:#000}
+.breadth-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.breadth-modal.open{display:flex}.breadth-box{width:min(1500px,96vw);height:min(820px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 28px 100px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden}.breadth-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.breadth-title{font:600 17px var(--sans)}.breadth-sub{color:var(--mute);font:10px var(--mono)}.breadth-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.breadth-close:hover{color:var(--ink);border-color:var(--acc)}.breadth-wrap{flex:1;overflow:auto}.breadth-table{min-width:1120px}.breadth-table th,.breadth-table td{padding:7px 10px}.breadth-table thead th{position:sticky;top:0;z-index:3;background:var(--panel);font-size:10px;text-align:right;white-space:normal;line-height:1.25}.breadth-table thead th:first-child,.breadth-table tbody td:first-child{text-align:left;left:0;z-index:4}.breadth-table tbody td{font-size:11px}.breadth-up,.breadth-down{color:#000}.breadth-neutral{background:transparent;color:var(--ink)}.breadth-positive{background:#B6E0CC;color:#000}.breadth-positive-strong{background:#2F4A1E;color:#fff}.breadth-negative{background:#F9CECB;color:#000}.breadth-negative-strong{background:#FF0000;color:#fff}.breadth-mid{background:#B5DACA;color:#000}
 </style>
 </head>
 <body>
@@ -1327,61 +1327,29 @@ function renderMarketBreadth(){
   const stockCount=Number(D?.config?.breadth?.stock_list_count)||0;
   sub.textContent=data.length?(stockCount.toLocaleString("en-IN")+" stocks in universe • "+data.length+" NSE trading days"):"No breadth data available";
 
-  // Stockbee-style colour rules:
-  // Pair indicators share one colour: stronger side wins.
-  // Daily +/-4% additionally gets a stronger shade when the count reaches
-  // the configured percentage of the Indian eligible universe.
-  // 5D/10D ratios: >=2 green, <=0.5 red.
-  // T2108: <20 oversold green, >80 overbought red.
-  // 50% month: Up >=20 is bearish/red; Down >=20 is bullish/green.
-  const B=D?.config?.breadth||{};
-  const strongPct=Number(B.strong_day_pct)||0.117;
-  const pairCells=(up,down,universe=null,strong=false)=>{
-    const u=Number(up), d=Number(down);
-    if(!Number.isFinite(u) || !Number.isFinite(d) || u===d){
-      return '<td class="breadth-neutral">'+(up==null?"—":f2(up))+'</td>'+
-             '<td class="breadth-neutral">'+(down==null?"—":f2(down))+'</td>';
-    }
-    const cls=u>d?"breadth-positive":"breadth-negative";
-    const strongCls=strong && Number.isFinite(Number(universe)) &&
-      Math.max(u,d)>=Number(universe)*strongPct
-      ? (cls==="breadth-positive"?" breadth-positive-strong":" breadth-negative-strong")
-      : "";
-    return '<td class="'+cls+strongCls+'">'+f2(up)+'</td>'+
-           '<td class="'+cls+strongCls+'">'+f2(down)+'</td>';
-  };
-  const ratioCell=v=>{
-    if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
-    const n=Number(v);
-    const cls=n>=2?"breadth-positive":n<=0.5?"breadth-negative":"breadth-neutral";
-    return '<td class="'+cls+'">'+f2(v)+'</td>';
-  };
-  const fiftyUpCell=v=>{
-    if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
-    const n=Number(v);
-    return '<td class="'+(n>=20?"breadth-negative":"breadth-neutral")+'">'+f2(v)+'</td>';
-  };
-  const fiftyDownCell=v=>{
-    if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
-    const n=Number(v);
-    return '<td class="'+(n>=20?"breadth-positive":"breadth-neutral")+'">'+f2(v)+'</td>';
-  };
-  const t2108Cell=v=>{
-    if(v==null || !Number.isFinite(Number(v))) return '<td class="breadth-neutral">—</td>';
-    const n=Number(v);
-    const cls=n<20?"breadth-positive":n>80?"breadth-negative":"breadth-neutral";
-    return '<td class="'+cls+'">'+f2(v)+'</td>';
-  };
-  const plainCell=v=>'<td class="breadth-neutral">'+(v==null?"—":f2(v))+'</td>';
-
+  // Match the conditional-format thresholds and screenshot-sampled colours from the user sheet.
+  const cell=(v,cls)=>'<td class="breadth-'+cls+'">'+(v==null?"—":f2(v))+'</td>';
+  const dailyUp=v=>{const n=Number(v);return cell(v,!Number.isFinite(n)?"neutral":n<=35?"negative":n>=200?"positive-strong":n>=75?"mid":"neutral");};
+  const dailyDown=v=>{const n=Number(v);return cell(v,!Number.isFinite(n)?"neutral":n<=35?"positive":n>=200?"negative-strong":n>=50?"negative":"neutral");};
+  const ratioCell=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=0.75?"negative":n>2?"positive":"neutral");};
+  const qUp=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=50?"negative":n>=200?"positive":"neutral");};
+  const qDown=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=18?"positive":n>=35?"negative":"neutral");};
+  const monthUp25=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=18?"negative":n>=35?"positive":"neutral");};
+  const monthDown25=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n>10?"positive":n<=18?"negative":"neutral");};
+  const monthUp13=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=50?"positive":n>=100?"negative":"neutral");};
+  const monthDown13=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=35?"positive":n>=75?"negative":"neutral");};
+  const dma21=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<20?"negative":"neutral");};
+  const dma50=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<30?"negative":"neutral");};
+  const dma200=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<50?"negative":n>=100?"positive-strong":"neutral");};
+  const plainCell=v=>cell(v,"neutral");
   body.innerHTML=data.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
-      pairCells(r.up3,r.down3,r.universe,true)+
+      dailyUp(r.up3)+dailyDown(r.down3)+
       ratioCell(r.ratio5)+ratioCell(r.ratio10)+
-      pairCells(r.up25_q,r.down25_q)+
-      pairCells(r.up25_m,r.down25_m)+
-      pairCells(r.up13_m,r.down13_m)+
-      plainCell(r.above21)+plainCell(r.above50)+plainCell(r.above200)+
+      qUp(r.up25_q)+qDown(r.down25_q)+
+      monthUp25(r.up25_m)+monthDown25(r.down25_m)+
+      monthUp13(r.up13_m)+monthDown13(r.down13_m)+
+      dma21(r.above21)+dma50(r.above50)+dma200(r.above200)+
       plainCell(r.nifty50)+plainCell(r.daily_return_pct)+
       '</tr>';
   }).join("") || '<tr><td colspan="16" class="empty">No market breadth data available.</td></tr>';
