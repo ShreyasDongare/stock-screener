@@ -61,6 +61,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp data/results.json /tmp/results.json
+          cp data/chart_data.json /tmp/chart_data.json
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/results.json data/results.json
+          cp /tmp/chart_data.json data/chart_data.json
           git add -f data/results.json data/chart_data.json
-          git diff --cached --quiet || git commit -m "Update daily scanner results"
-          git push
+          if git diff --cached --quiet; then
+            echo "No scanner result changes to publish."
+          else
+            git commit -m "Update daily scanner results"
+            git push origin HEAD:main
+          fi
