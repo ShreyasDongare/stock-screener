@@ -1246,6 +1246,13 @@ def build_market_breadth(df):
         row["ratio5"] = round(up5 / dn5, 2) if dn5 else None
         row["ratio10"] = round(up10 / dn10, 2) if dn10 else None
 
+    # Keep only the latest year in the dashboard payload. Calculate rolling
+    # ratios first on the full available history so the first displayed days
+    # still have correct 5D/10D context.
+    if rows:
+        cutoff = pd.Timestamp(rows[-1]["date"]) - pd.Timedelta(days=365)
+        rows = [row for row in rows if pd.Timestamp(row["date"]) >= cutoff]
+
     return rows
 
 def build_chart_data(df, keys):
