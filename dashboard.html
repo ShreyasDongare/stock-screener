@@ -889,7 +889,8 @@ function openChart(key,row){
   // modal is open and let Lightweight Charts observe the host size. This avoids
   // the zero-size canvas that can occur when a flex child is measured too early.
   const chart=LightweightCharts.createChart(host,{
-    autoSize:true,
+    width:Math.max(1,host.clientWidth),
+    height:Math.max(1,host.clientHeight),
     layout:{background:{type:LightweightCharts.ColorType.Solid,color:ct.bg},textColor:ct.text,fontFamily:"IBM Plex Mono, monospace",fontSize:11},
     grid:{vertLines:{color:ct.grid},horzLines:{color:ct.grid}},
     rightPriceScale:{borderColor:ct.border,scaleMargins:{top:.06,bottom:.24},minimumWidth:74},
@@ -901,11 +902,11 @@ function openChart(key,row){
   });
   LW=chart;
 
-  // Keep chart dates as ISO business-day strings. Lightweight Charts v5 accepts
-  // YYYY-MM-DD directly and this avoids unnecessary timezone/timestamp conversion.
+  // Use Lightweight Charts' native business-day format. The chart data is EOD
+  // YYYY-MM-DD, which is the most reliable representation for NSE sessions.
   const chartDate=(value)=>{
     const s=String(value||"").slice(0,10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+    return /^\\d{4}-\\d{2}-\\d{2}$/.test(s) ? s : null;
   };
   const candles=d.dates.map((time,i)=>({
     time:chartDate(time),open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]
