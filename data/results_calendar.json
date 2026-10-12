@@ -1,6 +1,101 @@
 {
-  "generated_at": null,
+  "generated_at": "2026-10-12T04:58:07+00:00",
   "holidays": [],
-  "results": [],
-  "source": "NSE official Board Meetings / Financial Results filings"
+  "results": [
+    {
+      "symbol": "XLENERGY",
+      "company_name": "XL Energy Limited",
+      "date": "2026-09-30",
+      "purpose": "Reply to Clarification- Financial results",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/XLENERGY_12092026185503_CTC_Resolution_and_Financial_Result_June_2026F.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "PRANAV",
+      "company_name": "Pranav Constructions Limited",
+      "date": "2026-10-01",
+      "purpose": "Integrated Filing- Financial",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/PCPL_01102026194801_Integrated_Filing_Financials_Q1_30_June_2026.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "ROLLT",
+      "company_name": "Rollatainers Limited",
+      "date": "2026-10-01",
+      "purpose": "Reply to Clarification- Financial results",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/ROLLT_26082026201045_nsequeryfinancials.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "SETCO",
+      "company_name": "Setco Automotive Limited",
+      "date": "2026-10-01",
+      "purpose": "Clarification - Financial Results",
+      "status": "Declared",
+      "official_url": "-",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "STEAMHOUSE",
+      "company_name": "Steamhouse India Limited",
+      "date": "2026-10-05",
+      "purpose": "Integrated Filing- Financial",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/CAVAIBHAVGATTANI_05102026160805_Outcome_of_Board_Meeting.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "HARDWYN",
+      "company_name": "Hardwyn India Limited",
+      "date": "2026-10-06",
+      "purpose": "Extension  of Financial Year",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/HARDWYN_06102026175204_ExtensionofAGM.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "NAVNETEDUL",
+      "company_name": "Navneet Education Limited",
+      "date": "2026-10-06",
+      "purpose": "Extension  of Financial Year",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/Navneet26_06102026111729_Reg30DisclosureForapprovalforextensionofAGMofNELandILPLfinal.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "SRPL",
+      "company_name": "Shree Ram Proteins Limited",
+      "date": "2026-10-06",
+      "purpose": "Extension  of Financial Year",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/SRPL_06102026174926_GNL-1_Approval_Letter_AC6399424.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "STCINDIA",
+      "company_name": "The State Trading Corporation of India Limited",
+      "date": "2026-10-06",
+      "purpose": "Extension  of Financial Year",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/STCINDIA_06102026093331_INTIMATION_EXTENSION_OF_70AGM.pdf",
+      "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "SUPREMEINF",
+      "company_name": "Supreme Infrastructure India Limited",
+      "date": "2026-10-06",
+      "purpose": "Extension  of Financial Year",
+      "status": "Declared",
+      "official_url": "https://nsearchives.nseindia.com/corporate/SUPREMEINF_06102026095341_SUPREMEINF18092026172056Reg30forAGMextension.pdf",
+      "source": "NSE Financial Results / Announcements"
+    }
+  ],
+  "sources": [
+    "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+    "https://www.nseindia.com/companies-listing/corporate-filings-financial-results"
+  ],
+  "warning": "Exchange data may change; confirm the original filing before trading."
 }
