@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T04:58:07+00:00",
+  "generated_at": "2026-10-12T10:20:00+05:30",
   "holidays": [],
   "results": [
     {
@@ -91,6 +91,15 @@
       "status": "Declared",
       "official_url": "https://nsearchives.nseindia.com/corporate/SUPREMEINF_06102026095341_SUPREMEINF18092026172056Reg30forAGMextension.pdf",
       "source": "NSE Financial Results / Announcements"
+    },
+    {
+      "symbol": "RBLBANK",
+      "company_name": "RBL Bank Limited",
+      "date": "2026-10-12",
+      "purpose": "Financial Results",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/get-quote/equity/RBLBANK/RBL-Bank-Limited",
+      "source": "NSE Board Meetings"
     }
   ],
   "sources": [
