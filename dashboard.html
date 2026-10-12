@@ -906,7 +906,7 @@ function openChart(key,row){
   // YYYY-MM-DD, which is the most reliable representation for NSE sessions.
   const chartDate=(value)=>{
     const s=String(value||"").slice(0,10);
-    return /^\\d{4}-\\d{2}-\\d{2}$/.test(s) ? s : null;
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
   };
   const candles=d.dates.map((time,i)=>({
     time:chartDate(time),open:+d.open[i],high:+d.high[i],low:+d.low[i],close:+d.close[i]
