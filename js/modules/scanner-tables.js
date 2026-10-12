@@ -53,6 +53,3 @@ function render(){
 }
 
 
-document.addEventListener("click",e=>{
-});
-
