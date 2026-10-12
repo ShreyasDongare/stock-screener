@@ -498,7 +498,14 @@ async function openChart(key,row){
     catch(err){console.error("Watchlist render failed",err);renderChartWatchlistFallback(key);CHART_WATCH_RENDERED_MODE=CHART_WATCH_MODE;}
   }else{
     CHART_WATCH_ACTIVE_KEY=key;
-    document.querySelectorAll("#chartWatchlist [data-watch-key]").forEach(el=>el.classList.toggle("active",el.dataset.watchKey===key));
+    // Update the active row on every chart/arrow-key navigation. The list is
+    // virtualized, so scroll the selected stock into view and redraw visible rows.
+    if(CHART_WATCH_MODE==="colours"){
+      document.querySelectorAll("#chartWatchlist [data-watch-key]").forEach(el=>el.classList.toggle("active",el.dataset.watchKey===key));
+    }else{
+      ensureChartWatchActiveVisible();
+      updateChartWatchVirtual(true);
+    }
   }
   const host=$("chartHost");
 
