@@ -70,11 +70,33 @@ jobs:
           python run_scans.py
 
 
+      - name: Validate market data freshness
+        id: freshness
+        shell: bash
+        run: |
+          TODAY="$(TZ=Asia/Kolkata date +%Y%m%d)"
+          TODAY_ISO="$(TZ=Asia/Kolkata date +%F)"
+          if [ ! -s "data/raw/nse/${TODAY}.csv" ]; then
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::NSE bhavcopy for ${TODAY_ISO} is unavailable. Keeping the currently published dashboard data unchanged."
+            exit 0
+          fi
+          ASOF="$(python -c 'import json; print(json.load(open("data/results.json")).get("asof", ""))')"
+          if [ "$ASOF" != "$TODAY_ISO" ]; then
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Scanner output date (${ASOF}) does not match today's NSE session (${TODAY_ISO}). Keeping the currently published dashboard data unchanged."
+            exit 0
+          fi
+          echo "fresh=true" >> "$GITHUB_OUTPUT"
+          echo "Freshness check passed: results are for ${TODAY_ISO}."
+
       - name: Build full chart history
+        if: steps.freshness.outputs.fresh == 'true'
         run: |
           python build_chart_history.py
 
       - name: Publish scan results
+        if: steps.freshness.outputs.fresh == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
