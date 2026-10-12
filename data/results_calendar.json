@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T10:20:00+05:30",
+  "generated_at": "2026-10-12T10:30:00+05:30",
   "holidays": [],
   "results": [
     {
@@ -93,12 +93,84 @@
       "source": "NSE Financial Results / Announcements"
     },
     {
+      "symbol": "CANAREROBECO",
+      "company_name": "Canara Robeco Asset Management Company Limited",
+      "date": "2026-10-09",
+      "purpose": "Financial Results",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "PLASTIBLENDS",
+      "company_name": "Plastiblends India Limited",
+      "date": "2026-10-12",
+      "purpose": "Financial Results",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
       "symbol": "RBLBANK",
       "company_name": "RBL Bank Limited",
       "date": "2026-10-12",
       "purpose": "Financial Results",
       "status": "Scheduled",
       "official_url": "https://www.nseindia.com/get-quote/equity/RBLBANK/RBL-Bank-Limited",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "SWANDEF",
+      "company_name": "Swan Defence and Heavy Industries Limited",
+      "date": "2026-10-12",
+      "purpose": "Financial Results",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "SWARAJENG",
+      "company_name": "Swaraj Engines Limited",
+      "date": "2026-10-12",
+      "purpose": "Financial Results",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "UMIYABUILDCON",
+      "company_name": "Umiya Buildcon Limited",
+      "date": "2026-10-12",
+      "purpose": "Financial Results",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "ANANDRATHI",
+      "company_name": "Anand Rathi Share and Stock Brokers Limited",
+      "date": "2026-10-13",
+      "purpose": "Financial Results / Other business matters",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "REFRACTORY",
+      "company_name": "Refractory Shapes Limited",
+      "date": "2026-10-13",
+      "purpose": "Board Meeting - Other business matters",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
+      "source": "NSE Board Meetings"
+    },
+    {
+      "symbol": "VISHNUINFR",
+      "company_name": "Vishnusurya Projects and Infra Limited",
+      "date": "2026-10-13",
+      "purpose": "Board Meeting - Other business matters",
+      "status": "Scheduled",
+      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
       "source": "NSE Board Meetings"
     }
   ],
