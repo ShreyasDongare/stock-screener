@@ -76,6 +76,7 @@ function chartDataForTimeframe(src){
   return CHART_TF==="W" ? weeklyChartData(src) : src;
 }
 function closeChart(){
+  CHART_REQUEST_ID++;
   $("chartModal").classList.remove("open");
   if(CHART_RESIZE_OBSERVER){try{CHART_RESIZE_OBSERVER.disconnect();}catch(_){} CHART_RESIZE_OBSERVER=null;}
   if(LW){try{LW.remove();}catch(_){} LW=null;}
@@ -522,6 +523,7 @@ async function openChart(key,row){
   }
   LW=chart;
 
+  try{
   // Use Lightweight Charts' native business-day format. The chart data is EOD
   // YYYY-MM-DD, which is the most reliable representation for NSE sessions.
   const chartDate=(value)=>{
@@ -556,6 +558,11 @@ async function openChart(key,row){
 
   CHART_SERIES={candle,ema11,ema21,sma50,volume};
   bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume);
+  }catch(err){
+    console.error("Chart data/render failed",err);
+    showChartMessage("Chart rendering failed",String(err?.message||"The history could not be drawn. Retry to try again."),true);
+    return;
+  }
 
   // Setup text/marker intentionally hidden on the chart.
 
