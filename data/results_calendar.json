@@ -1,6 +1,32 @@
 {
-  "generated_at": "2026-10-12T10:30:00+05:30",
-  "holidays": [],
+  "generated_at": "2026-10-12T05:07:10+00:00",
+  "holidays": [
+    "2026-01-01",
+    "2026-01-15",
+    "2026-01-26",
+    "2026-02-15",
+    "2026-02-19",
+    "2026-03-03",
+    "2026-03-19",
+    "2026-03-21",
+    "2026-03-26",
+    "2026-03-31",
+    "2026-04-01",
+    "2026-04-03",
+    "2026-04-14",
+    "2026-05-01",
+    "2026-05-28",
+    "2026-06-26",
+    "2026-08-15",
+    "2026-08-26",
+    "2026-09-14",
+    "2026-10-02",
+    "2026-10-20",
+    "2026-11-08",
+    "2026-11-10",
+    "2026-11-24",
+    "2026-12-25"
+  ],
   "results": [
     {
       "symbol": "XLENERGY",
@@ -91,87 +117,6 @@
       "status": "Declared",
       "official_url": "https://nsearchives.nseindia.com/corporate/SUPREMEINF_06102026095341_SUPREMEINF18092026172056Reg30forAGMextension.pdf",
       "source": "NSE Financial Results / Announcements"
-    },
-    {
-      "symbol": "CANAREROBECO",
-      "company_name": "Canara Robeco Asset Management Company Limited",
-      "date": "2026-10-09",
-      "purpose": "Financial Results",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "PLASTIBLENDS",
-      "company_name": "Plastiblends India Limited",
-      "date": "2026-10-12",
-      "purpose": "Financial Results",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "RBLBANK",
-      "company_name": "RBL Bank Limited",
-      "date": "2026-10-12",
-      "purpose": "Financial Results",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/get-quote/equity/RBLBANK/RBL-Bank-Limited",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "SWANDEF",
-      "company_name": "Swan Defence and Heavy Industries Limited",
-      "date": "2026-10-12",
-      "purpose": "Financial Results",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "SWARAJENG",
-      "company_name": "Swaraj Engines Limited",
-      "date": "2026-10-12",
-      "purpose": "Financial Results",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "UMIYABUILDCON",
-      "company_name": "Umiya Buildcon Limited",
-      "date": "2026-10-12",
-      "purpose": "Financial Results",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "ANANDRATHI",
-      "company_name": "Anand Rathi Share and Stock Brokers Limited",
-      "date": "2026-10-13",
-      "purpose": "Financial Results / Other business matters",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "REFRACTORY",
-      "company_name": "Refractory Shapes Limited",
-      "date": "2026-10-13",
-      "purpose": "Board Meeting - Other business matters",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
-    },
-    {
-      "symbol": "VISHNUINFR",
-      "company_name": "Vishnusurya Projects and Infra Limited",
-      "date": "2026-10-13",
-      "purpose": "Board Meeting - Other business matters",
-      "status": "Scheduled",
-      "official_url": "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
-      "source": "NSE Board Meetings"
     }
   ],
   "sources": [
