@@ -3,6 +3,7 @@ let CHART = null, CHART_ROW = null;
 let CHART_LOAD_PROMISE = null;
 let CHART_RESIZE_OBSERVER = null;
 let CHART_REQUEST_ID = 0;
+let CHART_WATCH_RENDERED_MODE = "";
 
 function showChartMessage(title, message, retry=true){
   const modal=$("chartModal"), body=$("chartBody");
@@ -480,13 +481,22 @@ async function openChart(key,row){
   if(CHART_RESIZE_OBSERVER){try{CHART_RESIZE_OBSERVER.disconnect();}catch(_){} CHART_RESIZE_OBSERVER=null;}
   if(LW){try{LW.remove();}catch(_){} LW=null;}
   CHART_SERIES={};
-  $("chartBody").innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"></div>';
+  const body=$("chartBody");
+  const watchlistExists=!!$("chartWatchlist");
+  if(!watchlistExists){
+    body.innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"></div>';
+    CHART_WATCH_RENDERED_MODE="";
+  }else{
+    const oldHost=$("chartHost");
+    if(oldHost) oldHost.replaceChildren();
+  }
   $("chartModal").classList.add("open");
-  try{
-    renderChartWatchlist(key);
-  }catch(err){
-    console.error("Watchlist render failed",err);
-    renderChartWatchlistFallback(key);
+  if(!watchlistExists || CHART_WATCH_RENDERED_MODE!==CHART_WATCH_MODE){
+    try{renderChartWatchlist(key);CHART_WATCH_RENDERED_MODE=CHART_WATCH_MODE;}
+    catch(err){console.error("Watchlist render failed",err);renderChartWatchlistFallback(key);CHART_WATCH_RENDERED_MODE=CHART_WATCH_MODE;}
+  }else{
+    CHART_WATCH_ACTIVE_KEY=key;
+    document.querySelectorAll("#chartWatchlist [data-watch-key]").forEach(el=>el.classList.toggle("active",el.dataset.watchKey===key));
   }
   const host=$("chartHost");
 
