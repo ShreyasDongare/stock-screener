@@ -415,6 +415,7 @@ async function openChart(key,row){
     return;
   }
   $("chartModal").classList.add("open");
+  if(!CHART) showChartMessage("Loading chart history","Fetching daily candles for "+key+"…",false);
   try{
     await ensureChartData();
   }catch(err){
