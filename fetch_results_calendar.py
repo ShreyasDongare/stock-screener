@@ -79,6 +79,25 @@ def main():
 
     meetings = get_rows(session, "corporate-board-meetings", start, end)
     announcements = get_rows(session, "corporate-announcements", start, end)
+
+    # NSE holiday master is used to identify the true previous trading date.
+    holidays = []
+    try:
+        holiday_response = session.get(BASE + "/api/holiday-master", params={"type": "trading"}, timeout=25)
+        if holiday_response.status_code == 200:
+            holiday_payload = holiday_response.json()
+            holiday_rows = holiday_payload if isinstance(holiday_payload, list) else [
+                item for value in holiday_payload.values() if isinstance(value, list) for item in value
+            ] if isinstance(holiday_payload, dict) else []
+            for item in holiday_rows:
+                if not isinstance(item, dict):
+                    continue
+                holiday_date = parse_date(first(item, ("tradingDate", "date", "holidayDate", "holiday_date")))
+                if holiday_date:
+                    holidays.append(holiday_date)
+    except (requests.RequestException, ValueError) as exc:
+        print(f"Holiday master unavailable: {exc}", file=sys.stderr)
+
     out = {}
     for row in meetings:
         purpose = str(first(row, PURPOSE_KEYS)).strip()
@@ -126,7 +145,7 @@ def main():
 
     data = {
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "holidays": [],
+        "holidays": sorted(set(holidays)),
         "results": sorted(out.values(), key=lambda r: (r["date"], r["symbol"], r["status"])),
         "sources": [
             "https://www.nseindia.com/companies-listing/corporate-filings-board-meetings",
