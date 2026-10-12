@@ -45,6 +45,22 @@ jobs:
         run: |
           python fetch_bhav.py --days 420
 
+      - name: Retry today's exchange files if not published on first pass
+        shell: bash
+        run: |
+          TODAY="$(date -u +%Y%m%d)"
+          for attempt in 1 2 3 4; do
+            if [ -s "data/raw/nse/${TODAY}.csv" ] || [ -s "data/raw/bse/${TODAY}.csv" ]; then
+              echo "Today's exchange file found."
+              break
+            fi
+            echo "Today's exchange file not available yet (attempt ${attempt}/4); retrying in 3 minutes."
+            sleep 180
+            python fetch_bhav.py --days 2
+          done
+          echo "Raw files for today:"
+          ls -lh "data/raw/nse/${TODAY}.csv" "data/raw/bse/${TODAY}.csv" 2>/dev/null || true
+
       - name: Build price data
         run: |
           python build_prices.py
