@@ -102,6 +102,8 @@ CFG = {
         "avg_volume_days": 20,
         "min_avg_volume": 200_000.0,
         "min_rvol": 3.0,
+        "sma_short_days": 50,
+        "sma_long_days": 150,
     },
     "one_month": {
         "name": "1 Month High",
@@ -574,9 +576,12 @@ def analyse_volume(
       AND daily change >= 3%
       AND 20-day average volume >= 200,000 shares
       AND current volume / 20-day average volume > 3x
+      AND Close > SMA50
+      AND Close > SMA150
     """
+    cfg = CFG["volume"]
     n = len(g)
-    if n < CFG["volume"]["avg_volume_days"]:
+    if n < max(cfg["avg_volume_days"], cfg["sma_long_days"]):
         return None
 
     if str(g.iloc[-1]["exch"]).upper() != "NSE":
@@ -588,32 +593,40 @@ def analyse_volume(
 
     avg_volume = (
         pd.Series(v)
-        .rolling(CFG["volume"]["avg_volume_days"])
+        .rolling(cfg["avg_volume_days"])
         .mean()
         .iloc[-1]
     )
+    sma50 = pd.Series(c).rolling(cfg["sma_short_days"]).mean().iloc[-1]
+    sma150 = pd.Series(c).rolling(cfg["sma_long_days"]).mean().iloc[-1]
 
     if not (
         np.isfinite(close)
-        and close >= CFG["volume"]["min_price"]
+        and close >= cfg["min_price"]
         and np.isfinite(chg)
-        and chg >= CFG["volume"]["min_change_pct"]
+        and chg >= cfg["min_change_pct"]
         and np.isfinite(avg_volume)
-        and avg_volume >= CFG["volume"]["min_avg_volume"]
+        and avg_volume >= cfg["min_avg_volume"]
         and np.isfinite(v[-1])
         and avg_volume > 0
+        and np.isfinite(sma50)
+        and np.isfinite(sma150)
+        and close > sma50
+        and close > sma150
     ):
         return None
 
     rvol = v[-1] / avg_volume
-    if not np.isfinite(rvol) or rvol <= CFG["volume"]["min_rvol"]:
+    if not np.isfinite(rvol) or rvol <= cfg["min_rvol"]:
         return None
 
     return {
         **base,
         "avg_volume": num(avg_volume, 0),
         "rvol": num(rvol, 2),
-        "signal": "Volume surge > 3x average",
+        "sma50": num(sma50, 2),
+        "sma150": num(sma150, 2),
+        "signal": "Volume surge > 3x average; Close above SMA50 and SMA150",
     }
 
 
