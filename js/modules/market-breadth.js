@@ -5,7 +5,8 @@ function renderMarketBreadth(){
   sub.textContent=data.length?(stockCount.toLocaleString("en-IN")+" stocks in universe • "+data.length+" NSE trading days"):"No breadth data available";
 
   // Match the conditional-format thresholds and screenshot-sampled colours from the user sheet.
-  const cell=(v,cls)=>'<td class="breadth-'+cls+'">'+(v==null?"—":f2(v))+'</td>';
+  const cell=(v,cls,suffix="")=>'<td class="breadth-'+cls+'">'+(v==null?"—":f2(v)+suffix)+'</td>';
+  const dmaCell=(v,cls)=>cell(v,cls,"%");
   const dailyUp=v=>{const n=Number(v);return cell(v,!Number.isFinite(n)?"neutral":n<=35?"negative":n>=200?"positive-strong":n>=75?"mid":"neutral");};
   const dailyDown=v=>{const n=Number(v);return cell(v,!Number.isFinite(n)?"neutral":n<=35?"positive":n>=200?"negative-strong":n>=50?"negative":"neutral");};
   const ratioCell=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=0.75?"negative":n>2?"positive":"neutral");};
@@ -15,9 +16,9 @@ function renderMarketBreadth(){
   const monthDown25=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n>10?"positive":n<=18?"negative":"neutral");};
   const monthUp13=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=50?"positive":n>=100?"negative":"neutral");};
   const monthDown13=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<=35?"positive":n>=75?"negative":"neutral");};
-  const dma21=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<20?"negative":"neutral");};
-  const dma50=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<30?"negative":"neutral");};
-  const dma200=v=>{const n=Number(v);return cell(v,v==null||!Number.isFinite(n)?"neutral":n<50?"negative":n>=100?"positive-strong":"neutral");};
+  const dma21=v=>{const n=Number(v);return dmaCell(v,v==null||!Number.isFinite(n)?"neutral":n<20?"negative":"neutral");};
+  const dma50=v=>{const n=Number(v);return dmaCell(v,v==null||!Number.isFinite(n)?"neutral":n<30?"negative":"neutral");};
+  const dma200=v=>{const n=Number(v);return dmaCell(v,v==null||!Number.isFinite(n)?"neutral":n<50?"negative":n>=100?"positive-strong":"neutral");};
   const plainCell=v=>cell(v,"neutral");
   body.innerHTML=data.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
