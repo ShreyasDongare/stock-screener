@@ -23,6 +23,7 @@ Common filters requested for all four scans:
       31, 93, or 186 trading days
 """
 import json
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -1086,6 +1087,39 @@ def analyse_stock(
     return out
 
 
+def fetch_nifty50_history(start_date, end_date):
+    """Fetch daily NIFTY 50 closes from Yahoo Finance; return date -> close."""
+    try:
+        start = pd.Timestamp(start_date).normalize() - pd.Timedelta(days=7)
+        end = pd.Timestamp(end_date).normalize() + pd.Timedelta(days=2)
+        period1 = int(start.timestamp())
+        period2 = int(end.timestamp())
+        url = (
+            "https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEI"
+            f"?period1={period1}&period2={period2}&interval=1d"
+        )
+        request = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 WolfMomentumScreener/1.0"},
+        )
+        with urllib.request.urlopen(request, timeout=12) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        result = payload["chart"]["result"][0]
+        timestamps = result.get("timestamp", [])
+        closes = result["indicators"]["quote"][0].get("close", [])
+        history = {}
+        for stamp, close in zip(timestamps, closes):
+            if close is not None and np.isfinite(float(close)):
+                day = pd.to_datetime(stamp, unit="s", utc=True).tz_convert(
+                    "Asia/Kolkata"
+                ).strftime("%Y-%m-%d")
+                history[day] = float(close)
+        return history
+    except Exception as exc:
+        print(f"Warning: unable to fetch NIFTY 50 history: {exc}")
+        return {}
+
+
 def build_market_breadth(df):
     """Build an India-adapted Stockbee Market Monitor.
 
@@ -1277,6 +1311,21 @@ def build_market_breadth(df):
                 1,
             ) if universe else None,
         })
+
+    # Add the NIFTY 50 close and its change versus the previous trading session.
+    if rows:
+        nifty_history = fetch_nifty50_history(rows[0]["date"], rows[-1]["date"])
+        previous_close = None
+        for row in rows:
+            close = nifty_history.get(row["date"])
+            row["nifty50"] = round(close, 2) if close is not None else None
+            row["daily_return_pct"] = (
+                round((close / previous_close - 1) * 100, 2)
+                if close is not None and previous_close is not None and previous_close > 0
+                else None
+            )
+            if close is not None:
+                previous_close = close
 
     # 5D/10D ratios use rolling sums of the same +/-3% daily counts as the sheet.
     for i, row in enumerate(rows):
