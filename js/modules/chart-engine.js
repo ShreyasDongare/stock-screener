@@ -439,6 +439,7 @@ function bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume){
 }
 
 async function openChart(key,row){
+  CHART_TF="D";
   if(CHART_WATCH_MODE!=="colours") CHART_WATCH_MODE="scan";
   const requestId=++CHART_REQUEST_ID;
   CHART_ROW=row||CHART_ROW||{key,symbol:String(key||"").split(":").slice(1).join(":"),exch:String(key||"NSE:").split(":")[0]};
