@@ -108,6 +108,38 @@ let CHART_WATCH_TAGS={};
 let CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
 let CHART_WATCH_MODE="scan";
 
+function navigateChartStock(direction){
+  const currentKey=CHART_ROW ? chartRowKey(CHART_ROW) : CHART_WATCH_ACTIVE_KEY;
+  const items=CHART_WATCH_MODE==="colours" ? chartRows() : CHART_WATCH_ITEMS.length ? CHART_WATCH_ITEMS : chartWatchItems();
+  if(!items.length) return;
+  const index=items.findIndex(r=>chartRowKey(r)===currentKey);
+  if(index<0) return;
+  const nextIndex=index+direction;
+  if(nextIndex<0 || nextIndex>=items.length) return;
+  const next=items[nextIndex];
+  openChart(chartRowKey(next),next);
+}
+function bindMobileChartSwipe(host){
+  if(!host || host.dataset.swipeBound==="1") return;
+  host.dataset.swipeBound="1";
+  let startX=0,startY=0,startAt=0;
+  host.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1) return;
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    startAt=Date.now();
+  },{passive:true});
+  host.addEventListener("touchend",e=>{
+    if(!startAt || !e.changedTouches.length) return;
+    const dx=e.changedTouches[0].clientX-startX;
+    const dy=e.changedTouches[0].clientY-startY;
+    const elapsed=Date.now()-startAt;
+    startAt=0;
+    if(Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.25 || elapsed>800) return;
+    navigateChartStock(dx<0?1:-1);
+  },{passive:true});
+}
+
 function chartRowKey(r){
   return r?.key||((String(r?.exch||"NSE").toUpperCase())+":"+String(r?.symbol||""));
 }
@@ -508,6 +540,7 @@ async function openChart(key,row){
     }
   }
   const host=$("chartHost");
+  bindMobileChartSwipe(host);
 
   // The modal starts hidden (display:none). Create the chart only after the
   // modal is open and let Lightweight Charts observe the host size. This avoids
