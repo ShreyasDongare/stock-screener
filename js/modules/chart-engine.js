@@ -552,6 +552,30 @@ async function openChart(key,row){
   }
   LW=chart;
 
+  // Mobile: dragging directly on the right price axis scales the visible price range.
+  let axisTouchY=null;
+  host.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1) return;
+    const t=e.touches[0];
+    axisTouchY=(t.clientX-host.getBoundingClientRect().left)>=host.clientWidth-92?t.clientY:null;
+  },{passive:true});
+  host.addEventListener("touchmove",e=>{
+    if(axisTouchY===null||e.touches.length!==1||!LW||LW!==chart) return;
+    const t=e.touches[0], y=t.clientY, delta=y-axisTouchY;
+    axisTouchY=y;
+    try{
+      const ps=chart.priceScale("right"), range=ps.getVisibleRange();
+      if(!range||!Number.isFinite(range.from)||!Number.isFinite(range.to)||range.to<=range.from) return;
+      ps.setAutoScale(false);
+      const center=(range.from+range.to)/2;
+      const factor=Math.exp(delta*0.012);
+      const half=(range.to-range.from)*factor/2;
+      ps.setVisibleRange({from:center-half,to:center+half});
+    }catch(_){}
+  },{passive:true});
+  host.addEventListener("touchend",()=>{axisTouchY=null;},{passive:true});
+  host.addEventListener("touchcancel",()=>{axisTouchY=null;},{passive:true});
+
   try{
   // Use Lightweight Charts' native business-day format. The chart data is EOD
   // YYYY-MM-DD, which is the most reliable representation for NSE sessions.
