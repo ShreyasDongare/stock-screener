@@ -125,24 +125,9 @@ function navigateChartStock(direction){
   openChart(chartRowKey(next),next);
 }
 function bindMobileChartSwipe(host){
-  if(!host || host.dataset.swipeBound==="1") return;
-  host.dataset.swipeBound="1";
-  let startX=0,startY=0,startAt=0;
-  host.addEventListener("touchstart",e=>{
-    if(e.touches.length!==1) return;
-    startX=e.touches[0].clientX;
-    startY=e.touches[0].clientY;
-    startAt=Date.now();
-  },{passive:true});
-  host.addEventListener("touchend",e=>{
-    if(!startAt || !e.changedTouches.length) return;
-    const dx=e.changedTouches[0].clientX-startX;
-    const dy=e.changedTouches[0].clientY-startY;
-    const elapsed=Date.now()-startAt;
-    startAt=0;
-    if(Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.25 || elapsed>800) return;
-    navigateChartStock(dx<0?1:-1);
-  },{passive:true});
+  // Stock changes only via Previous/Next buttons; horizontal gestures stay within the chart.
+  if(!host) return;
+  host.style.touchAction="pan-x pan-y";
 }
 
 function chartRowKey(r){
