@@ -503,9 +503,16 @@ async function openChart(key,row){
   document.querySelectorAll("[data-chart-tf]").forEach(b=>b.classList.toggle("active",b.dataset.chartTf===CHART_TF));
   const statsEl=$("chartStats");
   if(statsEl){
+    const adrValues=[];
+    const adrLookback=Math.min(20,n);
+    for(let i=n-adrLookback;i<n;i++){
+      const hi=Number(d.high[i]),lo=Number(d.low[i]),cl=Number(d.close[i]);
+      if(Number.isFinite(hi)&&Number.isFinite(lo)&&Number.isFinite(cl)&&cl>0) adrValues.push((hi-lo)/cl*100);
+    }
+    const adr=adrValues.length?adrValues.reduce((a,b)=>a+b,0)/adrValues.length:NaN;
     statsEl.innerHTML=
-      '<span class="chart-stat-pill '+(dayPct>=0?"positive":"negative")+'">₹'+fmt(close)+'</span>'+
-      '<span class="chart-stat-pill '+(dayPct>=0?"positive":"negative")+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>';
+      '<span class="chart-stat-pill '+(dayPct>=0?"positive":"negative")+'">₹'+fmt(close)+' ('+(dayPct>=0?'+':'')+fmt(dayPct)+'%)</span>'+
+      '<span class="chart-stat-pill adr">ADR(20) '+fmt(adr)+'%</span>';
   }
 
   if(CHART_RESIZE_OBSERVER){try{CHART_RESIZE_OBSERVER.disconnect();}catch(_){} CHART_RESIZE_OBSERVER=null;}
@@ -557,6 +564,13 @@ async function openChart(key,row){
   if(!candles.length){showChartMessage("No valid candles found","Historical data could not be converted into chart candles for "+key+".",true);return;}
   candle.setData(candles);
 
+  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+  ema11.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema11[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
+  ema21.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema21[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
+  sma50.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.sma50[i]})).filter(x=>x.time&&Number.isFinite(x.value)&&x.value>0));
+
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
     priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
     color:ct.volume
@@ -566,15 +580,15 @@ async function openChart(key,row){
     time:chartDate(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
   })).filter(x=>x.time&&Number.isFinite(x.value)));
 
-  CHART_SERIES={candle,volume};
-  bindChartTooltip(chart,d,candle,null,null,null,volume);
+  CHART_SERIES={candle,ema11,ema21,sma50,volume};
+  bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume);
   }catch(err){
     console.error("Chart data/render failed",err);
     showChartMessage("Chart rendering failed",String(err?.message||"The history could not be drawn. Retry to try again."),true);
     return;
   }
 
-  // Setup text/marker intentionally hidden on the chart.
+  // EMA11, EMA21 and SMA50 are shown; other setup labels remain hidden.
 
 
   const resize=()=>{
