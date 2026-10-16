@@ -109,14 +109,19 @@ let CHART_WATCH_VIRTUAL={start:0,end:0,raf:0};
 let CHART_WATCH_MODE="scan";
 
 function navigateChartStock(direction){
-  const currentKey=CHART_ROW ? chartRowKey(CHART_ROW) : CHART_WATCH_ACTIVE_KEY;
-  const items=CHART_WATCH_MODE==="colours" ? chartRows() : chartWatchItems();
+  const items=CHART_WATCH_MODE==="colours" ? chartRows() : chartRows();
   if(!items.length) return;
-  const index=items.findIndex(r=>chartRowKey(r)===currentKey);
-  if(index<0) return;
+  const currentKey=CHART_ROW ? chartRowKey(CHART_ROW) : CHART_WATCH_ACTIVE_KEY;
+  let index=items.findIndex(r=>chartRowKey(r)===currentKey);
+  if(index<0 && CHART_ROW){
+    index=items.findIndex(r=>String(r.symbol||"").toUpperCase()===String(CHART_ROW.symbol||"").toUpperCase()
+      && String(r.exch||"NSE").toUpperCase()===String(CHART_ROW.exch||"NSE").toUpperCase());
+  }
+  if(index<0) index=0;
   const nextIndex=index+direction;
   if(nextIndex<0 || nextIndex>=items.length) return;
   const next=items[nextIndex];
+  CHART_WATCH_ACTIVE_KEY=chartRowKey(next);
   openChart(chartRowKey(next),next);
 }
 function bindMobileChartSwipe(host){
@@ -571,11 +576,18 @@ async function openChart(key,row){
   ema21.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema21[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
   sma50.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.sma50[i]})).filter(x=>x.time&&Number.isFinite(x.value)&&x.value>0));
 
+  // Put volume in a separate lower pane so the candles keep a useful aspect ratio.
+  let volumePaneIndex=1;
+  try{chart.addPane();}catch(_){volumePaneIndex=0;}
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
-    priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
-    color:ct.volume
+    priceFormat:{type:"volume"},pane:volumePaneIndex,priceScaleId:"volume",
+    lastValueVisible:false,priceLineVisible:false,color:ct.volume
   });
-  volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
+  if(volumePaneIndex===0){
+    volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
+  }else{
+    try{const panes=chart.panes();if(panes[1])panes[1].setHeight(Math.max(90,Math.min(130,Math.round(host.clientHeight*.19))));}catch(_){}
+  }
   volume.setData(d.dates.map((time,i)=>({
     time:chartDate(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
   })).filter(x=>x.time&&Number.isFinite(x.value)));
