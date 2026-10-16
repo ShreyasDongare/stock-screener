@@ -309,6 +309,36 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 }
 :root[data-theme="light"] .chart-nav-btn{border-color:#D0D8E0;background:#fff;color:#344454}
 :root[data-theme="light"] .chart-nav-btn:active{background:#E2ECF6}
+
+/* Full-viewport, clean daily chart: only stock navigation and close stay visible. */
+.chart-modal{inset:0!important;padding:0!important;align-items:stretch!important;justify-content:stretch!important}
+.chart-box{width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;display:flex!important;flex-direction:column!important}
+.chart-head{flex:0 0 44px!important;min-height:44px!important;height:44px!important;padding:5px 8px!important;gap:8px!important;flex-wrap:nowrap!important;background:#101820!important;border-bottom:1px solid #293542!important}
+.chart-title{flex:1 1 auto!important;min-width:0!important;max-width:none!important;font-size:14px!important;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart-meta{display:none!important}
+.chart-body{position:relative!important;display:flex!important;flex:1 1 auto!important;min-height:0!important;width:100%!important;height:auto!important;overflow:hidden!important;padding:0!important}
+.chart-host{position:relative!important;display:block!important;flex:1 1 auto!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;background:#0D131A!important}
+.chart-nav-btn{flex:0 0 36px!important;width:36px!important;height:36px!important;border:1px solid #344352!important;background:#151E27!important;color:#E7EDF4!important;border-radius:8px!important;font-size:25px!important;line-height:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;touch-action:manipulation}
+.chart-close{flex:0 0 36px!important;width:36px!important;height:36px!important;border:1px solid #344352!important;background:#151E27!important;color:#DDE6EF!important;border-radius:8px!important;font-size:23px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important}
+.chart-stats-overlay{position:absolute!important;z-index:5!important;top:7px!important;left:7px!important;max-width:calc(100% - 88px)!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:3px 9px!important;padding:4px 7px!important;border:1px solid rgba(74,96,116,.3)!important;border-radius:6px!important;background:rgba(13,19,26,.68)!important;backdrop-filter:blur(4px)!important;color:#26A69A!important;font:10px/1.4 var(--mono)!important;pointer-events:none!important}
+.chart-stats-overlay .chart-stat-pill{display:inline!important;font:inherit!important;white-space:nowrap!important}
+.chart-stats-overlay .chart-stat-pill b{font:inherit!important;color:inherit!important}
+.chart-stats-overlay .chart-stat-pill.positive,.chart-stats-overlay .chart-stat-pill.positive b{color:#26A69A!important}
+.chart-stats-overlay .chart-stat-pill.negative,.chart-stats-overlay .chart-stat-pill.negative b{color:#EF5350!important}
+.chart-stats-overlay .chart-stat-gap{display:none!important}
+:root[data-theme="light"] .chart-box{background:#fff!important}
+:root[data-theme="light"] .chart-head{background:#F7F9FB!important;border-color:#DCE2E8!important}
+:root[data-theme="light"] .chart-nav-btn,:root[data-theme="light"] .chart-close{border-color:#D0D8E0!important;background:#fff!important;color:#344454!important}
+@media(max-width:720px){
+  .chart-head{flex-basis:44px!important;height:44px!important;min-height:44px!important;padding:4px 7px!important;gap:7px!important}
+  .chart-title{font-size:14px!important;letter-spacing:.1px}
+  .chart-nav-btn,.chart-close{width:35px!important;height:35px!important;flex-basis:35px!important}
+  .chart-stats-overlay{top:5px!important;left:5px!important;max-width:calc(100% - 58px)!important;gap:2px 7px!important;padding:3px 5px!important;font-size:9px!important}
+}
+@media(max-height:520px){
+  .chart-head{flex-basis:38px!important;height:38px!important;min-height:38px!important;padding:2px 6px!important}
+  .chart-nav-btn,.chart-close{height:32px!important;width:32px!important;flex-basis:32px!important}
+}
 </style>
 </head>
 <body>
@@ -365,18 +395,9 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 </div>
 <div class="chart-modal" id="chartModal" role="dialog" aria-modal="true" aria-label="Stock chart">
   <div class="chart-box">
-    <div class="chart-head"><button class="chart-nav-btn" id="chartPrev" type="button" aria-label="Previous stock" title="Previous stock">‹</button><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta"></div><div class="chart-statsbar" id="chartStats" aria-live="polite"></div><button class="chart-nav-btn" id="chartNext" type="button" aria-label="Next stock" title="Next stock">›</button><button class="chart-nav-btn chart-list-toggle" id="chartListToggle" type="button" aria-label="Hide watchlist" title="Toggle watchlist">☷</button><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
+    <div class="chart-head"><button class="chart-nav-btn" id="chartPrev" type="button" aria-label="Previous stock" title="Previous stock">‹</button><div class="chart-title" id="chartTitle">Chart</div><div class="chart-meta" id="chartMeta" aria-hidden="true"></div><button class="chart-nav-btn" id="chartNext" type="button" aria-label="Next stock" title="Next stock">›</button><button class="chart-close" id="chartClose" aria-label="Close chart">✕</button></div>
     <div class="chart-body" id="chartBody"></div>
-    <div class="chart-toolrow">
-  <div class="chart-toolgroup">
-    <button class="indicator active" data-indicator="ema11">EMA11</button>
-    <button class="indicator active" data-indicator="ema21">EMA21</button>
-    <button class="indicator active" data-indicator="sma50">SMA50</button>
-    <button class="indicator active" data-indicator="volume">Volume</button>
-  </div>
-  <div class="chart-tf-group"><button class="chart-tf active" data-chart-tf="D">Daily</button><button class="chart-tf" data-chart-tf="W">Weekly</button></div><button id="chartReset">Reset</button><button id="chartFit">Fit</button><button id="chart120">120D</button><button id="chart60">60D</button><button id="chart30">30D</button><button id="chartFullscreen">⛶ Fullscreen</button>
-  <span class="hint">Scroll = zoom · Drag = pan · Crosshair OHLC shown bottom-right</span>
-</div><div class="chart-legend"><span>● <b>Price</b></span><span style="color:#58A6E6">━ EMA11</span><span style="color:#E7B84B">━ EMA21</span><span style="color:#B17DE6">━ SMA50</span><span>▮ Volume</span><span style="margin-left:auto">Scroll zoom · Drag pan · Crosshair price/time</span></div>
+
   </div>
 </div>
 <script src="js/modules/shared-utils.js"></script>
