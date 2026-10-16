@@ -9,7 +9,7 @@ on:
   schedule:
     - cron: "30 12 * * *"  # 6:00 PM IST
     - cron: "30 13 * * *"  # 7:00 PM IST
-    - cron: "30 14 * * *"  # 8:00 PM IST; retries later if bhavcopy was not ready
+    - cron: "30 14 * * *"  # 8:00 PM IST; retry if exchange bhavcopy is delayed
 
 concurrency:
   group: daily-stock-scanner
