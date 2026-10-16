@@ -313,22 +313,6 @@ function wire(){
 $("chartClose").addEventListener("click",closeChart);
 $("chartPrev")?.addEventListener("click",()=>navigateChartStock(-1));
 $("chartNext")?.addEventListener("click",()=>navigateChartStock(1));
-$("chartListToggle")?.addEventListener("click",()=>{
-  const box=document.querySelector(".chart-box");
-  if(!box) return;
-  const only=box.classList.toggle("chart-only");
-  const btn=$("chartListToggle");
-  if(btn){btn.setAttribute("aria-label",only?"Show watchlist":"Hide watchlist");btn.setAttribute("title",only?"Show watchlist":"Hide watchlist");btn.textContent=only?"☷":"☰";}
-  requestAnimationFrame(()=>{try{if(LW)LW.resize(Math.max(1,$("chartHost").clientWidth),Math.max(1,$("chartHost").clientHeight),true);}catch(_){}});
-});
-$("chartReset").addEventListener("click",()=>{if(LW&&CHART_ROW&&CHART[CHART_ROW.key]){const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+5});}});
-$("chartFit").addEventListener("click",()=>{if(LW){try{LW.timeScale().fitContent();}catch(_){} }});
-$("chartFullscreen").addEventListener("click",()=>{const box=document.querySelector(".chart-box");if(!document.fullscreenElement){box?.requestFullscreen?.();}else{document.exitFullscreen?.();}});
-function setChartWindow(days){if(!LW||!CHART_ROW||!CHART[CHART_ROW.key])return;const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-days),to:n+4});}
-$("chart120").addEventListener("click",()=>setChartWindow(120));
-$("chart60").addEventListener("click",()=>setChartWindow(60));
-$("chart30").addEventListener("click",()=>setChartWindow(30));
-
 $("watchlistOpen")?.addEventListener("click",()=>openColourWatchlist());
 
 $("formulaClose")?.addEventListener("click",closeFormulaPopover);
@@ -441,10 +425,7 @@ document.addEventListener("keydown",e=>{
   }
   if(e.key==="Home"){e.preventDefault(); const r=items[0]; openChart(chartRowKey(r),r);return;}
   if(e.key==="End"){e.preventDefault(); const r=items[items.length-1]; openChart(chartRowKey(r),r);return;}
-  if(e.key==="1"){e.preventDefault();setChartWindow(120);return;}
-  if(e.key==="2"){e.preventDefault();setChartWindow(60);return;}
-  if(e.key==="3"){e.preventDefault();setChartWindow(30);return;}
-  if(e.key.toLowerCase()==="f"){e.preventDefault();try{LW?.timeScale().fitContent();}catch(_){}}
+
 });
 
 
