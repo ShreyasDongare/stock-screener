@@ -600,17 +600,21 @@ async function openChart(key,row){
   ema21.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema21[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
   sma50.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.sma50[i]})).filter(x=>x.time&&Number.isFinite(x.value)&&x.value>0));
 
-  // Put volume in a separate lower pane so the candles keep a useful aspect ratio.
+  // Put volume in a separate lower pane. Lightweight Charts v5 takes pane index
+  // as the third addSeries argument; "pane" inside options is ignored.
   let volumePaneIndex=1;
   try{chart.addPane();}catch(_){volumePaneIndex=0;}
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
-    priceFormat:{type:"volume"},pane:volumePaneIndex,priceScaleId:"volume",
+    priceFormat:{type:"volume"},priceScaleId:"volume",
     lastValueVisible:false,priceLineVisible:false,color:ct.volume
-  });
+  },volumePaneIndex);
   if(volumePaneIndex===0){
     volume.priceScale().applyOptions({scaleMargins:{top:.83,bottom:0},borderVisible:false});
   }else{
-    try{const panes=chart.panes();if(panes[1])panes[1].setHeight(Math.max(90,Math.min(130,Math.round(host.clientHeight*.19))));}catch(_){}
+    try{
+      const panes=chart.panes();
+      if(panes[1]) panes[1].setHeight(Math.max(90,Math.min(130,Math.round(host.clientHeight*.19))));
+    }catch(_){}
   }
   volume.setData(d.dates.map((time,i)=>({
     time:chartDate(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
