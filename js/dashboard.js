@@ -311,6 +311,16 @@ function wire(){
 }
 
 $("chartClose").addEventListener("click",closeChart);
+$("chartPrev")?.addEventListener("click",()=>navigateChartStock(-1));
+$("chartNext")?.addEventListener("click",()=>navigateChartStock(1));
+$("chartListToggle")?.addEventListener("click",()=>{
+  const box=document.querySelector(".chart-box");
+  if(!box) return;
+  const only=box.classList.toggle("chart-only");
+  const btn=$("chartListToggle");
+  if(btn){btn.setAttribute("aria-label",only?"Show watchlist":"Hide watchlist");btn.setAttribute("title",only?"Show watchlist":"Hide watchlist");btn.textContent=only?"☷":"☰";}
+  requestAnimationFrame(()=>{try{if(LW)LW.resize(Math.max(1,$("chartHost").clientWidth),Math.max(1,$("chartHost").clientHeight),true);}catch(_){}});
+});
 $("chartReset").addEventListener("click",()=>{if(LW&&CHART_ROW&&CHART[CHART_ROW.key]){const n=CHART[CHART_ROW.key].dates.length;LW.timeScale().setVisibleLogicalRange({from:Math.max(0,n-120),to:n+5});}});
 $("chartFit").addEventListener("click",()=>{if(LW){try{LW.timeScale().fitContent();}catch(_){} }});
 $("chartFullscreen").addEventListener("click",()=>{const box=document.querySelector(".chart-box");if(!document.fullscreenElement){box?.requestFullscreen?.();}else{document.exitFullscreen?.();}});
