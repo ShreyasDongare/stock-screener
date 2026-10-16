@@ -110,7 +110,7 @@ let CHART_WATCH_MODE="scan";
 
 function navigateChartStock(direction){
   const currentKey=CHART_ROW ? chartRowKey(CHART_ROW) : CHART_WATCH_ACTIVE_KEY;
-  const items=CHART_WATCH_MODE==="colours" ? chartRows() : CHART_WATCH_ITEMS.length ? CHART_WATCH_ITEMS : chartWatchItems();
+  const items=CHART_WATCH_MODE==="colours" ? chartRows() : chartWatchItems();
   if(!items.length) return;
   const index=items.findIndex(r=>chartRowKey(r)===currentKey);
   if(index<0) return;
@@ -500,45 +500,20 @@ async function openChart(key,row){
   $("chartTitle").textContent=d.exch+":"+d.symbol;
   $("chartMeta").textContent=d.dates[0]+" → "+d.dates[last]+" · "+n+" "+(CHART_TF==="W"?"weeks":"sessions")+" · "+(CHART_TF==="W"?"Weekly":"EOD");
   document.querySelectorAll("[data-chart-tf]").forEach(b=>b.classList.toggle("active",b.dataset.chartTf===CHART_TF));
-  $("chartStats").innerHTML=
-    '<span style="color:'+ct.text+'">₹'+fmt(close)+'</span>'+
-    '<span style="color:'+(dayPct>=0?ct.up:ct.down)+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>'+
-    (Number.isFinite(row?.adx)?'<span style="color:'+ct.text+'">ADX '+fmt(Number(row.adx))+'</span>':'')+
-    (row?.setup?'<span style="color:'+ct.ema11+'">'+esc(row.setup)+'</span>':'')+
-    '';
+  const statsEl=$("chartStats");
+  if(statsEl){
+    statsEl.innerHTML=
+      '<span class="chart-stat-pill '+(dayPct>=0?"positive":"negative")+'">₹'+fmt(close)+'</span>'+
+      '<span class="chart-stat-pill '+(dayPct>=0?"positive":"negative")+'">'+(dayPct>=0?'+':'')+fmt(dayPct)+'%</span>';
+  }
 
-  // Save the existing watchlist position before rebuilding chartBody. This is the
-  // important part: openChart() replaces the DOM, so reading scrollTop after that
-  // replacement would always return 0 and make the list jump to the top.
-  const oldWatchlist=$("chartWatchScroll");
-  CHART_WATCH_SCROLL_TOP=oldWatchlist ? oldWatchlist.scrollTop : null;
   if(CHART_RESIZE_OBSERVER){try{CHART_RESIZE_OBSERVER.disconnect();}catch(_){} CHART_RESIZE_OBSERVER=null;}
   if(LW){try{LW.remove();}catch(_){} LW=null;}
   CHART_SERIES={};
   const body=$("chartBody");
-  const watchlistExists=!!$("chartWatchlist");
-  if(!watchlistExists){
-    body.innerHTML='<aside class="chart-watchlist" id="chartWatchlist"></aside><div class="chart-host" id="chartHost"></div>';
-    CHART_WATCH_RENDERED_MODE="";
-  }else{
-    const oldHost=$("chartHost");
-    if(oldHost) oldHost.replaceChildren();
-  }
+  CHART_WATCH_ITEMS=CHART_WATCH_MODE==="colours" ? chartRows() : chartWatchItems();
+  body.innerHTML='<div class="chart-host" id="chartHost"></div><div class="chart-statsbar chart-stats-overlay" id="chartStats" aria-live="polite"></div>';
   $("chartModal").classList.add("open");
-  if(!watchlistExists || CHART_WATCH_RENDERED_MODE!==CHART_WATCH_MODE){
-    try{renderChartWatchlist(key);CHART_WATCH_RENDERED_MODE=CHART_WATCH_MODE;}
-    catch(err){console.error("Watchlist render failed",err);renderChartWatchlistFallback(key);CHART_WATCH_RENDERED_MODE=CHART_WATCH_MODE;}
-  }else{
-    CHART_WATCH_ACTIVE_KEY=key;
-    // Update the active row on every chart/arrow-key navigation. The list is
-    // virtualized, so scroll the selected stock into view and redraw visible rows.
-    if(CHART_WATCH_MODE==="colours"){
-      document.querySelectorAll("#chartWatchlist [data-watch-key]").forEach(el=>el.classList.toggle("active",el.dataset.watchKey===key));
-    }else{
-      ensureChartWatchActiveVisible();
-      updateChartWatchVirtual(true);
-    }
-  }
   const host=$("chartHost");
   bindMobileChartSwipe(host);
 
@@ -581,13 +556,6 @@ async function openChart(key,row){
   if(!candles.length){showChartMessage("No valid candles found","Historical data could not be converted into chart candles for "+key+".",true);return;}
   candle.setData(candles);
 
-  const ema11=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema11,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
-  const ema21=chart.addSeries(LightweightCharts.LineSeries,{color:ct.ema21,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
-  const sma50=chart.addSeries(LightweightCharts.LineSeries,{color:ct.sma50,lineWidth:1,lastValueVisible:false,priceLineVisible:false});
-  ema11.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema11[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
-  ema21.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.ema21[i]})).filter(x=>x.time&&Number.isFinite(x.value)));
-  sma50.setData(d.dates.map((time,i)=>({time:chartDate(time),value:+d.sma50[i]})).filter(x=>x.time&&Number.isFinite(x.value) && x.value>0));
-
   const volume=chart.addSeries(LightweightCharts.HistogramSeries,{
     priceFormat:{type:"volume"},priceScaleId:"volume",lastValueVisible:false,priceLineVisible:false,
     color:ct.volume
@@ -597,8 +565,8 @@ async function openChart(key,row){
     time:chartDate(time),value:+d.volume[i],color:+d.close[i]>=+d.open[i]?ct.up:ct.down
   })).filter(x=>x.time&&Number.isFinite(x.value)));
 
-  CHART_SERIES={candle,ema11,ema21,sma50,volume};
-  bindChartTooltip(chart,d,candle,ema11,ema21,sma50,volume);
+  CHART_SERIES={candle,volume};
+  bindChartTooltip(chart,d,candle,null,null,null,volume);
   }catch(err){
     console.error("Chart data/render failed",err);
     showChartMessage("Chart rendering failed",String(err?.message||"The history could not be drawn. Retry to try again."),true);
