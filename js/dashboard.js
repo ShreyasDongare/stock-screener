@@ -313,6 +313,8 @@ function wire(){
 $("chartClose").addEventListener("click",closeChart);
 $("chartPrev")?.addEventListener("click",()=>navigateChartStock(-1));
 $("chartNext")?.addEventListener("click",()=>navigateChartStock(1));
+$("chartPrevBottom")?.addEventListener("click",()=>navigateChartStock(-1));
+$("chartNextBottom")?.addEventListener("click",()=>navigateChartStock(1));
 $("watchlistOpen")?.addEventListener("click",()=>openColourWatchlist());
 
 $("formulaClose")?.addEventListener("click",closeFormulaPopover);
