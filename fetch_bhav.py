@@ -120,6 +120,11 @@ def main():
     ap.add_argument("--days", type=int, default=420)
     ap.add_argument("--start")
     ap.add_argument("--only", choices=["nse", "bse"])
+    ap.add_argument(
+        "--no-prune",
+        action="store_true",
+        help="Do not delete older cached raw files after fetching.",
+    )
     a = ap.parse_args()
 
     end = date.today()
@@ -156,8 +161,11 @@ def main():
 
     # When --start is supplied, retain the complete range through today.
     # This is important for historical breadth calculations and their DMA warm-up.
-    retention_days = (end - start).days + 1
-    prune_old_files(end, retention_days, exchanges)
+    if a.no_prune:
+        print("Skipping raw-file pruning (--no-prune).")
+    else:
+        retention_days = (end - start).days + 1
+        prune_old_files(end, retention_days, exchanges)
 
     print("\n--- Summary ---")
     for e in exchanges:
