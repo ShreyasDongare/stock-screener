@@ -21,6 +21,8 @@ RAW = Path("data/raw")
 SOURCES = {
     "nse": [
         "https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{ymd}_F_0000.csv.zip",
+        # Legacy NSE bhavcopy format used before the UDiFF transition in 2024.
+        "https://archives.nseindia.com/content/historical/EQUITIES/{year}/{mon}/cm{dd}{mon}{yyyy}bhav.csv.zip",
     ],
     "bse": [
         # Newer UDiFF-style name (NOT yet verified, tell me if it fails)
@@ -61,7 +63,14 @@ def to_csv_bytes(content):
 
 def fetch_day(s, exch, d):
     for tpl in SOURCES[exch]:
-        url = tpl.format(ymd=d.strftime("%Y%m%d"), dmy=d.strftime("%d%m%y"))
+        url = tpl.format(
+            ymd=d.strftime("%Y%m%d"),
+            dmy=d.strftime("%d%m%y"),
+            year=d.strftime("%Y"),
+            mon=d.strftime("%b").upper(),
+            dd=d.strftime("%d"),
+            yyyy=d.strftime("%Y"),
+        )
         for attempt in range(3):
             try:
                 r = s.get(url, timeout=30)
@@ -80,12 +89,12 @@ def fetch_day(s, exch, d):
     return None, None
 
 
-def prune_old_files(end, days):
-    """Keep only the requested rolling calendar-day window of raw files."""
+def prune_old_files(end, days, exchanges=None):
+    """Keep the requested calendar-day window, only pruning selected exchanges."""
     cutoff = end - timedelta(days=days - 1)
     removed = 0
 
-    for exch in ("nse", "bse"):
+    for exch in (exchanges or ("nse", "bse")):
         folder = RAW / exch
         if not folder.exists():
             continue
@@ -145,7 +154,10 @@ def main():
                 time.sleep(random.uniform(1.0, 2.0))
         d += timedelta(days=1)
 
-    prune_old_files(end, a.days)
+    # When --start is supplied, retain the complete range through today.
+    # This is important for historical breadth calculations and their DMA warm-up.
+    retention_days = (end - start).days + 1
+    prune_old_files(end, retention_days, exchanges)
 
     print("\n--- Summary ---")
     for e in exchanges:
