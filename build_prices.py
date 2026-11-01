@@ -44,9 +44,48 @@ def load(exch, keep_series):
     frames = []
     for f in sorted((RAW / exch).glob("*.csv")):
         try:
-            frames.append(pd.read_csv(f, usecols=USE))
+            raw = pd.read_csv(f)
+            raw.columns = [str(c).strip() for c in raw.columns]
+
+            # Current UDiFF bhavcopy schema.
+            if set(USE).issubset(raw.columns):
+                frame = raw[USE].copy()
+            # NSE's pre-UDiFF historical files use the legacy bhavcopy schema.
+            elif exch.lower() == "nse":
+                legacy = {
+                    "TIMESTAMP": "TradDt",
+                    "ISIN": "ISIN",
+                    "SYMBOL": "TckrSymb",
+                    "SERIES": "SctySrs",
+                    "OPEN": "OpnPric",
+                    "HIGH": "HghPric",
+                    "LOW": "LwPric",
+                    "CLOSE": "ClsPric",
+                    "PREVCLOSE": "PrvsClsgPric",
+                    "TOTTRDQTY": "TtlTradgVol",
+                    "TOTTRDVAL": "TtlTrfVal",
+                }
+                normalized = {str(c).strip().upper(): c for c in raw.columns}
+                missing_legacy = sorted(set(legacy) - set(normalized))
+                if missing_legacy:
+                    raise ValueError(
+                        "unrecognized legacy NSE columns: " + ", ".join(missing_legacy)
+                    )
+                frame = raw.rename(
+                    columns={normalized[k]: v for k, v in legacy.items()}
+                )
+                frame["FinInstrmNm"] = frame["TckrSymb"]
+                frame = frame[USE].copy()
+            else:
+                raise ValueError("unrecognized bhavcopy column schema")
+
+            frames.append(frame)
         except Exception as e:
             print(f"skipping unreadable file {f.name}: {e}")
+
+    if not frames:
+        raise ValueError(f"No readable {exch.upper()} bhavcopy files found in {RAW / exch}")
+
     df = pd.concat(frames, ignore_index=True).rename(columns=NAMES)
     df["exch"] = exch.upper()
     for c in ("series", "isin", "symbol"):
