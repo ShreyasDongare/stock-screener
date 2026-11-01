@@ -61,7 +61,7 @@ jobs:
             fi
             echo "Today's exchange file not available yet (attempt ${attempt}/4); retrying in 3 minutes."
             sleep 180
-            python fetch_bhav.py --days 2
+            python fetch_bhav.py --days 2 --no-prune
           done
           echo "Raw files for today:"
           ls -lh "data/raw/nse/${TODAY}.csv" "data/raw/bse/${TODAY}.csv" 2>/dev/null || true
