@@ -1,10 +1,36 @@
+const MARKET_BREADTH_YEARS = ["2023", "2024", "2025", "2026"];
+let activeBreadthYear = "2026";
+
 function renderMarketBreadth(){
-  const body=$("breadthBody"), sub=$("breadthSub"); if(!body) return;
+  const body=$("breadthBody"), sub=$("breadthSub"), tabs=$("breadthYearTabs");
+  if(!body) return;
+
   const data=Array.isArray(D?.market_breadth)?D.market_breadth:[];
   const stockCount=Number(D?.config?.breadth?.stock_list_count)||0;
-  sub.textContent=data.length?(stockCount.toLocaleString("en-IN")+" stocks in universe • "+data.length+" NSE trading days"):"No breadth data available";
 
-  // Match the conditional-format thresholds and screenshot-sampled colours from the user sheet.
+  if(tabs){
+    tabs.innerHTML=MARKET_BREADTH_YEARS.map(year =>
+      '<button type="button" class="breadth-year-tab" role="tab" data-breadth-year="'+year+
+      '" aria-selected="'+(year===activeBreadthYear?'true':'false')+'">'+year+'</button>'
+    ).join("");
+    tabs.querySelectorAll("[data-breadth-year]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        const nextYear=button.getAttribute("data-breadth-year");
+        if(!MARKET_BREADTH_YEARS.includes(nextYear)) return;
+        activeBreadthYear=nextYear;
+        renderMarketBreadth();
+      });
+    });
+  }
+
+  const yearRows=data.filter(r=>String(r.date||"").slice(0,4)===activeBreadthYear);
+  if(sub){
+    sub.textContent=yearRows.length
+      ? stockCount.toLocaleString("en-IN")+" stocks in universe • "+activeBreadthYear+" • "+yearRows.length+" NSE trading days"
+      : "No market breadth data available for "+activeBreadthYear;
+  }
+
+  // Keep the existing conditional-format thresholds and table columns unchanged.
   const cell=(v,cls,suffix="")=>'<td class="breadth-'+cls+'">'+(v==null?"—":f2(v)+suffix)+'</td>';
   const dmaCell=(v,cls)=>cell(v,cls,"%");
   const dailyUp=v=>{const n=Number(v);return cell(v,!Number.isFinite(n)?"neutral":n<=35?"negative":n>=200?"positive-strong":n>=75?"mid":"neutral");};
@@ -20,7 +46,8 @@ function renderMarketBreadth(){
   const dma50=v=>{const n=Number(v);return dmaCell(v,v==null||!Number.isFinite(n)?"neutral":n<30?"negative":"neutral");};
   const dma200=v=>{const n=Number(v);return dmaCell(v,v==null||!Number.isFinite(n)?"neutral":n<50?"negative":n>=100?"positive-strong":"neutral");};
   const plainCell=v=>cell(v,"neutral");
-  body.innerHTML=data.slice().reverse().map(r=>{
+
+  body.innerHTML=yearRows.slice().reverse().map(r=>{
     return '<tr><td class="l">'+esc(r.date)+'</td>'+
       dailyUp(r.up3)+dailyDown(r.down3)+
       ratioCell(r.ratio5)+ratioCell(r.ratio10)+
@@ -30,7 +57,13 @@ function renderMarketBreadth(){
       dma21(r.above21)+dma50(r.above50)+dma200(r.above200)+
       plainCell(r.nifty50)+plainCell(r.daily_return_pct)+
       '</tr>';
-  }).join("") || '<tr><td colspan="16" class="empty">No market breadth data available.</td></tr>';
+  }).join("") || '<tr><td colspan="16" class="empty">No market breadth data available for '+activeBreadthYear+'.</td></tr>';
 }
-function openMarketBreadth(){ renderMarketBreadth(); $("breadthModal")?.classList.add("open"); }
-function closeMarketBreadth(){ $("breadthModal")?.classList.remove("open"); }
+
+function openMarketBreadth(){
+  renderMarketBreadth();
+  $("breadthModal")?.classList.add("open");
+}
+function closeMarketBreadth(){
+  $("breadthModal")?.classList.remove("open");
+}
