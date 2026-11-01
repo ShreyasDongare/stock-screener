@@ -45,7 +45,10 @@ jobs:
 
       - name: Download missing market data
         run: |
-          python fetch_bhav.py --days 420
+          # Keep NSE history from 2022 for 2023 breadth and 200-DMA warm-up.
+          # BSE remains on the existing 420-day window; breadth is NSE-only.
+          python fetch_bhav.py --start 2022-01-01 --only nse
+          python fetch_bhav.py --days 420 --only bse
 
       - name: Retry today's exchange files if not published on first pass
         shell: bash
@@ -58,7 +61,7 @@ jobs:
             fi
             echo "Today's exchange file not available yet (attempt ${attempt}/4); retrying in 3 minutes."
             sleep 180
-            python fetch_bhav.py --days 2
+            python fetch_bhav.py --days 2 --no-prune
           done
           echo "Raw files for today:"
           ls -lh "data/raw/nse/${TODAY}.csv" "data/raw/bse/${TODAY}.csv" 2>/dev/null || true

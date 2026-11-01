@@ -245,6 +245,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 
 /* Mobile-first dashboard + modal layout */
 @media(max-width:720px){
+.breadth-head{gap:7px;padding:11px 10px;flex-wrap:wrap}.breadth-title{font-size:15px}.breadth-sub{order:3;flex:1 0 100%;font-size:9px}.breadth-year-tabs{padding:8px 10px;gap:6px}.breadth-year-tab{min-width:66px;padding:7px 11px;font-size:10px}
 body{font-size:13px}.top{position:sticky;top:0;z-index:10}.in{padding:13px 0;gap:10px}h1{font-size:19px}.sub{font-size:9px;max-width:62vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.status{display:none}.ic{width:34px;height:34px;flex:0 0 34px}
 main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{display:flex;flex-direction:column;gap:10px;overflow:visible}.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tab{min-height:68px;padding:11px 12px;border-radius:11px}.tab b{font-size:21px}.tab span{font-size:10.5px;line-height:1.25}.tab[aria-selected="true"]::after{left:12px;right:12px;top:auto;bottom:0;width:auto;height:2px}.copy-all,.watchlist-open{margin-top:0;padding:10px 11px;border-radius:10px;font-size:11px}.panel{min-height:0;height:auto;border-radius:11px}
 .tools{padding:9px;gap:7px}.tools .grp{width:100%}input[type=search]{width:100%;height:38px;font-size:13px}.desc{font-size:11px;line-height:1.35;padding:8px 10px}.wrap{width:100%;max-height:none;overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-gutter:auto}table{min-width:860px}th,td{padding:8px 9px;font-size:11px}thead th{font-size:10px}th button{padding:9px}.foot{font-size:10px;padding:7px 9px}
@@ -255,7 +256,12 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 @media(max-width:720px) and (orientation:landscape){.chart-watchlist{height:38dvh;min-height:135px;max-height:190px}.chart-head{min-height:46px}}
 
 .market-breadth-open{border:1px solid #3A4856;background:rgba(255,255,255,.05);color:#E8EEF5;border-radius:8px;padding:8px 12px;font:600 11px var(--sans);cursor:pointer;transition:.2s}.market-breadth-open:hover{background:rgba(255,255,255,.11);border-color:#526273;transform:translateY(-1px)}
-.breadth-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.breadth-modal.open{display:flex}.breadth-box{width:min(1500px,96vw);height:min(820px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 28px 100px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden}.breadth-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.breadth-title{font:600 17px var(--sans)}.breadth-sub{color:var(--mute);font:10px var(--mono)}.breadth-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.breadth-close:hover{color:var(--ink);border-color:var(--acc)}.breadth-wrap{flex:1;overflow:auto}.breadth-table{min-width:1120px}.breadth-table th,.breadth-table td{padding:7px 10px}.breadth-table thead th{position:sticky;top:0;z-index:3;background:var(--panel);font-size:10px;text-align:right;white-space:normal;line-height:1.25}.breadth-table thead th:first-child,.breadth-table tbody td:first-child{text-align:left;left:0;z-index:4}.breadth-table tbody td{font-size:11px}.breadth-up,.breadth-down{color:#000}.breadth-neutral{background:transparent;color:var(--ink)}.breadth-positive{background:#B6E0CC;color:#000}.breadth-positive-strong{background:#2F4A1E;color:#fff}.breadth-negative{background:#F9CECB;color:#000}.breadth-negative-strong{background:#FF0000;color:#fff}.breadth-mid{background:#B5DACA;color:#000}
+.breadth-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,12,20,.62);backdrop-filter:blur(6px)}.breadth-modal.open{display:flex}.breadth-box{width:min(1500px,96vw);height:min(820px,92vh);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 28px 100px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden}.breadth-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.breadth-title{font:600 17px var(--sans)}.breadth-sub{color:var(--mute);font:10px var(--mono)}.breadth-close{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:7px;padding:5px 9px;cursor:pointer}.breadth-close:hover{color:var(--ink);border-color:var(--acc)}
+.breadth-year-tabs{display:flex;gap:7px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 94%,var(--bg));overflow-x:auto;flex:0 0 auto;scrollbar-width:thin}
+.breadth-year-tab{min-width:76px;padding:7px 15px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--mute);font:600 11px var(--mono);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.breadth-year-tab:hover{border-color:var(--acc);color:var(--ink)}
+.breadth-year-tab[aria-selected="true"]{background:var(--accbg);border-color:var(--acc);color:var(--acc)}
+.breadth-wrap{flex:1;overflow:auto}.breadth-table{min-width:1120px}.breadth-table th,.breadth-table td{padding:7px 10px}.breadth-table thead th{position:sticky;top:0;z-index:3;background:var(--panel);font-size:10px;text-align:right;white-space:normal;line-height:1.25}.breadth-table thead th:first-child,.breadth-table tbody td:first-child{text-align:left;left:0;z-index:4}.breadth-table tbody td{font-size:11px}.breadth-up,.breadth-down{color:#000}.breadth-neutral{background:transparent;color:var(--ink)}.breadth-positive{background:#B6E0CC;color:#000}.breadth-positive-strong{background:#2F4A1E;color:#fff}.breadth-negative{background:#F9CECB;color:#000}.breadth-negative-strong{background:#FF0000;color:#fff}.breadth-mid{background:#B5DACA;color:#000}
 
 .chart-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:260px;height:100%;padding:28px;text-align:center;color:var(--ink);background:var(--panel)}
 .chart-state-icon{font-size:34px;line-height:1;color:var(--acc);margin-bottom:12px}
@@ -399,6 +405,7 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 <div class="breadth-modal" id="breadthModal" role="dialog" aria-modal="true" aria-label="Market Breadth">
   <div class="breadth-box">
     <div class="breadth-head"><div class="breadth-title">Market Breadth</div><div class="breadth-sub" id="breadthSub">Daily market breadth history</div><button class="breadth-close" id="breadthClose" type="button">✕</button></div>
+    <div class="breadth-year-tabs" id="breadthYearTabs" role="tablist" aria-label="Market breadth year"></div>
     <div class="breadth-wrap"><table class="breadth-table"><thead>
       <tr>
         <th rowspan="2">Date</th>
@@ -434,7 +441,7 @@ main{padding:12px 0 18px}.section-kicker{margin:0 1px 8px}.dashboard-grid{displa
 </div>
 <script src="js/modules/shared-utils.js?v=20261016b"></script>
 <script src="js/modules/chart-engine.js?v=20261016b"></script>
-<script src="js/modules/market-breadth.js?v=20261016b"></script>
+<script src="js/modules/market-breadth.js?v=20261101a"></script>
 <script src="js/modules/scanner-tables.js?v=20261016b"></script>
 <script src="js/dashboard.js?v=20261016b"></script>
 
