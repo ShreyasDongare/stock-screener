@@ -12,6 +12,7 @@ in our cleaning logic never needs a re-download.
 import argparse, io, random, sys, time, zipfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -127,7 +128,7 @@ def main():
     )
     a = ap.parse_args()
 
-    end = date.today()
+    end = datetime.now(ZoneInfo("Asia/Kolkata")).date()
     start = datetime.strptime(a.start, "%Y-%m-%d").date() if a.start else end - timedelta(days=a.days - 1)
     exchanges = [a.only] if a.only else ["nse", "bse"]
     for e in exchanges:
