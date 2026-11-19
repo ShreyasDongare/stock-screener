@@ -50,16 +50,16 @@ jobs:
           python fetch_bhav.py --start 2022-01-01 --only nse
           python fetch_bhav.py --days 420 --only bse
 
-      - name: Retry today's exchange files if not published on first pass
+      - name: Retry today's NSE files if not published on first pass
         shell: bash
         run: |
-          TODAY="$(date -u +%Y%m%d)"
+          TODAY="$(TZ=Asia/Kolkata date +%Y%m%d)"
           for attempt in 1 2 3 4; do
-            if [ -s "data/raw/nse/${TODAY}.csv" ] || [ -s "data/raw/bse/${TODAY}.csv" ]; then
-              echo "Today's exchange file found."
+            if [ -s "data/raw/nse/${TODAY}.csv" ]; then
+              echo "Today's NSE file found."
               break
             fi
-            echo "Today's exchange file not available yet (attempt ${attempt}/4); retrying in 3 minutes."
+            echo "Today's NSE file not available yet (attempt ${attempt}/4); retrying in 3 minutes."
             sleep 180
             python fetch_bhav.py --days 2 --no-prune
           done
